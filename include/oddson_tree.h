@@ -24,6 +24,9 @@ THE SOFTWARE.
 #define ODDSON_TREE_H_
 
 #include "kdtree.h"
+
+#include <algorithm>
+#include <cstdio>
 #include <vector>
 
 /*
@@ -39,201 +42,148 @@ template<class Point> class OddsonTree {
 public:
 
     struct CachedPoint : Point { 
-        bool terminal;
+        size_t dim;
         Point *nn;
+        Point a, b;
 
-        CachedPoint() : terminal(false), nn(0)
+        CachedPoint(size_t dim) : nn(0), dim(dim)
         { 
+        }
+
+        bool contains(const Point &pt)
+        {
+            //printf("a: (%d %d) b: (%d %d) pt: (%d %d)\n", a[0], a[1], b[0], b[1], pt[0], pt[1]);
+
+            bool result = true; 
+            int dim = 2;
+
+            for (size_t d = 0; d < dim; ++d) { 
+                if (!((a[d] < pt[d] && pt[d] < b[d]) || 
+                      (b[d] < pt[d] && pt[d] < a[d]))) { 
+                        result = false; 
+                        break; 
+                } 
+            }
+
+            return result;
         }
     };
 
-    OddsonTree(size_t dim, Point *pts, size_t n, Point (*distfn)(), size_t m) : dim(dim)
+    OddsonTree(size_t dim, Point *pts, size_t n, Point (*distfn)(), size_t m) : dim(dim), comp(dim)
     {
 
         backup = new KdTree<Point>(dim, pts, n);
 
-        //track range covered by sample
-        range = new double[2*dim]; 
-        for (size_t d = 0; d < dim; ++d) {
-            range[d*2] = std::numeric_limits<double>::max();
-            range[d*2+1] = -std::numeric_limits<double>::max();
+        //generate sample points 
+        Point *sample = new Point[m]; 
+        for (size_t i = 0; i < m; ++i) { 
+            sample[i] = distfn(); 
+        } 
+
+        std::sort(&sample[0], &sample[m], comp); 
+
+        int n3 = 0; 
+        int n4 = 0; 
+        int n5ormore = 0;
+
+        int total_useful = 0; 
+
+        cache.reserve(m/10); 
+
+        Point *last_nn = 0; 
+        int run = 0;
+
+        for (size_t i = 0; i < m; ++i) { 
+            std::vector<std::pair<Point *, int> > result = backup->knn(1, sample[i], 0.0); 
+            Point *nn = result.back().first; 
+
+            if (nn) { 
+                if (nn == last_nn) { 
+                    ++run; 
+                } else { 
+                    if (run >= 4) {         
+                        total_useful += run; 
+
+                        CachedPoint pt(dim); 
+                        pt.nn = last_nn; 
+                        pt.a = sample[i - run - 1]; 
+                        pt.b = sample[i - 1]; 
+
+                        for (size_t d = 0; d < dim; ++d) { 
+                            pt[d] = sample[i][d]; 
+                        }
+
+                        cache.push_back(pt); 
+                    } 
+
+                    run = 0; 
+                } 
+            } 
+
+            last_nn = nn; 
         }
 
-        //generate sample points
-        CachedPoint *sample = new CachedPoint[m];
-        for (size_t i = 0; i < m; ++i) {
-            Point pt = distfn();
+        fprintf(stderr, "total terminal: %d of %d percent: %0.2f cache size: %d\n", total_useful, m, (double)total_useful/(double)m, cache.size());
 
-            //find nearest neighbour
-            std::vector<std::pair<Point *, double> > result = backup->knn(1, pt, 0.0); 
-            //sample[i].nn = result.back().first; 
-
-            //copy into cached point
-            for (size_t d = 0; d < dim; ++d) {
-                sample[i][d] = pt[d];
-                if (pt[d] < range[d*2]) range[d*2] = pt[d];
-                if (pt[d] > range[d*2+1]) range[d*2+1] = pt[d];
-            }
-
-        }
-
-        //build kdtree for cache
-        cache = new KdTree<CachedPoint>(dim, sample, m); 
-
-        //and trim nodes
-        trim(cache->root, range, 1);
-
-        //FIXME: delete sample?
+        delete[] sample;
     }
 
     virtual ~OddsonTree()
     {
-        delete[] range;
         delete backup;
-        delete cache;
     }
 
-    std::vector<std::pair<Point *, double> > knn(size_t k, const Point &pt, double eps) 
+    std::vector<std::pair<Point *, int> > knn(size_t k, const Point &pt, double eps) 
     {
-        std::vector<std::pair<Point *, double> > result;
 
-        //check cache
-        CachedPoint cpt;
+        std::vector<std::pair<Point *, int> > result; 
 
-        bool in_cache = true;
-        for (size_t i = 0; i < dim; ++i) {
-            if (pt[i] < range[2*i] || pt[i] > range[2*i+1]) {
-                in_cache = false;
-                break;
-            }
+        //check cache 
+        bool in_cache = false; 
 
-            cpt[i] = pt[i];
-        }
+        typename std::vector<CachedPoint>::iterator cpt = std::upper_bound(cache.begin(), cache.end(), pt, comp);
 
-        if (in_cache) {
-            CachedPoint *cache_result = cache->locate(cpt);
-
-            //check if terminal
-            if (cache_result->terminal) {
-                for (size_t i = 0; i < k; ++i) {
-                    result.push_back(std::make_pair<Point *, double>(cache_result->nn, -1.0));
-                }
-            } else {
-                in_cache = false;
-            }
-        }
-
-        if (!in_cache) {
+        if (cpt != cache.end() && cpt->contains(pt)) { 
+            result.push_back(std::make_pair<Point *, int>(cpt->nn, -1.0)); 
+        } else { 
             result = backup->knn(k, pt, eps); 
-        } 
+        }
 
         return result; 
     }
 
 private:
 
-    void trim(typename KdTree<CachedPoint>::Node *node, double *range, size_t depth)
-    {
-        //bottom of recursion, non-terminal leaf
-        if (node->left == 0 && node->right == 0) {
-            node->pt->terminal = false;
-        } else { 
+    struct ZOrder {
 
-            bool terminal = true;
+        size_t dim;
 
-            //set up interference query
-            double *range2 = new double[2*dim];
-            for (size_t d = 0; d < dim; ++d) {
-
-                double d1 = (*node->pt)[d] - range[d*2];
-                double d2 = range[d*2+1] - (*node->pt)[d];
-                double dist = d1 > d2 ? d1 : d2;
-
-                range2[d*2] = (*node->pt)[d] - dist;
-                range2[d*2+1] = (*node->pt)[d] + dist; 
-            }
-
-            //run interference query (need to make sure all "corners" have same nearest-neighbour)
-            Point *nn = 0;//node->pt->nn;
-            for (size_t i = 0; i < 2*dim; ++i) {
-                Point qp;
-                for (size_t d = 0; d < dim; ++d) {
-                    if (i & 1 << d) qp[d] = range2[d*2];
-                    else qp[d] = range2[d*2+1];
-                }
-
-                std::vector<std::pair<Point *, double> > qr = backup->knn(1, qp, 0.0);
-
-                if (nn == 0) {
-                    nn = qr.back().first;
-                } else {
-                    if (nn != qr.back().first) {
-                        terminal = false;
-                        break;
-                    }
-                }
-            }
-
-            delete[] range2;
-
-            if (terminal) {
-                //std::cerr << "terminal!\n";
-                if (node->left) {
-                    delete_subtree(node->left);
-                    node->left = 0;
-                }
-
-                if (node->right) {
-                    delete_subtree(node->right);
-                    node->right = 0;
-                }
-
-                node->pt->terminal = true;
-                node->pt->nn = nn;
-
-            } else {
-
-                node->pt->terminal = false;
-
-                //update range and query subtrees
-                size_t range_coord = (depth%dim)*2;
-
-                double t;
-                if (node->left) {
-                    t = range[range_coord+1]; 
-                    range[range_coord+1] = node->median;
-                    trim(node->left, range, depth+1);
-                    range[range_coord+1] = t; 
-                }
-
-                if (node->right) {
-                    t = range[range_coord]; 
-                    range[range_coord] = node->median; 
-                    trim(node->right, range, depth+1);
-                    range[range_coord] = t; 
-                }
-            }
+        ZOrder(size_t dim) : dim(dim) 
+        { 
         }
-    }
 
-    void delete_subtree(typename KdTree<CachedPoint>::Node *node)
-    {
-        std::vector<typename KdTree<CachedPoint>::Node *> nodes;
-        nodes.push_back(node);
-        while (!nodes.empty()) {
-            typename KdTree<CachedPoint>::Node *n = nodes.back();
-            nodes.pop_back();
+        bool operator()(const Point &a, const Point &b) 
+        { 
+            int j = 0; 
+            int x = 0; 
 
-            if (n->left) nodes.push_back(n->left);
-            if (n->right) nodes.push_back(n->right);
-            delete n;
+            for (int k = 0; k < dim; ++k) { 
+                int y = a[k] ^ b[k];
+
+                if (x < y && x < (x ^ y)) { 
+                    j = k; 
+                    x = y; 
+                } 
+            }
+ 
+            return a[j] < b[j]; 
         } 
-    }
+    };
 
     size_t dim;
     KdTree<Point> *backup; 
-    KdTree<CachedPoint> *cache;
-    double *range;
+    std::vector<CachedPoint> cache;
+    ZOrder comp;
 };
 
 #endif
