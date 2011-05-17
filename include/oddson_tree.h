@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #include <algorithm>
 #include <cstdio>
-#include <vector>
+#include <list>
 
 /*
 Odds-on Tree implementation based upon descriptions in: 
@@ -41,31 +41,42 @@ template<class Point> class OddsonTree {
 
 public:
 
-    struct CachedPoint : Point { 
+    struct CacheNode : Point { 
         size_t dim;
         Point *nn;
         Point a, b;
 
-        CachedPoint(size_t dim) : nn(0), dim(dim)
+        CacheNode *left, *right;
+
+        CacheNode(size_t dim) : nn(0), dim(dim), left(0), right(0)
         { 
         }
 
-        bool contains(const Point &pt)
+        Point *locate(const Point &pt)
         {
-            //printf("a: (%d %d) b: (%d %d) pt: (%d %d)\n", a[0], a[1], b[0], b[1], pt[0], pt[1]);
+            CacheNode *node = this; 
+            Point *result = 0; 
 
-            bool result = true; 
-            int dim = 2;
+            bool found = true; 
 
             for (size_t d = 0; d < dim; ++d) { 
-                if (!((a[d] < pt[d] && pt[d] < b[d]) || 
-                      (b[d] < pt[d] && pt[d] < a[d]))) { 
-                        result = false; 
-                        break; 
+                if ((a[d] > pt[d] || pt[d] > b[d])) { 
+                    found = false; 
+                    break; 
                 } 
             }
 
-            return result;
+            if (found) { 
+                //if a child, return nn - otherwise search children
+                if (nn) { 
+                    result = nn; 
+                } else { 
+                    if (left) result = left->locate(pt); 
+                    if (!result && right) result = right->locate(pt); 
+                } 
+            } 
+
+            return result; 
         }
     };
 
@@ -88,7 +99,7 @@ public:
 
         int total_useful = 0; 
 
-        cache.reserve(m/10); 
+        std::list<CacheNode *> cache;
 
         Point *last_nn = 0; 
         int run = 0;
@@ -104,16 +115,19 @@ public:
                     if (run >= 4) {         
                         total_useful += run; 
 
-                        CachedPoint pt(dim); 
-                        pt.nn = last_nn; 
-                        pt.a = sample[i - run - 1]; 
-                        pt.b = sample[i - 1]; 
+                        CacheNode *node = new CacheNode(dim); 
+                        node->nn = last_nn; 
+                        node->a = sample[i - run - 1]; 
+                        node->b = sample[i - 1]; 
 
                         for (size_t d = 0; d < dim; ++d) { 
-                            pt[d] = sample[i][d]; 
+                            node[d] = sample[i][d]; 
+                            if (node->a[d] > node->b[d]) {
+                                std::swap(node->a[d], node->b[d]);
+                            } 
                         }
 
-                        cache.push_back(pt); 
+                        cache.push_back(node); 
                     } 
 
                     run = 0; 
@@ -122,6 +136,39 @@ public:
 
             last_nn = nn; 
         }
+
+        while (cache.size() > 1) { 
+
+            //keep track of initial size
+            size_t size = cache.size(); 
+
+            //we combine neighbouring nodes two at a time
+            for (size_t i = 0; i < size; i += 2) { 
+                CacheNode *node = new CacheNode(dim);
+
+                node->left = cache.front(); 
+                cache.pop_front(); 
+
+                node->right = cache.front(); 
+                cache.pop_front(); 
+
+                for (size_t d = 0; d < dim; ++d) { 
+                    node->a[d] = std::min(node->left->a[d], node->right->a[d]); 
+                    node->b[d] = std::max(node->left->b[d], node->right->b[d]); 
+                } 
+
+                cache.push_back(node); 
+            }
+
+            // if odd size, move remaining node to back to preserve z-order
+            if (size % 2  == 1) {
+                CacheNode *n = cache.front();
+                cache.pop_front();
+                cache.push_back(n);
+            } 
+        }
+
+        root = cache.front();
 
         fprintf(stderr, "total terminal: %d of %d percent: %0.2f cache size: %d\n", total_useful, m, (double)total_useful/(double)m, cache.size());
 
@@ -138,13 +185,11 @@ public:
 
         std::vector<std::pair<Point *, int> > result; 
 
-        //check cache 
-        bool in_cache = false; 
-
-        typename std::vector<CachedPoint>::iterator cpt = std::upper_bound(cache.begin(), cache.end(), pt, comp);
-
-        if (cpt != cache.end() && cpt->contains(pt)) { 
-            result.push_back(std::make_pair<Point *, int>(cpt->nn, -1.0)); 
+        //check cache
+        Point *nn = root->locate(pt);
+ 
+        if (nn) {
+            result.push_back(std::make_pair<Point *, int>(nn, -1.0)); 
         } else { 
             result = backup->knn(k, pt, eps); 
         }
@@ -182,7 +227,7 @@ private:
 
     size_t dim;
     KdTree<Point> *backup; 
-    std::vector<CachedPoint> cache;
+    CacheNode *root;
     ZOrder comp;
 };
 
