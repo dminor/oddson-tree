@@ -28,14 +28,14 @@ THE SOFTWARE.
 
 struct Point {
 
-    int v[2]; 
+    double v[2]; 
 
-    int &operator[](const int &index) 
+    double &operator[](const int &index) 
     { 
         return v[index]; 
     } 
 
-    const int &operator[](const int &index) const 
+    const double operator[](const int &index) const 
     { 
         return v[index]; 
     } 
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
             for (size_t i = 0; i < Q; ++i) { 
                 Point pt = distfn();
 
-                std::vector<std::pair<Point *, int> > qr = oot.knn(1, pt, 0.0);
+                std::vector<std::pair<Point *, double> > qr = oot.knn(1, pt, 0.0);
 
                 Point nn = *qr.back().first;
      
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
             for (size_t i = 0; i < Q; ++i) { 
                 Point pt = distfn();
 
-                std::vector<std::pair<Point *, int> > qr = kdt.knn(1, pt, 0.0);
+                std::vector<std::pair<Point *, double> > qr = kdt.knn(1, pt, 0.0);
 
                 Point nn = *qr.back().first;
      

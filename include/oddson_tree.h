@@ -24,6 +24,7 @@ THE SOFTWARE.
 #define ODDSON_TREE_H_
 
 #include "kdtree.h"
+#include "zorder.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -105,7 +106,7 @@ public:
         int run = 0;
 
         for (size_t i = 0; i < m; ++i) { 
-            std::vector<std::pair<Point *, int> > result = backup->knn(1, sample[i], 0.0); 
+            std::vector<std::pair<Point *, double> > result = backup->knn(1, sample[i], 0.0); 
             Point *nn = result.back().first; 
 
             if (nn) { 
@@ -180,16 +181,16 @@ public:
         delete backup;
     }
 
-    std::vector<std::pair<Point *, int> > knn(size_t k, const Point &pt, double eps) 
+    std::vector<std::pair<Point *, double> > knn(size_t k, const Point &pt, double eps) 
     {
 
-        std::vector<std::pair<Point *, int> > result; 
+        std::vector<std::pair<Point *, double> > result; 
 
         //check cache
         Point *nn = root->locate(pt);
  
         if (nn) {
-            result.push_back(std::make_pair<Point *, int>(nn, -1.0)); 
+            result.push_back(std::make_pair<Point *, double>(nn, -1.0)); 
         } else { 
             result = backup->knn(k, pt, eps); 
         }
@@ -199,36 +200,10 @@ public:
 
 private:
 
-    struct ZOrder {
-
-        size_t dim;
-
-        ZOrder(size_t dim) : dim(dim) 
-        { 
-        }
-
-        bool operator()(const Point &a, const Point &b) 
-        { 
-            int j = 0; 
-            int x = 0; 
-
-            for (int k = 0; k < dim; ++k) { 
-                int y = a[k] ^ b[k];
-
-                if (x < y && x < (x ^ y)) { 
-                    j = k; 
-                    x = y; 
-                } 
-            }
- 
-            return a[j] < b[j]; 
-        } 
-    };
-
     size_t dim;
     KdTree<Point> *backup; 
     CacheNode *root;
-    ZOrder comp;
+    ZOrder<Point, double> comp;
 };
 
 #endif
