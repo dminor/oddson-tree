@@ -35,7 +35,7 @@ struct Point {
         return v[index]; 
     } 
 
-    const double operator[](const int &index) const 
+    const double &operator[](const int &index) const 
     { 
         return v[index]; 
     } 
@@ -50,15 +50,15 @@ Point distfn()
     double u = (double)rand()/(double)RAND_MAX; 
     double v = (double)rand()/(double)RAND_MAX; 
 
-    pt[0] = 250 + 50*sqrt(-2.0*log(u))*cos(2.0*3.14159*v); 
-    pt[1] = 250 + 50*sqrt(-2.0*log(u))*sin(2.0*3.14159*v); 
+    pt[0] = 250.0 + 25.0*sqrt(-2.0*log(u))*cos(2.0*3.14159*v); 
+    pt[1] = 250.0 + 25.0*sqrt(-2.0*log(u))*sin(2.0*3.14159*v); 
 
     return pt; 
 }
 
 #define N 1000
 #define M 2500
-#define Q 50000 
+#define Q 100000 
 
 int main(int argc, char **argv) 
 { 
@@ -69,23 +69,29 @@ int main(int argc, char **argv)
     }
 
     //generate data points 
-    Point pts[N]; 
+    Point *ps = new Point[N]; 
     for (size_t i = 0; i < N; ++i) { 
-        pts[i][0] = 500*(double)rand()/(double)RAND_MAX; 
-        pts[i][1] = 500*(double)rand()/(double)RAND_MAX; 
+        ps[i][0] = 500*(double)rand()/(double)RAND_MAX; 
+        ps[i][1] = 500*(double)rand()/(double)RAND_MAX; 
+    }
+
+    //generate query points 
+    Point *qs = new Point[M]; 
+    for (size_t i = 0; i < M; ++i) { 
+        qs[i] = distfn();
     }
 
     //run queries on oot 
     if (!strncmp(argv[1], "oot", 3)) {
 
-        OddsonTree<Point> oot(2, pts, N, distfn, M); 
+        OddsonTree<Point> oot(2, ps, N, qs, M); 
         std::cout << "oot\n";
 
         if (argc < 3) { 
             for (size_t i = 0; i < Q; ++i) { 
                 Point pt = distfn();
 
-                std::vector<std::pair<Point *, double> > qr = oot.knn(1, pt, 0.0);
+                std::list<std::pair<Point *, double> > qr = oot.knn(1, pt, 0.0);
 
                 Point nn = *qr.back().first;
      
@@ -98,13 +104,13 @@ int main(int argc, char **argv)
 
         if (argc < 3) { 
             //run queries on kdtree 
-            KdTree<Point> kdt(2, pts, N); 
+            KdTree<Point> kdt(2, ps, N); 
             std::cout << "kdt\n";
 
             for (size_t i = 0; i < Q; ++i) { 
                 Point pt = distfn();
 
-                std::vector<std::pair<Point *, double> > qr = kdt.knn(1, pt, 0.0);
+                std::list<std::pair<Point *, double> > qr = kdt.knn(1, pt, 0.0);
 
                 Point nn = *qr.back().first;
      
@@ -114,3 +120,4 @@ int main(int argc, char **argv)
         }
     } 
 }
+
