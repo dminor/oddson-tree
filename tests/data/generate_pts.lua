@@ -25,38 +25,42 @@ THE SOFTWARE.
 math.randomseed(os.time())
 
 -- normal mean mu, variance sigma
-function box_muller(mu, sigma)
+function box_muller(mu_x, sigma_x, mu_y, sigma_y)
     local u = math.random()
     local v = math.random()
 
-    return mu + sigma*math.sqrt(-2.0*math.log(u))*math.cos(2.0*math.pi*v),
-        mu + sigma*math.sqrt(-2.0*math.log(u))*math.sin(2.0*math.pi*v)        
+    return mu_x + sigma_x*math.sqrt(-2.0*math.log(u))*math.cos(2.0*math.pi*v),
+        mu_y + sigma_y*math.sqrt(-2.0*math.log(u))*math.sin(2.0*math.pi*v)
 end
 
 -- uniform in [-scale, scale]
-function uniform(scale) 
-    return (math.random() - 0.5)*2.0*scale,
-        (math.random() - 0.5)*2.0*scale
+function uniform(scale_x, scale_y) 
+    return (math.random() - 0.5)*2.0*scale_x,
+        (math.random() - 0.5)*2.0*scale_y
 end
 
 if #arg >= 2 then
     pt_count = arg[2]
 
     if arg[1] == '-u' then
-        scale = arg[3] or 1.0
+        scale_x = arg[3] or 1.0
+        scale_y = arg[4] or scale_x 
 
-        print(pt_count .. ' uniform: ' .. scale)
+        print(pt_count .. ' uniform: ' .. scale_x .. ' ' .. scale_y)
         for i=1, pt_count do
-            x, y = uniform(scale)
+            x, y = uniform(scale_x, scale_y)
             print(x .. ', ' .. y)
         end 
     elseif arg[1] == '-n' then
-        mu = arg[3] or 0.0
-        sigma = arg[4] or 1.0 
+        mu_x = arg[3] or 0.0
+        sigma_x = arg[4] or 1.0 
+        mu_y = arg[5] or mu_x
+        sigma_y = arg[6] or sigma_x
 
-        print(pt_count .. ' mu: ' .. mu .. ' sigma: ' .. sigma)
+        print(pt_count .. ' mu: ' .. mu_x .. ' sigma_x: ' .. sigma_x
+            .. ' mu_y: ' .. mu_y .. ' sigma_y: ' .. sigma_y)
         for i=1, pt_count do
-            x, y = box_muller(mu, sigma)
+            x, y = box_muller(mu_x, sigma_x, mu_y, sigma_y)
             print(x .. ', ' .. y)
         end
     else

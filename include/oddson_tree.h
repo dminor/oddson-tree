@@ -85,7 +85,7 @@ public:
     };
 
     OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
-        : dim(dim), comp(dim) 
+        : dim(dim), comp(dim), root(0) 
     {
 
         backup = new KdTree<Point>(dim, ps, n);
@@ -156,7 +156,7 @@ public:
             }
         }
 
-        root = cache.front();
+        if (!cache.empty()) root = cache.front();
 
         fprintf(stderr, "total terminal: %d of %d percent: %0.2f cache size: %d\n", total_useful, m, (double)total_useful/(double)m, cache.size()); 
 
@@ -192,12 +192,13 @@ public:
         return result; 
     }
 
+    CacheNode *root;
+
 private:
 
     size_t dim;
     KdTree<Point> *backup; 
     std::vector<CacheNode> cache;
-    CacheNode *root;
     ZOrder<Point, double> comp;
 
     int hits;
