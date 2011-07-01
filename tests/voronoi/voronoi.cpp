@@ -58,6 +58,8 @@ int main(int argc, char **argv)
     int pt_count;
     ptf >> pt_count;
 
+    ptf.ignore(80, '\n');
+
     if (pt_count < 0) {
         std::cout << "error: invalid point count " << pt_count << std::endl;
         exit(1);
