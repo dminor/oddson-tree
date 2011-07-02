@@ -29,6 +29,7 @@ THE SOFTWARE.
 struct Point {
 
     double v[2]; 
+    int id;
 
     double &operator[](const int &index) 
     { 
@@ -50,7 +51,8 @@ void render_tree(FILE *f, struct OddsonTree<Point>::CacheNode *tree)
     double &y1 = tree->a[1];
     double &y2 = tree->b[1]; 
 
-    if (!tree->left && !tree->right) {
+    if (!tree->left && !tree->right) { 
+        fprintf(f, "colour-site-%d\n", tree->nn->id);
         fprintf(f, "%.0f %.0f %.0f %.0f node-bounds\n", x1, x2, y1, y2); 
     } else { 
         render_tree(f, tree->left);
@@ -76,8 +78,7 @@ Point *read_points(FILE *f, int *pt_count)
         fscanf(f, "%lf, %lf", &x, &y);
         pts[i][0] = x;
         pts[i][1] = y; 
-
-        printf("%d %.1f %.1f\n", i, pts[i][0], pts[i][1]);
+        pts[i].id = i;
     }
 
     return pts; 
@@ -134,13 +135,8 @@ int main(int argc, char **argv)
     fprintf(f, "    /x exch def\n");
     fprintf(f, "    gsave\n");
     fprintf(f, "    newpath\n");
-    fprintf(f, "    0.5 0.5 0.7 setrgbcolor\n");
-    fprintf(f, "    x y 2 0 360 arc\n");
-    fprintf(f, "    closepath\n");
-    fprintf(f, "    fill\n");
-    fprintf(f, "    newpath\n");
-    fprintf(f, "    0.4 setgray\n");
-    fprintf(f, "    x y 2 0 360 arc\n");
+    fprintf(f, "    1.0 0.5 0.7 setrgbcolor\n");
+    fprintf(f, "    x y 1 0 360 arc\n");
     fprintf(f, "    closepath\n");
     fprintf(f, "    stroke\n");
     fprintf(f, "    grestore\n");
@@ -169,7 +165,7 @@ int main(int argc, char **argv)
     fprintf(f, "    /x2 exch def\n");
     fprintf(f, "    /x1 exch def\n");
     fprintf(f, "    gsave\n");
-    fprintf(f, "    0.7 setgray\n");
+//    fprintf(f, "    0.7 setgray\n");
     fprintf(f, "    newpath\n");
     fprintf(f, "    x2 y2 moveto\n");
     fprintf(f, "    x1 y2 lineto\n");
@@ -180,9 +176,23 @@ int main(int argc, char **argv)
     fprintf(f, "    grestore\n");
     fprintf(f, "} def\n");
 
-    fprintf(f, "60 240 translate\n");
+    //setup colours
+    for (int i = 0; i < n; ++i) {
+        fprintf(f, "/colour-site-%d {%.1f %.1f %.1f setrgbcolor } def\n", i,
+            (double)rand()/(double)RAND_MAX,
+            (double)rand()/(double)RAND_MAX,
+            (double)rand()/(double)RAND_MAX);
+    }
+
+    //draw sample points
+    for (int i = 0; i < m; ++i) {
+        fprintf(f, "%.1f %.1f draw-point\n", sample[i][0], sample[i][1]);
+    }
 
     render_tree(f, oot.root);
+
+    delete[] pts;
+    delete[] sample;
 
     fclose(f);
 
