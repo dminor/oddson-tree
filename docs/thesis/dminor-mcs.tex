@@ -1,0 +1,182 @@
+\documentclass[mcs]{scsthesis}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\title {A Distribution Sensitive Data Structure for Nearest Neighbour Search}
+\author {Daniel Minor}
+\thesissupervisor {Patrick Morin}
+\director {Douglas Howe}
+\begin{document}
+
+\beforepreface
+
+\prefacesection
+
+\chapter*{Abstract}
+
+TBD
+
+\chapter*{Acknowledgements}
+
+TBD
+
+\afterpreface
+
+\chapter{Introduction}
+
+\section{Problem Statement}
+
+We investigate the utility of distribution sensitive data structures for
+geometric search problems in practice.  A distribution sensitive data structure
+makes use of a priori knowledge of the probability distribution of queries in
+order to answer common queries more quickly, giving an expected runtime which
+is of the order of the entropy, or amount of randomness, present in the query
+distribution.
+
+Recently, two groups of researchers \cite{chan} \cite{oddson} have proposed a
+theoretical framework for a distribution sensitive data structure which can be
+applied to a variety of geometrical search problems which seems as though it
+may be of practical as well as theoretical interest.  Following \cite{oddson},
+we will call this data structure the Odds-on tree.
+
+The geometrical search problem used to investigate these results is nearest
+neighbour search.  The nearest neigbhour search problem is: given a query
+point, a set of other points, and a metric, return the closest point to the
+query point in the set of the points under the specified metric.  Two related
+problems are k-nearest neighbours search, where the k closest points to the
+query point are returned, and approximate nearest neighbour search, where the
+points returned are closest only up to a specified tolerance.  These problems
+are of considerable practical interest, with applications in GIS, computer
+graphics, computer vision, signal processing and machine learning.
+
+In this thesis we examine Odds-on trees through the lens of algorithm
+engineering.  Our goal is to study the design decisions and implementation 
+techniques required to derive a practical data structure from the theoretical
+results about Odds-on trees.  This involves both development work and
+extensive experimentation to establish correctness and performance under a
+variety of query distributions, both derived from probability distributions,
+and from some applications of practical interest.  
+
+\section{Definitions}
+
+TBD
+
+\section{Results Summary}
+
+TBD
+
+\section{Organization of the Thesis}
+
+The remainder of the thesis is organized as follows: Chapter 2 summarizes
+previous work for biased search, distribution sensitive data structures and
+nearest neighbour search.  Chapter 3 describes the design and implementation of
+the Odds-on Tree, including an description of alternative designs which were
+explored.  Chapter 4 gives details on the experiemntation performed and results
+obtained, and Chapter 5 summarizes the results and discusses potential 
+future work.
+
+\chapter{Previous Work}
+
+\section{Biased Search Trees}
+
+Biased search trees are a natural generalization of balancing a binary search
+tree where rather than assuming each result is equally likely, a probability
+distribution is given for the results, allowing the tree to be balanced such
+that at each node it is equally likely that the left or right child will be
+followed.  The overall expected running time can then be stated in terms of the
+entropy of the probability distribution of the queries.
+
+Early work on biased search trees is described in Knuth \cite{knuth} where
+the static case (i.e. no deletions and insertions) is considered.  An \(O(n^2)\)
+dynamic programming algorithm is presented which constructs an optimum static
+search tree for a set of weights.
+
+Biased search trees allowing insertions and deletions based upon 2 - 4 and
+red-black trees were described by Bent, Sleator and Tarjan \cite{bst}.  The
+data structures are complex and do not appear to have been implemented.
+Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}. A
+much simpler implementation of biased search based upon randomized search trees
+was developed by Aragon and Seidel \cite{treap}, and a biased version of skip
+lists \cite{skiplist} was presented in \cite{bsl2}.
+
+An alternative approach to biased search is to use data structures which
+modify themselves in response to queries.  In this case, rather than specifying
+the probabilities in advance, the data structure will change itself to match
+the query distribution.  Splaytrees \cite{splaytree}, which were invented by
+Sleator and Tarjan, are a self-modifying binary search tree which have
+received considerable attention, both theoretical and experimental due to the
+dynamic optimality conjecture, which states that splaytrees are within a
+constant factor of optimal for any sequence of queries, without needing to
+know the queries in advance.
+
+Most experimental work with biased search has focused on comparing splaytrees
+with traditional approaches like 2 - 4 trees and red-black trees.
+[DLM: references].
+
+\section{Distribution Sensitive Data Structures}
+
+\section{Nearest Neighbour Search}
+
+\chapter{Implementation}
+
+\chapter{Experimental Results}
+
+\chapter{Conclusion}
+
+\section{Summary}
+
+TBD
+
+\section{Future Work}
+
+TBD
+
+\begin{thebibliography}{5}
+
+\bibitem{treap}
+Aragon, C. R.,  Seidel, R. (1996) Randomized Search Trees.
+In Algorithmica, Vol. 16, Number 4/5, pp. 464 – 497
+
+\bibitem{bsl}
+Bagchi,A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
+In Algorithmica Vol. 42, pp. 31 – 48
+ 
+\bibitem{splaytree}
+Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
+In Journal of the ACM, 32, pp. 652 – 686
+
+\bibitem{knuth}
+Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
+Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
+
+\bibitem{bst}
+Bent, S. W., Sleator, D. D., Tarjan, R. E. (1984) Biased Search Trees,
+In SIAM Journal on Computing, Volume 14, pp. 545 - 568
+
+\bibitem{bst2}
+Feigenbaum, J., Tarjan, R. E. (1983) Two New Kinds of Biased Search Tree,
+In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 - 3158
+
+\bibitem{skiplist}
+Pugh, W. (1990) Skip Lists: A Probabilistic Alternative to Balanced Trees.
+In Communications of the ACM, 33(6), pp. 668 – 676
+
+\bibitem{bsl2}
+Ergun, F., Sahinalp, S. C., Sharp, J., Sinha, R. K. (2001) Biased Skip Lists
+for Highly Skewed Access Patterns, Proceedings of ALENEX 2001, Lecture Notes in
+Computer Science, Volume 2153, 216-229
+
+\bibitem{satp}
+Williams, H. E., Zobel, J., Heinz, S. (2001) Self-Adjusting Trees in Practice
+for Large Text Collections, In Software - Practice and Experience,
+Volume 31, pp. 925 - 939
+
+\bibitem{valgrind}
+Nethercote, N., Seward, J. (2007) Valgrind: A Framework for Heavyweight Dynamic
+Binary Instrumentation.  Proceedings of ACM SIGPLAN 2007 Conference on
+Programming Language Design and Implementation (PLDI 2007),
+San Diego, California, USA
+
+\end{thebibliography}
+
+\end{document}
