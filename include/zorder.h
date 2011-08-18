@@ -23,7 +23,10 @@ THE SOFTWARE.
 #ifndef ZORDER_H_
 #define ZORDER_H_
 
-#include <limits.h>
+#include <algorithm>
+#include <limits>
+#include <cstdlib>
+
 #include <stdint.h>
 
 template<class P, class T> struct ZOrder {

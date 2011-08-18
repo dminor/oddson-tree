@@ -1,1 +1,3 @@
-Implementation of Odds-on trees, currently supporting nearest neighbour search.  
+Odds-on tree implementation: a distribution sensitive data structure for
+nearest neighbour search.  
+
