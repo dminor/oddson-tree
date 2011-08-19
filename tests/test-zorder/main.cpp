@@ -68,8 +68,8 @@ Point *read_points(FILE *f, int *pt_count)
 
 int main(int argc, char **argv)
 { 
-    if (argc != 3) {
-        printf("usage: render_tree <points> <output>\n");
+    if (argc != 2) {
+        printf("usage: test-zorder <points>\n");
         exit(1);
     }
 
@@ -90,42 +90,34 @@ int main(int argc, char **argv)
     ZOrder<Point, double> comp(2);
     std::sort(&sample[0], &sample[n], comp);
 
-    f = fopen(argv[2], "w");
-    if (!f) {
-        printf("error: could not open output file: %s\n", argv[2]);
-        exit(1); 
-    }
-
-    fprintf(f, "%\n");
+    fprintf(stdout, "%\n");
 
     //define point function for later
-    fprintf(f, "/draw-point {\n");
-    fprintf(f, "    /y exch def\n");
-    fprintf(f, "    /x exch def\n");
-    fprintf(f, "    gsave\n");
-    fprintf(f, "    newpath\n");
-    fprintf(f, "    1.0 0.5 0.7 setrgbcolor\n");
-    fprintf(f, "    x y 1 0 360 arc\n");
-    fprintf(f, "    closepath\n");
-    fprintf(f, "    stroke\n");
-    fprintf(f, "    grestore\n");
-    fprintf(f, "} def\n");
+    fprintf(stdout, "/draw-point {\n");
+    fprintf(stdout, "    /y exch def\n");
+    fprintf(stdout, "    /x exch def\n");
+    fprintf(stdout, "    gsave\n");
+    fprintf(stdout, "    newpath\n");
+    fprintf(stdout, "    1.0 0.5 0.7 setrgbcolor\n");
+    fprintf(stdout, "    x y 1 0 360 arc\n");
+    fprintf(stdout, "    closepath\n");
+    fprintf(stdout, "    stroke\n");
+    fprintf(stdout, "    grestore\n");
+    fprintf(stdout, "} def\n");
 
     //draw sample points
     for (int i = 0; i < n; ++i) {
-        fprintf(f, "%.1f %.1f draw-point\n", sample[i][0], sample[i][1]);
+        fprintf(stdout, "%.1f %.1f draw-point\n", sample[i][0], sample[i][1]);
     }
 
     //draw lines between points adjacent in z-order
-    fprintf(f, "0.7 0.1 0.1 setrgbcolor\n");
-    fprintf(f, "newpath\n");
-    fprintf(f, "%.1f %.1f moveto\n", sample[1][0], sample[1][1]);
+    fprintf(stdout, "0.7 0.1 0.1 setrgbcolor\n");
+    fprintf(stdout, "newpath\n");
+    fprintf(stdout, "%.1f %.1f moveto\n", sample[1][0], sample[1][1]);
     for (int i = 1; i < n; ++i) {
-        fprintf(f, "%.1f %.1f lineto\n", sample[i][0], sample[i][1]);
+        fprintf(stdout, "%.1f %.1f lineto\n", sample[i][0], sample[i][1]);
     }
-    fprintf(f, "stroke \n");
-
-    fclose(f);
+    fprintf(stdout, "stroke \n");
 
     delete[] sample; 
 

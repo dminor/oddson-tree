@@ -67,7 +67,7 @@ Point *read_points(FILE *f, int *pt_count)
     fgets(buf, 80, f);
 
     if (pt_count < 0) {
-        printf("error: invalid point count %d\n", *pt_count);
+        fprintf(stderr, "error: invalid point count %d\n", *pt_count);
         return 0;
     }
 
@@ -86,8 +86,8 @@ Point *read_points(FILE *f, int *pt_count)
 
 int main(int argc, char **argv)
 { 
-    if (argc != 4) {
-        printf("usage: render_tree <points> <sample> <output>\n");
+    if (argc != 3) {
+        fprintf(stderr, "usage: render_tree <points> <sample>\n");
         exit(1);
     }
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     FILE *f = fopen(argv[1], "r");
 
     if (!f) {
-        printf("error: could not open points file: %s\n", argv[1]);
+        fprintf(stderr, "error: could not open points file: %s\n", argv[1]);
         exit(1); 
     }
 
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     f = fopen(argv[2], "r");
 
     if (!f) {
-        printf("error: could not open sample file: %s\n", argv[2]);
+        fprintf(stderr, "error: could not open sample file: %s\n", argv[2]);
         exit(1); 
     }
 
@@ -117,68 +117,60 @@ int main(int argc, char **argv)
 
     fclose(f);
 
-
     OddsonTree<Point> oot(2, pts, n, sample, m);
-    printf("completed building tree...\n ");
 
-    f = fopen(argv[3], "w");
-    if (!f) {
-        printf("error: could not open output file: %s\n", argv[2]);
-        exit(1); 
-    }
-
-    fprintf(f, "%\n");
+    fprintf(stdout, "%\n");
 
     //define point function for later
-    fprintf(f, "/draw-point {\n");
-    fprintf(f, "    /y exch def\n");
-    fprintf(f, "    /x exch def\n");
-    fprintf(f, "    gsave\n");
-    fprintf(f, "    newpath\n");
-    fprintf(f, "    1.0 0.5 0.7 setrgbcolor\n");
-    fprintf(f, "    x y 1 0 360 arc\n");
-    fprintf(f, "    closepath\n");
-    fprintf(f, "    stroke\n");
-    fprintf(f, "    grestore\n");
-    fprintf(f, "} def\n");
+    fprintf(stdout, "/draw-point {\n");
+    fprintf(stdout, "    /y exch def\n");
+    fprintf(stdout, "    /x exch def\n");
+    fprintf(stdout, "    gsave\n");
+    fprintf(stdout, "    newpath\n");
+    fprintf(stdout, "    1.0 0.5 0.7 setrgbcolor\n");
+    fprintf(stdout, "    x y 1 0 360 arc\n");
+    fprintf(stdout, "    closepath\n");
+    fprintf(stdout, "    stroke\n");
+    fprintf(stdout, "    grestore\n");
+    fprintf(stdout, "} def\n");
 
     //node bounding box
-    fprintf(f, "/draw-line {\n");
-    fprintf(f, "    /y2 exch def\n");
-    fprintf(f, "    /x2 exch def\n");
-    fprintf(f, "    /y1 exch def\n");
-    fprintf(f, "    /x1 exch def\n");
-    fprintf(f, "    gsave\n");
-    fprintf(f, "    0.7 0.1 0.1 setrgbcolor\n");
-    fprintf(f, "    newpath\n");
-    fprintf(f, "    x1 y1 moveto\n");
-    fprintf(f, "    x2 y2 lineto\n");
-    fprintf(f, "    closepath\n");
-    fprintf(f, "    stroke \n");
-    fprintf(f, "    grestore\n");
-    fprintf(f, "} def\n");
+    fprintf(stdout, "/draw-line {\n");
+    fprintf(stdout, "    /y2 exch def\n");
+    fprintf(stdout, "    /x2 exch def\n");
+    fprintf(stdout, "    /y1 exch def\n");
+    fprintf(stdout, "    /x1 exch def\n");
+    fprintf(stdout, "    gsave\n");
+    fprintf(stdout, "    0.7 0.1 0.1 setrgbcolor\n");
+    fprintf(stdout, "    newpath\n");
+    fprintf(stdout, "    x1 y1 moveto\n");
+    fprintf(stdout, "    x2 y2 lineto\n");
+    fprintf(stdout, "    closepath\n");
+    fprintf(stdout, "    stroke \n");
+    fprintf(stdout, "    grestore\n");
+    fprintf(stdout, "} def\n");
 
     //node bounding box
-    fprintf(f, "/node-bounds {\n");
-    fprintf(f, "    /y2 exch def\n");
-    fprintf(f, "    /y1 exch def\n");
-    fprintf(f, "    /x2 exch def\n");
-    fprintf(f, "    /x1 exch def\n");
-    fprintf(f, "    gsave\n");
-//    fprintf(f, "    0.7 setgray\n");
-    fprintf(f, "    newpath\n");
-    fprintf(f, "    x2 y2 moveto\n");
-    fprintf(f, "    x1 y2 lineto\n");
-    fprintf(f, "    x1 y1 lineto\n");
-    fprintf(f, "    x2 y1 lineto\n");
-    fprintf(f, "    closepath\n");
-    fprintf(f, "    stroke \n");
-    fprintf(f, "    grestore\n");
-    fprintf(f, "} def\n");
+    fprintf(stdout, "/node-bounds {\n");
+    fprintf(stdout, "    /y2 exch def\n");
+    fprintf(stdout, "    /y1 exch def\n");
+    fprintf(stdout, "    /x2 exch def\n");
+    fprintf(stdout, "    /x1 exch def\n");
+    fprintf(stdout, "    gsave\n");
+//    fprintf(stdout, "    0.7 setgray\n");
+    fprintf(stdout, "    newpath\n");
+    fprintf(stdout, "    x2 y2 moveto\n");
+    fprintf(stdout, "    x1 y2 lineto\n");
+    fprintf(stdout, "    x1 y1 lineto\n");
+    fprintf(stdout, "    x2 y1 lineto\n");
+    fprintf(stdout, "    closepath\n");
+    fprintf(stdout, "    stroke \n");
+    fprintf(stdout, "    grestore\n");
+    fprintf(stdout, "} def\n");
 
     //setup colours
     for (int i = 0; i < n; ++i) {
-        fprintf(f, "/colour-site-%d {%.1f %.1f %.1f setrgbcolor } def\n", i,
+        fprintf(stdout, "/colour-site-%d {%.1f %.1f %.1f setrgbcolor } def\n", i,
             (double)rand()/(double)RAND_MAX,
             (double)rand()/(double)RAND_MAX,
             (double)rand()/(double)RAND_MAX);
@@ -186,14 +178,12 @@ int main(int argc, char **argv)
 
     //draw sample points
     for (int i = 0; i < m; ++i) {
-        fprintf(f, "%.1f %.1f draw-point\n", sample[i][0], sample[i][1]);
+        fprintf(stdout, "%.1f %.1f draw-point\n", sample[i][0], sample[i][1]);
     }
 
-    render_tree(f, oot.root);
+    render_tree(stdout, oot.root);
 
     delete[] pts;
     delete[] sample;
-
-    fclose(f);
 
 }
