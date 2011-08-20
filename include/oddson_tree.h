@@ -107,10 +107,10 @@ public:
             Point *nn = result.back().first; 
 
             if (nn) {
-                if (nn == last_nn) {
+                if (nn == last_nn && run < 5) {
                     ++run;
                 } else {
-                    if (run >= 4) {         
+                    if (run >= 3) {         
                         total_useful += run;
 
                         CacheNode *pt = new CacheNode(dim);

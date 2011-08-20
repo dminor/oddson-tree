@@ -38,11 +38,9 @@ typedef VD::Halfedge_handle           Halfedge_handle;
 typedef VD::Ccb_halfedge_circulator   Ccb_halfedge_circulator;
 
 int main(int argc, char **argv)
-{
-
-
-    if (argc != 3) {
-        std::cout << "usage: voronoi <pts> <output>" << std::endl;
+{ 
+    if (argc != 2) {
+        std::cerr << "usage: voronoi <pts>" << std::endl;
         exit(1);
     }
 
@@ -50,7 +48,7 @@ int main(int argc, char **argv)
     std::ifstream ptf(argv[1]);
 
     if (!ptf) {
-        std::cout << "error: could not open points file: " << argv[1] << std::endl;
+        std::cerr << "error: could not open points file: " << argv[1] << std::endl;
         exit(1); 
     }
 
@@ -61,7 +59,7 @@ int main(int argc, char **argv)
     ptf.ignore(80, '\n');
 
     if (pt_count < 0) {
-        std::cout << "error: invalid point count " << pt_count << std::endl;
+        std::cerr << "error: invalid point count " << pt_count << std::endl;
         exit(1);
     }
 
@@ -88,56 +86,52 @@ int main(int argc, char **argv)
     ptf.close();
 
     //output to postscript 
-    std::ofstream of(argv[2]);
-
-    of << "%\n";
+    std::cout << "%\n";
 
     //define point function for later
-    of << "/draw-point {\n";
-    of << "    /y exch def\n";
-    of << "    /x exch def\n";
-    of << "    gsave\n";
-    of << "    newpath\n";
-    of << "    0.5 0.5 0.7 setrgbcolor\n";
-    of << "    x y 2 0 360 arc\n";
-    of << "    closepath\n";
-    of << "    fill\n";
-    of << "    newpath\n";
-    of << "    0.4 setgray\n";
-    of << "    x y 2 0 360 arc\n";
-    of << "    closepath\n";
-    of << "    stroke\n";
-    of << "    grestore\n";
-    of << "} def\n";
+    std::cout << "/draw-point {\n";
+    std::cout << "    /y exch def\n";
+    std::cout << "    /x exch def\n";
+    std::cout << "    gsave\n";
+    std::cout << "    newpath\n";
+    std::cout << "    0.5 0.5 0.7 setrgbcolor\n";
+    std::cout << "    x y 2 0 360 arc\n";
+    std::cout << "    closepath\n";
+    std::cout << "    fill\n";
+    std::cout << "    newpath\n";
+    std::cout << "    0.4 setgray\n";
+    std::cout << "    x y 2 0 360 arc\n";
+    std::cout << "    closepath\n";
+    std::cout << "    stroke\n";
+    std::cout << "    grestore\n";
+    std::cout << "} def\n";
 
     //line
-    of << "/draw-line {\n";
-    of << "    /y2 exch def\n";
-    of << "    /x2 exch def\n";
-    of << "    /y1 exch def\n";
-    of << "    /x1 exch def\n";
-    of << "    gsave\n";
-    of << "    0.7 setgray\n";
-    of << "    newpath\n";
-    of << "    x1 y1 moveto\n";
-    of << "    x2 y2 lineto\n";
-    of << "    closepath\n";
-    of << "    stroke \n";
-    of << "    grestore\n";
-    of << "} def\n";
+    std::cout << "/draw-line {\n";
+    std::cout << "    /y2 exch def\n";
+    std::cout << "    /x2 exch def\n";
+    std::cout << "    /y1 exch def\n";
+    std::cout << "    /x1 exch def\n";
+    std::cout << "    gsave\n";
+    std::cout << "    0.7 setgray\n";
+    std::cout << "    newpath\n";
+    std::cout << "    x1 y1 moveto\n";
+    std::cout << "    x2 y2 lineto\n";
+    std::cout << "    closepath\n";
+    std::cout << "    stroke \n";
+    std::cout << "    grestore\n";
+    std::cout << "} def\n";
 
     for (VD::Edge_iterator itor = vd.edges_begin(); itor != vd.edges_end(); ++itor) {
         if (itor->has_source() && itor->has_target()) {
-            of << itor->source()->point().x() << " " << itor->source()->point().y() << " ";
-            of << itor->target()->point().x() << " " << itor->target()->point().y() << " draw-line\n";
+            std::cout << itor->source()->point().x() << " " << itor->source()->point().y() << " ";
+            std::cout << itor->target()->point().x() << " " << itor->target()->point().y() << " draw-line\n";
         }
     }
 
     for (VD::Site_iterator itor = vd.sites_begin(); itor != vd.sites_end(); ++itor) {
-        of << itor->x() << " " << itor->y() << " draw-point\n";
+        std::cout << itor->x() << " " << itor->y() << " draw-point\n";
     }
-
-    of.close();
 
     return 0;
 }
