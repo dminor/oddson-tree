@@ -88,7 +88,7 @@ public:
         : dim(dim), comp(dim), root(0) 
     {
 
-        backup = new KdTree<Point>(dim, ps, n);
+        backup = new KdTree<Point, double>(dim, ps, n);
 
         std::sort(&qs[0], &qs[m], comp);
 
@@ -197,7 +197,7 @@ public:
 private:
 
     size_t dim;
-    KdTree<Point> *backup; 
+    KdTree<Point, double> *backup; 
     std::vector<CacheNode> cache;
     ZOrder<Point, double> comp;
 

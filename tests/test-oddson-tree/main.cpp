@@ -57,7 +57,7 @@ Point distfn()
 }
 
 #define N 1000
-#define M 2500
+#define M 500
 #define Q 100000 
 
 int main(int argc, char **argv) 
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 
         if (argc < 3) { 
             //run queries on kdtree 
-            KdTree<Point> kdt(2, ps, N); 
+            KdTree<Point, double> kdt(2, ps, N); 
             std::cout << "kdt\n";
 
             for (size_t i = 0; i < Q; ++i) { 

@@ -36,7 +36,7 @@ if #arg >= 1 then
     scale= arg[2] or 1.0
     jitter = arg[3] or 0.0
 
-    print(pt_count*pt_count .. ' grid: ' .. scale .. ' ' .. jitter)
+    print(pt_count*pt_count .. ' 2 grid: ' .. scale .. ' ' .. jitter)
     for i=1, pt_count do
         for j=1, pt_count do 
             x, y = uniform(jitter, jitter)

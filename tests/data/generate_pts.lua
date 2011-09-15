@@ -46,7 +46,7 @@ if #arg >= 2 then
         scale_x = arg[3] or 1.0
         scale_y = arg[4] or scale_x 
 
-        print(pt_count .. ' uniform: ' .. scale_x .. ' ' .. scale_y)
+        print(pt_count .. ' ' .. 2 .. ' uniform: ' .. scale_x .. ' ' .. scale_y)
         for i=1, pt_count do
             x, y = uniform(scale_x, scale_y)
             print(x .. ', ' .. y)
@@ -57,7 +57,7 @@ if #arg >= 2 then
         mu_y = arg[5] or mu_x
         sigma_y = arg[6] or sigma_x
 
-        print(pt_count .. ' mu: ' .. mu_x .. ' sigma_x: ' .. sigma_x
+        print(pt_count .. ' ' .. 2 .. ' mu: ' .. mu_x .. ' sigma_x: ' .. sigma_x
             .. ' mu_y: ' .. mu_y .. ' sigma_y: ' .. sigma_y)
         for i=1, pt_count do
             x, y = box_muller(mu_x, sigma_x, mu_y, sigma_y)
