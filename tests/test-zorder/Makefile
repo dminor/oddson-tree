@@ -1,7 +1,7 @@
 
 INCS = -I../../include -I../../../kdtree/include
 LIBS = 
-CFLAGS = -g -O1
+CFLAGS = -g -O2
 LDFLAGS = -g
 OBJS = main.o
 TARGET = ../../bin/test-zorder

@@ -31,9 +31,9 @@ THE SOFTWARE.
 
 template<class P, class T> struct ZOrder {
 
-	size_t dim;
+	int dim;
 
-	ZOrder(size_t dim) : dim(dim)
+	ZOrder(int dim) : dim(dim)
 	{
 	}
 
@@ -57,9 +57,9 @@ template<class P, class T> struct ZOrder {
 
 template<class P> struct ZOrder<P, double> {
 
-	size_t dim;
+	int dim;
 
-	ZOrder(size_t dim) : dim(dim)
+	ZOrder(int dim) : dim(dim)
 	{
 	}
 
@@ -93,8 +93,11 @@ template<class P> struct ZOrder<P, double> {
 
 	int exponent(const double &d)
 	{
-		short *s = (short *)&d;
-		return ((s[3] & 0x7FF0) >> 4);
+		char *c = (char *)&d;
+        short s = c[7];
+        s <<= 8;
+        s |= c[6]; 
+		return ((s & 0x7FF0) >> 4);
 	}
 
 	uint64_t mantissa(const double &d)
