@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 
     OddsonTree<Point> oot(2, pts, n, sample, m);
 
-    fprintf(stdout, "%\n");
+    fprintf(stdout, "%%\n");
 
     //define point function for later
     fprintf(stdout, "/draw-point {\n");

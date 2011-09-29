@@ -22,52 +22,57 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 --]]
 
+require('random')
+
 math.randomseed(os.time())
 
--- normal mean mu, variance sigma
-function box_muller(mu_x, sigma_x, mu_y, sigma_y)
-    local u = math.random()
-    local v = math.random()
+function shift(n, a, k)
+    result = {}
 
-    return mu_x + sigma_x*math.sqrt(-2.0*math.log(u))*math.cos(2.0*math.pi*v),
-        mu_y + sigma_y*math.sqrt(-2.0*math.log(u))*math.sin(2.0*math.pi*v)
-end
+    local k = k or #a
 
--- uniform in [-scale, scale]
-function uniform(scale_x, scale_y) 
-    return (math.random() - 0.5)*2.0*scale_x,
-        (math.random() - 0.5)*2.0*scale_y
-end
-
-if #arg >= 2 then
-    pt_count = arg[2]
-
-    if arg[1] == '-u' then
-        scale_x = arg[3] or 1.0
-        scale_y = arg[4] or scale_x 
-
-        print(pt_count .. ' ' .. 2 .. ' uniform: ' .. scale_x .. ' ' .. scale_y)
-        for i=1, pt_count do
-            x, y = uniform(scale_x, scale_y)
-            print(x .. ', ' .. y)
-        end 
-    elseif arg[1] == '-n' then
-        mu_x = arg[3] or 0.0
-        sigma_x = arg[4] or 1.0 
-        mu_y = arg[5] or mu_x
-        sigma_y = arg[6] or sigma_x
-
-        print(pt_count .. ' ' .. 2 .. ' mu: ' .. mu_x .. ' sigma_x: ' .. sigma_x
-            .. ' mu_y: ' .. mu_y .. ' sigma_y: ' .. sigma_y)
-        for i=1, pt_count do
-            x, y = box_muller(mu_x, sigma_x, mu_y, sigma_y)
-            print(x .. ', ' .. y)
-        end
-    else
-        print('usage generate_pts.lua -n | -u <count>')
-        return
+    for i=n + 1,k do
+        result[i - n] = tonumber(arg[i])
     end 
-else 
-    print('usage generate_pts.lua -n | -u <count>')
-    return 
+
+    return result
+end
+
+if #arg < 2 then
+    print('usage: generate_pts.lua -u|-g|-mog <count> [params]')
+    return -1
+end
+
+local dist = arg[1]
+local n = tonumber(arg[2])
+
+local sequence
+if dist == '-u' then
+    local params = shift(2, arg)
+    sequence = random.make_uniform_sequence(unpack(params))
+elseif dist == '-g' then
+    local params = shift(2, arg)
+    sequence = random.make_gaussian_sequence(unpack(params)) 
+elseif dist == '-mog' then
+    local dim = (#arg - 3)/4
+    local k = tonumber(arg[3])
+    local uniform_params = shift(3, arg, #arg - (#arg - 3)/4)
+    local uniforms = random.make_uniform_sequence(unpack(uniform_params))
+    local variances = shift(4 + 2*dim, arg)
+    sequence = random.make_mixture_of_gaussians_sequence(k, uniforms, variances)
+else
+    print('error: unknown distribution')
+end
+
+local f = io.stdout 
+
+for i=1,n do
+    local values = {sequence()}
+    for k, v in ipairs(values) do 
+        f:write(v)
+        if k < #values then
+            f:write(', ')
+        end
+    end
+    f:write('\n')
 end
