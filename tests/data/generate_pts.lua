@@ -45,16 +45,19 @@ end
 
 local dist = arg[1]
 local n = tonumber(arg[2])
+local dim
 
 local sequence
 if dist == '-u' then
     local params = shift(2, arg)
+    dim = #params / 2
     sequence = random.make_uniform_sequence(unpack(params))
 elseif dist == '-g' then
     local params = shift(2, arg)
+    dim = #params / 2
     sequence = random.make_gaussian_sequence(unpack(params)) 
 elseif dist == '-mog' then
-    local dim = (#arg - 3)/4
+    dim = (#arg - 3)/4
     local k = tonumber(arg[3])
     local uniform_params = shift(3, arg, #arg - (#arg - 3)/4)
     local uniforms = random.make_uniform_sequence(unpack(uniform_params))
@@ -66,6 +69,7 @@ end
 
 local f = io.stdout 
 
+f:write(n .. ' ' .. dim .. '\n')
 for i=1,n do
     local values = {sequence()}
     for k, v in ipairs(values) do 

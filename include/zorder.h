@@ -120,18 +120,24 @@ template<class P> struct ZOrder<P, double> {
 
 	bool operator()(const P &a, const P &b)
 	{
-		int j = 0;
-		int x = 0;
 
-		for (int k = 0; k < dim; ++k) {
-			int y = xor_msb(a[k], b[k]);
-			if (x < y) {
-				j = k;
-				x = y;
-			}
-		}
+        if (a.id != b.id) {
+            return a.id < b.id;
+        } else {
 
-		return a[j] < b[j];
+            int j = 0;
+            int x = 0;
+
+            for (int k = 0; k < dim; ++k) {
+                int y = xor_msb(a[k], b[k]);
+                if (x < y) {
+                    j = k;
+                    x = y;
+                }
+            }
+
+            return a[j] < b[j];
+        }
 	}
 
 };

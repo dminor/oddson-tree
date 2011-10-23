@@ -29,7 +29,7 @@ THE SOFTWARE.
 struct Point {
 
     double v[2]; 
-    int id;
+    long id;
 
     double &operator[](const int &index) 
     { 

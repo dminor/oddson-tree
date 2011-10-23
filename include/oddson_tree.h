@@ -44,7 +44,7 @@ template<class Point> class OddsonTree {
 
 public:
 
-    struct CacheNode : Point { 
+    struct CacheNode { 
         size_t dim;
         Point *nn;
         Point a, b;
@@ -85,52 +85,64 @@ public:
     };
 
     OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
-        : dim(dim), comp(dim), root(0) 
+        : dim(dim), root(0) 
     {
 
+        ZOrder<Point, double> comp(dim);
         backup = new KdTree<Point, double>(dim, ps, n);
 
+        for (size_t i = 0; i < m; ++i) {
+            std::list<std::pair<Point *, double> > result = backup->knn(1, qs[i], 0.0); 
+            qs[i].id = (long)result.back().first; 
+        }
         std::sort(&qs[0], &qs[m], comp);
 
-        int n3 = 0;
-        int n4 = 0;
-        int n5ormore = 0;
         int total_useful = 0;
 
         std::list<CacheNode *> cache;
-        //cache.reserve(m/10);
 
         Point *last_nn = 0;
         int run = 0;
         for (size_t i = 0; i < m; ++i) {
-            std::list<std::pair<Point *, double> > result = backup->knn(1, qs[i], 0.0); 
-            Point *nn = result.back().first; 
+//            std::list<std::pair<Point *, double> > result = backup->knn(1, qs[i], 0.0); 
+//            Point *nn = result.back().first; 
+            Point *nn = (Point *)qs[i].id;
 
-            if (nn) {
-                if (nn == last_nn && run < 5) {
-                    ++run;
-                } else {
-                    if (run >= 3) {         
-                        total_useful += run;
+            if (nn && nn == last_nn) {
 
-                        CacheNode *pt = new CacheNode(dim);
-                        pt->nn = last_nn;
-                        pt->a = qs[i - run - 1];
-                        pt->b = qs[i - 1];
-                        
-                        for (size_t d = 0; d < dim; ++d) {
-                            (*pt)[d] = qs[i][d];
+                total_useful += 2;
 
+                CacheNode *pt = new CacheNode(dim);
+                pt->nn = last_nn;
+                pt->a = qs[i - 1];
+                pt->b = qs[i];
+
+
+                Point pt1;
+                pt1[0] = pt->b[0];
+                pt1[1] = pt->a[1];
+                std::list<std::pair<Point *, double> > result = backup->knn(1, pt1, 0.0); 
+                Point *pt1_nn = result.back().first; 
+
+                if (pt1_nn == nn) {
+                    Point pt2;
+                    pt2[0] = pt->a[0];
+                    pt2[1] = pt->b[1];
+                    std::list<std::pair<Point *, double> > result = backup->knn(1, pt2, 0.0); 
+                    Point *pt2_nn = result.back().first; 
+
+                    if (pt2_nn == nn) {
+//                        fprintf(stderr, "%f %f, %f %f, %f %f, %f %f\n", pt->a[0], pt->a[1], pt->b[0], pt->b[1], pt1[0], pt1[1], pt2[0], pt2[1]);
+
+                        for (size_t d = 0; d < dim; ++d) { 
                             if (pt->a[d] > pt->b[d]) std::swap(pt->a[d], pt->b[d]);
                         }
 
-                        //fprintf(stderr, "added point: (%d, %d) -> (%d, %d)\n", pt->a[0], pt->a[1], pt->b[0], pt->b[1]);
-
-                        cache.push_back(pt);
+                        cache.push_back(pt); 
+                    } else {
+                        delete pt;
                     }
-
-                    run = 0;
-                }
+                } 
             }
 
             last_nn = nn;
@@ -151,7 +163,31 @@ public:
                     node->a[d] = std::min(node->left->a[d], node->right->a[d]);
                     node->b[d] = std::max(node->left->b[d], node->right->b[d]);
                 }
+/*
+                if (node->left->nn == node->right->nn) {
+                    Point pt1;
+                    pt1[0] = node->b[0];
+                    pt1[1] = node->a[1];
+                    std::list<std::pair<Point *, double> > result = backup->knn(1, pt1, 0.0); 
+                    Point *pt1_nn = result.back().first; 
 
+                    if (pt1_nn == node->left->nn) {
+                        Point pt2;
+                        pt2[0] = node->a[0];
+                        pt2[1] = node->b[1];
+                        std::list<std::pair<Point *, double> > result = backup->knn(1, pt2, 0.0); 
+                        Point *pt2_nn = result.back().first; 
+
+                        if (pt2_nn == node->left->nn) { 
+                            node->nn = node->left->nn;
+                            delete node->left;
+                            delete node->right;
+                            node->left = 0;
+                            node->right = 0;
+                        }
+                    } 
+                }
+*/
                 cache.push_back(node);
             }
         }
@@ -181,7 +217,10 @@ public:
         Point *nn = root->locate(pt);
 
         if (nn) {
-            result.push_back(std::make_pair<Point *, double>(nn, -1.0));
+            double dist = (pt[0] - (*nn)[0])*(pt[0] - (*nn)[0]) + 
+            (pt[1] - (*nn)[1])*(pt[1] - (*nn)[1]); 
+
+            result.push_back(std::make_pair<Point *, double>(nn, dist));
             ++hits;
         } else {
             result = backup->knn(k, pt, eps); 
@@ -198,8 +237,6 @@ private:
 
     size_t dim;
     KdTree<Point, double> *backup; 
-    std::vector<CacheNode> cache;
-    ZOrder<Point, double> comp;
 
     int hits;
     int queries;

@@ -32,7 +32,7 @@ THE SOFTWARE.
 struct Point {
 
     double v[2]; 
-    int id;
+    long id;
 
     double &operator[](const int &index) 
     { 
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
     Point *queries = read_points(f, &p); 
 
     //how many nearest neighbours to retrieve
-    int nn = 5;
+    int nn = 1;
     if (argc >= 5) nn = atoi(argv[4]);
 
     //read query epsilon

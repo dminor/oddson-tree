@@ -29,6 +29,7 @@ THE SOFTWARE.
 struct Point {
 
     double v[2]; 
+    long id;
 
     double &operator[](const int &index) 
     { 
@@ -38,6 +39,11 @@ struct Point {
     const double &operator[](const int &index) const 
     { 
         return v[index]; 
+    }
+
+    const bool operator!=(const Point &other)
+    { 
+        return !(v[0] == other.v[0] && v[1] == other.v[1]);
     } 
 };
 
@@ -56,17 +62,12 @@ Point distfn()
     return pt; 
 }
 
-#define N 1000
-#define M 500
-#define Q 100000 
+#define N 10000
+#define M 2000
+#define Q 1000000
 
 int main(int argc, char **argv) 
 { 
-
-    if (argc < 2) { 
-        std::cerr << "usage: oddson-tree oot | kdt [nop]\n"; 
-        return 0; 
-    }
 
     //generate data points 
     Point *ps = new Point[N]; 
@@ -81,43 +82,25 @@ int main(int argc, char **argv)
         qs[i] = distfn();
     }
 
-    //run queries on oot 
-    if (!strncmp(argv[1], "oot", 3)) {
+    OddsonTree<Point> oot(2, ps, N, qs, M); 
+    KdTree<Point, double> kdt(2, ps, N); 
 
-        OddsonTree<Point> oot(2, ps, N, qs, M); 
-        std::cout << "oot\n";
+    int errors = 0;
+    for (size_t i = 0; i < Q; ++i) { 
+        Point pt = distfn();
 
-        if (argc < 3) { 
-            for (size_t i = 0; i < Q; ++i) { 
-                Point pt = distfn();
+        std::list<std::pair<Point *, double> > qr = oot.knn(1, pt, 0.0); 
+        Point nn = *qr.back().first;
 
-                std::list<std::pair<Point *, double> > qr = oot.knn(1, pt, 0.0);
+        std::list<std::pair<Point *, double> > qr2 = kdt.knn(1, pt, 0.0); 
+        Point nn2 = *qr2.back().first;
 
-                Point nn = *qr.back().first;
-     
-                std::cout << "closest point to: (" << pt[0] << ", " << pt[1] << ") is: "; 
-                std::cout << "(" << nn[0] << ", " << nn[1] << "): " << qr.back().second << "\n";
-
-            } 
+        if (nn != nn2) {
+            ++errors; 
         }
-    } else {
+    }
 
-        if (argc < 3) { 
-            //run queries on kdtree 
-            KdTree<Point, double> kdt(2, ps, N); 
-            std::cout << "kdt\n";
-
-            for (size_t i = 0; i < Q; ++i) { 
-                Point pt = distfn();
-
-                std::list<std::pair<Point *, double> > qr = kdt.knn(1, pt, 0.0);
-
-                Point nn = *qr.back().first;
-     
-                std::cout << "closest point to: (" << pt[0] << ", " << pt[1] << ") is: "; 
-                std::cout << "(" << nn[0] << ", " << nn[1] << "): " << qr.back().second << "\n"; 
-            } 
-        }
-    } 
+    std::cerr << "# of errors: " << errors << " of " << Q << " : "
+         << (float)errors/(float)Q*100.0f << " percent.\n";
 }
 
