@@ -121,9 +121,9 @@ template<class P> struct ZOrder<P, double> {
 	bool operator()(const P &a, const P &b)
 	{
 
-        if (a.id != b.id) {
-            return a.id < b.id;
-        } else {
+//        if (a.id != b.id) {
+//            return a.id < b.id;
+//        } else {
 
             int j = 0;
             int x = 0;
@@ -138,7 +138,7 @@ template<class P> struct ZOrder<P, double> {
 
             return a[j] < b[j];
         }
-	}
+//	}
 
 };
 

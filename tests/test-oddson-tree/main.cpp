@@ -62,8 +62,8 @@ Point distfn()
     return pt; 
 }
 
-#define N 10000
-#define M 2000
+#define N 100000
+#define M 20000
 #define Q 1000000
 
 int main(int argc, char **argv) 

@@ -91,10 +91,6 @@ public:
         ZOrder<Point, double> comp(dim);
         backup = new KdTree<Point, double>(dim, ps, n);
 
-        for (size_t i = 0; i < m; ++i) {
-            std::list<std::pair<Point *, double> > result = backup->knn(1, qs[i], 0.0); 
-            qs[i].id = (long)result.back().first; 
-        }
         std::sort(&qs[0], &qs[m], comp);
 
         int total_useful = 0;
@@ -104,17 +100,19 @@ public:
         Point *last_nn = 0;
         int run = 0;
         for (size_t i = 0; i < m; ++i) {
-//            std::list<std::pair<Point *, double> > result = backup->knn(1, qs[i], 0.0); 
-//            Point *nn = result.back().first; 
-            Point *nn = (Point *)qs[i].id;
+            std::list<std::pair<Point *, double> > result = backup->knn(1, qs[i], 0.0); 
+            Point *nn = result.back().first; 
 
-            if (nn && nn == last_nn) {
+            if (nn && nn == last_nn) ++run;
+            else run = 0;
+ 
+            if (run >= 2) {
 
-                total_useful += 2;
+                total_useful += 1;
 
                 CacheNode *pt = new CacheNode(dim);
                 pt->nn = last_nn;
-                pt->a = qs[i - 1];
+                pt->a = qs[i - run + 1];
                 pt->b = qs[i];
 
 
@@ -137,8 +135,8 @@ public:
                         for (size_t d = 0; d < dim; ++d) { 
                             if (pt->a[d] > pt->b[d]) std::swap(pt->a[d], pt->b[d]);
                         }
-
                         cache.push_back(pt); 
+                        run = 0;
                     } else {
                         delete pt;
                     }
@@ -148,6 +146,7 @@ public:
             last_nn = nn;
         }
 
+        int cache_size = cache.size();
         while (cache.size() > 1) {
             
             size_t size = cache.size();
@@ -194,7 +193,7 @@ public:
 
         if (!cache.empty()) root = cache.front();
 
-        fprintf(stderr, "total terminal: %d of %d percent: %0.2f cache size: %d\n", total_useful, m, (double)total_useful/(double)m, cache.size()); 
+        fprintf(stderr, "total terminal: %d of %d percent: %0.2f cache size: %d\n", total_useful, m, (double)total_useful/(double)m, cache_size); 
 
         hits = 0;
         queries = 0;
