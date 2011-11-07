@@ -51,7 +51,7 @@ void render_tree(FILE *f, struct OddsonTree<Point>::CacheNode *tree)
     double &y1 = tree->a[1];
     double &y2 = tree->b[1]; 
 
-    if (!tree->left && !tree->right) { 
+    if (tree->nn) { 
         fprintf(f, "colour-site-%d\n", tree->nn->id);
         fprintf(f, "%.0f %.0f %.0f %.0f node-bounds\n", x1, x2, y1, y2); 
     } else { 

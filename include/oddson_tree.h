@@ -55,13 +55,8 @@ public:
         { 
         }
 
-        Point *locate(const Point &pt)
+        bool contains(const Point &pt)
         {
-            //printf("a: (%d %d) b: (%d %d) pt: (%d %d)\n", a[0], a[1], b[0], b[1], pt[0], pt[1]);
-
-            CacheNode *node = this;
-            Point *result = 0;
-
             bool found = true;
             for (size_t d = 0; d < dim; ++d) {
                 if ((a[d] > pt[d] || pt[d] > b[d])) {
@@ -70,8 +65,18 @@ public:
                 }
             }
 
-            //if a child
-            if (found) {
+            return found;
+        }
+
+        Point *locate(const Point &pt)
+        {
+            //printf("a: (%d %d) b: (%d %d) pt: (%d %d)\n", a[0], a[1], b[0], b[1], pt[0], pt[1]);
+
+            CacheNode *node = this;
+            Point *result = 0;
+
+            if (contains(pt)) {
+                //if a child
                 if (nn) {
                     result = nn;
                 } else {
@@ -115,32 +120,21 @@ public:
                 pt->a = qs[i - run + 1];
                 pt->b = qs[i];
 
-
-                Point pt1;
-                pt1[0] = pt->b[0];
-                pt1[1] = pt->a[1];
-                std::list<std::pair<Point *, double> > result = backup->knn(1, pt1, 0.0); 
-                Point *pt1_nn = result.back().first; 
-
-                if (pt1_nn == nn) {
-                    Point pt2;
-                    pt2[0] = pt->a[0];
-                    pt2[1] = pt->b[1];
-                    std::list<std::pair<Point *, double> > result = backup->knn(1, pt2, 0.0); 
-                    Point *pt2_nn = result.back().first; 
-
-                    if (pt2_nn == nn) {
-//                        fprintf(stderr, "%f %f, %f %f, %f %f, %f %f\n", pt->a[0], pt->a[1], pt->b[0], pt->b[1], pt1[0], pt1[1], pt2[0], pt2[1]);
-
-                        for (size_t d = 0; d < dim; ++d) { 
-                            if (pt->a[d] > pt->b[d]) std::swap(pt->a[d], pt->b[d]);
-                        }
-                        cache.push_back(pt); 
-                        run = 0;
-                    } else {
-                        delete pt;
+                if (no_interference(pt)) {
+                    for (size_t d = 0; d < dim; ++d) { 
+                        if (pt->a[d] > pt->b[d]) std::swap(pt->a[d], pt->b[d]);
                     }
-                } 
+
+                    //linked list of leaf nodes
+                    CacheNode *prev = cache.back();
+                    if (prev) prev->right = pt;
+                    pt->left = prev;
+
+                    cache.push_back(pt); 
+                    run = 0; 
+                } else {
+                    delete pt; 
+                }
             }
 
             last_nn = nn;
@@ -163,28 +157,13 @@ public:
                     node->b[d] = std::max(node->left->b[d], node->right->b[d]);
                 }
 /*
-                if (node->left->nn == node->right->nn) {
-                    Point pt1;
-                    pt1[0] = node->b[0];
-                    pt1[1] = node->a[1];
-                    std::list<std::pair<Point *, double> > result = backup->knn(1, pt1, 0.0); 
-                    Point *pt1_nn = result.back().first; 
-
-                    if (pt1_nn == node->left->nn) {
-                        Point pt2;
-                        pt2[0] = node->a[0];
-                        pt2[1] = node->b[1];
-                        std::list<std::pair<Point *, double> > result = backup->knn(1, pt2, 0.0); 
-                        Point *pt2_nn = result.back().first; 
-
-                        if (pt2_nn == node->left->nn) { 
-                            node->nn = node->left->nn;
-                            delete node->left;
-                            delete node->right;
-                            node->left = 0;
-                            node->right = 0;
-                        }
-                    } 
+                if (node->left->nn == node->right->nn && no_interference(node)) {
+                    printf("here\n");
+                    node->nn = node->left->nn;
+                    delete node->left;
+                    delete node->right;
+                    node->left = 0;
+                    node->right = 0; 
                 }
 */
                 cache.push_back(node);
@@ -239,6 +218,31 @@ private:
 
     int hits;
     int queries;
+
+    bool no_interference(const CacheNode *pt)
+    {
+        Point pt1, pt2;
+        Point *pt1_nn, *pt2_nn;
+        std::list<std::pair<Point *, double> > result;
+
+        pt1[0] = pt->b[0];
+        pt1[1] = pt->a[1];
+        result = backup->knn(1, pt1, 0.0); 
+        pt1_nn = result.back().first; 
+
+        if (pt1_nn == pt->nn) {
+            pt2[0] = pt->a[0];
+            pt2[1] = pt->b[1];
+            result = backup->knn(1, pt2, 0.0); 
+            pt2_nn = result.back().first; 
+
+            if (pt2_nn == pt->nn) {
+                return true;
+            }
+        } 
+
+        return false;
+    }
 };
 
 #endif

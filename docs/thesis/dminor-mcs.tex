@@ -2,7 +2,7 @@
 \usepackage{url}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\title {A Distribution Sensitive Data Structure for Nearest Neighbour Search}
+\title {Biased Nearest Neighbour Search}
 \author {Daniel Minor}
 \thesissupervisor {Patrick Morin}
 \director {Douglas Howe}
@@ -14,11 +14,11 @@
 
 \chapter*{Abstract}
 
-TBD
+TODO:
 
 \chapter*{Acknowledgements}
 
-TBD
+TODO:
 
 \afterpreface
 
@@ -59,11 +59,11 @@ and from some applications of practical interest.
 
 \section{Definitions}
 
-TBD
+TODO:
 
 \section{Results Summary}
 
-TBD
+TODO:
 
 \section{Organization of the Thesis}
 
@@ -77,7 +77,9 @@ future work.
 
 \chapter{Previous Work}
 
-\section{Biased Search Trees}
+\section{Biased Search}
+
+\subsection{Biased Search Trees}
 
 Biased search trees are a natural generalization of balancing a binary search
 tree where rather than assuming each result is equally likely, a probability
@@ -111,25 +113,150 @@ know the queries in advance.
 
 Most experimental work with biased search has focused on comparing splaytrees
 with traditional approaches like 2 - 4 trees and red-black trees.
-[DLM: references].
 
-\section{Distribution Sensitive Data Structures}
+TODO: give some references on previous experimental work with biased search.
+
+\subsection{Distribution Sensitive Data Structures}
+
+A distribution sensitive data structure has a running time which is a multiple 
+of the entropy of the query distribution.  This is similar to biased search
+trees, where the running time is given in terms of the entropy of the query
+results, but provides a better framework for examining geometric search
+problems.
+
+TODO: Explain why better for geometric search.
+
+TODO: Refer to at least Biased Range Trees paper, some results in distribution
+sensitive point location.
+
+\subsection{Instance Optimality}
+
+An instance optimal data structure \cite{chan} has a running time which is
+within a constant factor of any data structure for any instance of the problem.
+
+TODO: Explain why this gives equivalent results to distribution sensitive data
+structures.
 
 \section{Nearest Neighbour Search}
 
+TODO: Knuth on post-office query, Bentley's quadtrees and kd-trees.  Fast
+vector quantization paper, ANN.  Metric trees, Locality sensitive hashing
+
 \chapter{Implementation}
 
+
+In both \cite{oddson} and \cite{chan} the data structure is based upon
+Matousek's partition trees \cite{matousek}.  Partition trees have nice
+theoretical properties, but are not practical to implement.
+
+TODO: Explain why they are not practical.
+
+This chapter gives alternative implementations based upon kd-trees and
+quadtrees, two commonly used data structures for point location and nearest
+neighbour search.  We begin with a description of the partition tree based
+implementation, as ideas from it are used in both the kd-tree and quadtree
+based implementations.
+
+\section{Odds-on Trees}
+
+TODO: Description of partition tree based Odds-on tree.
+
+
+\section{Kd-tree Implementation}
+
+The backup
+
+The initial implementation of Odds-on Trees closely followed the description of
+the data structure given in \cite{oddson} but used kd-trees rather than
+partition trees.
+
+\section{Kd-tree Based Odds-on Tree}
+
+TODO: Brief overview of kd-tree data structure and how it was implemented.  This
+is also the implementation of the back up oracle for both implementations and the
+baseline for experimentation. 
+
+\section{Construction algorithm}
+
+\section{Query algorithm}
+
+\section{Quadtree Based Odds-on Tree}
+
+\subsection{Z-Order and Quadtrees}
+
+TODO: Quick overview of Z-Order, outline Chan's algorithm, and the extension to
+floating point numbers.
+
+\includegraphics[scale=0.4]{diagrams/zorder.eps}
+
+\subsection{Construction algorithm}
+
+TODO: Outline how quadtree is built once points are sorted into z-order.
+
+\section{Performance Tuning}
+
+TODO: Do some profiling to see if there are any spots which can be optimized. 
+TODO: Do experimentation to determine appropriate sample size.
+TODO: Do experimentation to determine whether or not it is best to sort by NN
+      then by z-order or not.
+
 \chapter{Experimental Results}
+
+\section{Experiment Design}
+
+The experimental hypothesis is that the odds-on tree provides better k-nn
+performance than a kd-tree implementation in cases where the entropy of the
+query set is sufficiently low.
+
+The implementations were tested with both synthetic data and data derived
+from applications of nearest neighbour search.
+
+Three separate sets of data are required for each experimental run.  The first
+is the point set which is the subject of the searches, the second is the point
+set which is used as samples to build the odds-on tree, and the third is the
+point set used to query the odds-on tree and the kd-tree.  For all of the
+synthetic data sets,  second and third data sets were derived from the same
+distribution.
+
+TODO: briefly describe distributions used to generate points: uniform, gaussian,
+mixture of gaussians.
+
+
+\section{Measuring Performance}
+
+\subsection{Benchmark Platform}
+
+An Intel Core I5 laptop was used as the benchmark platform.
+
+TODO: Possibly also run experiments on an ARM processor?
+
+\subsection{Performance Metrics}
+
+The primary performance metric is running time.  For each experiment
+configuration, 1000000 queries were performed and the elapsed system clock
+time was recorded.
+
+In addition to running time, data was collected on the cache miss rate for the
+odds-on tree, as well as the number of nodes visited in both the cache and the
+back up tree.
+
+Since cache utilization can have a major impact on running time, the Valgrind
+\cite{valgrind} cachegrind utility was used to simulate the cache performance
+of the implementation, and data was collected on L1 and L2 cache miss rates.
+
+\section{Results}
+
+TODO: one section for each experimental configuration.
 
 \chapter{Conclusion}
 
 \section{Summary}
 
-TBD
+TODO:
 
 \section{Future Work}
 
-TBD
+TODO:
 
 \begin{thebibliography}{5}
 
