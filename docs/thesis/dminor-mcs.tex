@@ -26,30 +26,31 @@ TODO:
 
 \section{Problem Statement}
 
-We investigate the utility of distribution sensitive data structures for
-geometric search problems in practice.  A distribution sensitive data structure
-makes use of a priori knowledge of the probability distribution of queries in
-order to answer common queries more quickly, giving an expected runtime which
-is of the order of the entropy, or amount of randomness, present in the query
-distribution.
+We investigate the utility of data structures for biased nearest neighbour
+search in practice.   The nearest neighbour search problem is given a set of
+points, a query point, and a metric, return the closest point in the set to the
+query point under the specified metric.  In the biased variant of this problem,
+it is assumed that information is available which allows for more common queries
+to be answered more quickly.
 
 Recently, two groups of researchers \cite{chan} \cite{oddson} have proposed a
-theoretical framework for a distribution sensitive data structure which can be
-applied to a variety of geometrical search problems which seems as though it
-may be of practical as well as theoretical interest.  Following \cite{oddson},
-we will call this data structure the Odds-on tree.
+a distribution sensitive data structure, called odds-on trees,  which can be
+applied to a variety of geometrical search problems which seems as though it may
+be of practical as well as theoretical interest.
 
-The geometrical search problem used to investigate these results is nearest
-neighbour search.  The nearest neigbhour search problem is: given a query
-point, a set of other points, and a metric, return the closest point to the
-query point in the set of the points under the specified metric.  Two related
-problems are k-nearest neighbours search, where the k closest points to the
-query point are returned, and approximate nearest neighbour search, where the
-points returned are closest only up to a specified tolerance.  These problems
-are of considerable practical interest, with applications in GIS, computer
-graphics, computer vision, signal processing and machine learning.
+A distribution sensitive data structure makes use of knowledge of the
+probability distribution of the queries in order to answer queries with an
+expected runtime which is of the order of the entropy, or amount of randomness,
+present in the query distribution. 
 
-In this thesis we examine Odds-on trees through the lens of algorithm
+Nearest neighbour search is of considerable practical interest with
+applications in geographical information systems, computer graphics,
+computer vision, signal processing and machine learning.
+
+TODO: more on NN search, difficulty of problem, relate back to distribution
+sensitivity.
+
+In this thesis we examine odds-on trees through the lens of algorithm
 engineering.  Our goal is to study the design decisions and implementation 
 techniques required to derive a practical data structure from the theoretical
 results about Odds-on trees.  This involves both development work and
@@ -78,6 +79,8 @@ future work.
 \chapter{Previous Work}
 
 \section{Biased Search}
+
+TODO: should this be included here?
 
 \subsection{Biased Search Trees}
 
@@ -142,33 +145,51 @@ structures.
 TODO: Knuth on post-office query, Bentley's quadtrees and kd-trees.  Fast
 vector quantization paper, ANN.  Metric trees, Locality sensitive hashing
 
-\chapter{Implementation}
+\section{Geometric Data Structures}
 
+This section describes geometric data structures used to construct the odds-on
+tree.
 
-In both \cite{oddson} and \cite{chan} the data structure is based upon
-Matousek's partition trees \cite{matousek}.  Partition trees have nice
-theoretical properties, but are not practical to implement.
+\subsection{Quadtrees}
 
-TODO: Explain why they are not practical.
+TODO: describe quadtree data structure.
 
-This chapter gives alternative implementations based upon kd-trees and
-quadtrees, two commonly used data structures for point location and nearest
-neighbour search.  We begin with a description of the partition tree based
-implementation, as ideas from it are used in both the kd-tree and quadtree
-based implementations.
+\subsubsection{Z-Order}
 
-\section{Odds-on Trees}
+TODO: describe z-order, relationship to quadtrees, use to build compressed
+quadtree structure.  Outline Chan's algorithm, and the extension to
+floating point numbers.
+
+\includegraphics[scale=0.4]{diagrams/zorder.eps}
+
+\subsection{Kd-Trees}
+
+TODO: describe kd-trees, construction procedure, use in nearest-neighbour
+search.
+
+\subsection{Partition Trees}
+
+TODO: describe partition trees, construction procedure, use in simplicial
+range queries.
+
+\subsection{Odds-on Trees}
 
 TODO: Description of partition tree based Odds-on tree.
 
 
+\chapter{Implementation}
+
+This chapter describes how the odds-on tree was implemented, design decisions
+that were made and the performance tuning that was done.
+
+The original description of odds-on trees made use of partition trees.  Although
+theoretically optimal, partition trees are not practical to implement, and
+implementations were made using both kd-trees and quadtrees.  This chapter
+begins with a description of partition tree based odds-on trees, as the
+construction and query algorithms are broadly similar to the partition tree
+versions.
+
 \section{Kd-tree Implementation}
-
-The backup
-
-The initial implementation of Odds-on Trees closely followed the description of
-the data structure given in \cite{oddson} but used kd-trees rather than
-partition trees.
 
 \section{Kd-tree Based Odds-on Tree}
 
@@ -176,22 +197,21 @@ TODO: Brief overview of kd-tree data structure and how it was implemented.  This
 is also the implementation of the back up oracle for both implementations and the
 baseline for experimentation. 
 
-\section{Construction algorithm}
+\subsection{Construction algorithm}
 
-\section{Query algorithm}
+\subsection{Query algorithm}
 
 \section{Quadtree Based Odds-on Tree}
 
 \subsection{Z-Order and Quadtrees}
 
-TODO: Quick overview of Z-Order, outline Chan's algorithm, and the extension to
-floating point numbers.
-
-\includegraphics[scale=0.4]{diagrams/zorder.eps}
 
 \subsection{Construction algorithm}
 
 TODO: Outline how quadtree is built once points are sorted into z-order.
+
+\subsection{Query algorithm}
+
 
 \section{Performance Tuning}
 
@@ -202,24 +222,77 @@ TODO: Do experimentation to determine whether or not it is best to sort by NN
 
 \chapter{Experimental Results}
 
+
 \section{Experiment Design}
 
 The experimental hypothesis is that the odds-on tree provides better k-nn
 performance than a kd-tree implementation in cases where the entropy of the
 query set is sufficiently low.
 
-The implementations were tested with both synthetic data and data derived
-from applications of nearest neighbour search.
+This hypothesis was tested using both synthetic data drawn from probability
+distributions, and with data derived from applications of nearest neighbour
+search. 
 
-Three separate sets of data are required for each experimental run.  The first
-is the point set which is the subject of the searches, the second is the point
-set which is used as samples to build the odds-on tree, and the third is the
-point set used to query the odds-on tree and the kd-tree.  For all of the
-synthetic data sets,  second and third data sets were derived from the same
-distribution.
+\subsection{Synthetic Data}
+
+\subsubsection{Dimension}
+
+TODO:
+- will definitely experiment in 2, 3, 4 dimensions.
+- both kd-trees and quadtrees perform poorly in higher dimensions.  The "curse
+of dimensionality" says the number of sample points required to build the cache
+will grow quickly as dimension increases, but kd-tree performance also quickly
+gets worse.
+- will try 8, 16 dimensions in a limited number of cases to see if it is worth
+while doing full studies.
+- above 16 - 20 dimensions, the literature says kd-trees are not effective.
+- for exact searches, even 8 dimensions is problematic, not much better than
+brute force. 
+
+\subsubsection{Point Set}
+
+The point set
+
+- distribution of points: uniform or mixture of gaussians
+- number of points: 10000, 100000, 1000000 
+
+To reduce variance, the point set which was queried to determine the nearest
+neighbour was maintained between trials.  Two distributions were used for the
+
+\subsubsection{Sample Set}
+
+The sample set is the set of searches used to build the Odds-on tree.
+
+\subsubsection{Search Set}
+
+The search set is the set of searches used to  test the odds-on tree and
+kd-tree implementations.  In all cases, the search set is drawn from the same
+distribution used to generate the sample set, and the number of searches was
+fixed at 1000000. 
 
 TODO: briefly describe distributions used to generate points: uniform, gaussian,
 mixture of gaussians.
+
+\subsection{Application Data}
+
+\subsubsection{Foursquare Dataset}
+
+TODO: describe foursquare dataset, how it is biased, size of dataset, queries
+run, etc.
+
+\subsubsection{Photon Mapping Dataset}
+
+Photon mapping is technique used in ray tracing in computer graphics
+where lighting is estimated by first creating a photon map by tracing light as
+it is emitted from light sources and bounces through the scene, storing the
+location each time it hits a surface.  Rays are then traced from the view
+location, and each time they hit a surface, the photon map is queried to get an
+estimate of the light present at the hit location.  This is a nearest neighbour
+search, and it is biased since the queries will only occur on surfaces visible
+to the view point, but the photon map will have points for all surfaces visible
+to a light source \cite{physicallybased}.
+
+TODO: size of dataset, how to generate a sample dataset, etc.
 
 
 \section{Measuring Performance}
