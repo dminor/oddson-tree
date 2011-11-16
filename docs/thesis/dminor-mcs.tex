@@ -1,12 +1,18 @@
+
 \documentclass[mcs]{scsthesis}
 \usepackage{url}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{graphicx}
+
 \title {Biased Nearest Neighbour Search}
 \author {Daniel Minor}
 \thesissupervisor {Patrick Morin}
 \director {Douglas Howe}
+
 \begin{document}
+
+\newtheorem*{thm}{Theorem}[section]
 
 \beforepreface
 
@@ -35,8 +41,8 @@ to be answered more quickly.
 
 Recently, two groups of researchers \cite{chan} \cite{oddson} have proposed a
 a distribution sensitive data structure, called odds-on trees,  which can be
-applied to a variety of geometrical search problems which seems as though it may
-be of practical as well as theoretical interest.
+applied to a variety of geometrical search problems and which seems as though it
+may be of practical as well as theoretical interest.
 
 A distribution sensitive data structure makes use of knowledge of the
 probability distribution of the queries in order to answer queries with an
@@ -50,17 +56,15 @@ computer vision, signal processing and machine learning.
 TODO: more on NN search, difficulty of problem, relate back to distribution
 sensitivity.
 
-In this thesis we examine odds-on trees through the lens of algorithm
-engineering.  Our goal is to study the design decisions and implementation 
-techniques required to derive a practical data structure from the theoretical
-results about Odds-on trees.  This involves both development work and
-extensive experimentation to establish correctness and performance under a
-variety of query distributions, both derived from probability distributions,
-and from some applications of practical interest.  
+Our goal is to implement a practical data structure based on the theoretical
+results about odds-on trees.  This involves design and implementation work as
+well as extensive experimentation to establish correctness and performance
+characteristics.  Since the performance of odds-on trees is by design
+dependent upon the probability distribution of the queries, it is necessary
+to do experimentation based upon a wide variety of query distributions,
+including some derived from applications of nearest neighbour search.
 
 \section{Definitions}
-
-TODO:
 
 \section{Results Summary}
 
@@ -77,6 +81,98 @@ obtained, and Chapter 5 summarizes the results and discusses potential
 future work.
 
 \chapter{Previous Work}
+
+\section{Geometric Data Structures}
+
+This section describes geometric data structures used to construct the variants
+of the odds-on tree investigated in this thesis.
+
+\subsection{Quadtrees}
+
+Quadtrees are based upon recursively dividing n-dimensional space into \(2^n\)
+equal sized hypercubes, with each node in the tree keeping pointers to its
+children.  In the two dimensional case, this means that space is divided into
+four quadrants, hence the name quadtrees.  
+
+In this thesis, we only use quadtrees which are derived from an underlying point
+set.  In this case, the recursive sub-division is done until each hypercube
+contains a single point from the point set.
+
+The root of the quadtree is the hypercube containing all of the points, a leaf
+is a hypercube containing a single point, and the height of a quadtree
+is the longest path from the root of the quadtree to the leaf of a quadtree.
+
+\begin{thm} \emph{(Height of a Quadtree)}
+The height of a quadtree with n points depends upon the distance between
+the input points, and is not bounded by n.
+\end{thm}
+
+Given a query point p the quadtree node containing p, if any, can be found by
+starting at the root, comparing p to the bounds of the each child of the root,
+and recursively visiting the child containing p until a leaf node is found.  
+Since the maximum depth of a quadtree with n points is not bounded by n, the
+running time of this search algorithm is also not bounded by n. 
+
+TODO: quadtree diagram
+
+TODO: reference for this section
+
+\subsection{Compressed Quadtrees}
+
+In a compressed quadtree, only nodes which contain a point, or have at least
+two child nodes are present in the tree.
+
+A compressed quadtree can be created by pruning nodes from an existing quadtree
+as follows:
+
+\begin{enumerate}
+\item If a node contains no children, remove it.
+\item If a node has a single child node, change the pointer to the node in the
+node's parent to point to the node's child.
+\end{enumerate}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.4]{diagrams/compressed_quadtree.eps}
+\caption{Compressed Quadtree}
+\end{center}
+\end{figure}
+
+\begin{thm} \emph{(Height of Compressed Quadtree)}
+The height of a compressed quadtree with n points is O(n).
+\end{thm}
+
+Compressed quadtrees were first described in \cite{compressedquadtree}, and a
+detailed description can be found in \cite{skipquadtree}.
+
+\subsubsection{Z-Order}
+
+TODO: describe z-order, relationship to quadtrees, use to build compressed
+quadtree structure.  Outline Chan's algorithm, and the extension to
+floating point numbers.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.4]{diagrams/zorder.eps}
+\caption{Z-Order}
+\end{center}
+\end{figure}
+
+
+\subsection{Kd-Trees}
+
+TODO: describe kd-trees, construction procedure, use in nearest-neighbour
+search.
+
+\subsection{Partition Trees}
+
+TODO: describe partition trees, construction procedure, use in simplicial
+range queries.
+
+\subsection{Odds-on Trees}
+
+TODO: Description of partition tree based Odds-on tree.
+
 
 \section{Biased Search}
 
@@ -144,37 +240,6 @@ structures.
 
 TODO: Knuth on post-office query, Bentley's quadtrees and kd-trees.  Fast
 vector quantization paper, ANN.  Metric trees, Locality sensitive hashing
-
-\section{Geometric Data Structures}
-
-This section describes geometric data structures used to construct the odds-on
-tree.
-
-\subsection{Quadtrees}
-
-TODO: describe quadtree data structure.
-
-\subsubsection{Z-Order}
-
-TODO: describe z-order, relationship to quadtrees, use to build compressed
-quadtree structure.  Outline Chan's algorithm, and the extension to
-floating point numbers.
-
-\includegraphics[scale=0.4]{diagrams/zorder.eps}
-
-\subsection{Kd-Trees}
-
-TODO: describe kd-trees, construction procedure, use in nearest-neighbour
-search.
-
-\subsection{Partition Trees}
-
-TODO: describe partition trees, construction procedure, use in simplicial
-range queries.
-
-\subsection{Odds-on Trees}
-
-TODO: Description of partition tree based Odds-on tree.
 
 
 \chapter{Implementation}
@@ -333,9 +398,24 @@ TODO:
 
 \begin{thebibliography}{5}
 
+\bibitem{appnn}
+    Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R. Wu, A. Y. (1998) An Optimal Algorithm for Approximate Nearest Neighbor Searching in Fixed Dimensions , Journal of the ACM, Volume 45, Issue 6, 891--923
+
+\bibitem{ann}
+    Mount, D. M., Arya, S. (2010) ANN: A Library for Approximate Nearest Neighbor Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on Sept. 27, 2010
+
+
+\bibitem{compressedquadtree}
+    Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
+FOCS '83: Proceedings of the Twenty-fourth Symposium on Foundations of Computer Science,
+Tucson, AZ 
+ 
 \bibitem{treap}
 Aragon, C. R.,  Seidel, R. (1996) Randomized Search Trees.
 In Algorithmica, Vol. 16, Number 4/5, pp. 464 – 497
+
+\bibitem{skipquadtree}
+    Eppstein, D., Goodrich, M. T., Sun, J. Z. (2008) The Skip Quadtree: A Simple Dynamic Data Structure for Multidimensional Data, Int. Journal on Computational Geometry and Applications, 18(1/2), 131--160 
 
 \bibitem{bsl}
 Bagchi,A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
