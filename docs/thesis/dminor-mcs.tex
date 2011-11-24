@@ -66,6 +66,8 @@ including some derived from applications of nearest neighbour search.
 
 \section{Definitions}
 
+TODO:
+
 \section{Results Summary}
 
 TODO:
@@ -164,6 +166,10 @@ floating point numbers.
 TODO: describe kd-trees, construction procedure, use in nearest-neighbour
 search.
 
+\subsection{Bounding Volume Hierarchies}
+
+TODO: describe bounding volume hierarchy.
+
 \subsection{Partition Trees}
 
 TODO: describe partition trees, construction procedure, use in simplicial
@@ -256,11 +262,11 @@ versions.
 
 \section{Kd-tree Implementation}
 
-\section{Kd-tree Based Odds-on Tree}
+TODO: brief description of design decisions made during kd-tree implementation,
+e.g. point storage, splitting decision, optimizations made.   Refer to 
+kd-tree implementation notes in \cite{physicallybasedrendering}.
 
-TODO: Brief overview of kd-tree data structure and how it was implemented.  This
-is also the implementation of the back up oracle for both implementations and the
-baseline for experimentation. 
+\section{Kd-tree Based Odds-on Tree}
 
 \subsection{Construction algorithm}
 
@@ -268,15 +274,20 @@ baseline for experimentation.
 
 \section{Quadtree Based Odds-on Tree}
 
-\subsection{Z-Order and Quadtrees}
-
-
 \subsection{Construction algorithm}
 
-TODO: Outline how quadtree is built once points are sorted into z-order.
+TODO: input of m sample points, run NN queries for each point, sort according
+to z-order, look for runs in the sort, run interference query, if no
+interference, add to cache.  Combine adjacent cache nodes to build bounding
+volume hierarchy.
+
+TODO: implement as proper quadtree as well as b.v.h.  same worse case 
+performance as compressed quadtree, but may be better in practice?
+
 
 \subsection{Query algorithm}
 
+TODO: describe query procedure using b.v.h.
 
 \section{Performance Tuning}
 
@@ -294,7 +305,7 @@ The experimental hypothesis is that the odds-on tree provides better k-nn
 performance than a kd-tree implementation in cases where the entropy of the
 query set is sufficiently low.
 
-This hypothesis was tested using both synthetic data drawn from probability
+This hypothesis is tested using both synthetic data drawn from probability
 distributions, and with data derived from applications of nearest neighbour
 search. 
 
@@ -306,13 +317,10 @@ TODO:
 - will definitely experiment in 2, 3, 4 dimensions.
 - both kd-trees and quadtrees perform poorly in higher dimensions.  The "curse
 of dimensionality" says the number of sample points required to build the cache
-will grow quickly as dimension increases, but kd-tree performance also quickly
+should grow quickly as dimension increases, but kd-tree performance also quickly
 gets worse.
 - will try 8, 16 dimensions in a limited number of cases to see if it is worth
-while doing full studies.
-- above 16 - 20 dimensions, the literature says kd-trees are not effective.
-- for exact searches, even 8 dimensions is problematic, not much better than
-brute force. 
+while doing full studies, but literature says this will likely not work well.
 
 \subsubsection{Point Set}
 
@@ -371,16 +379,16 @@ TODO: Possibly also run experiments on an ARM processor?
 \subsection{Performance Metrics}
 
 The primary performance metric is running time.  For each experiment
-configuration, 1000000 queries were performed and the elapsed system clock
-time was recorded.
+configuration, 1000000 queries are performed and the elapsed system clock
+time is recorded.
 
-In addition to running time, data was collected on the cache miss rate for the
+In addition to running time, data is collected on the cache miss rate for the
 odds-on tree, as well as the number of nodes visited in both the cache and the
 back up tree.
 
 Since cache utilization can have a major impact on running time, the Valgrind
-\cite{valgrind} cachegrind utility was used to simulate the cache performance
-of the implementation, and data was collected on L1 and L2 cache miss rates.
+\cite{valgrind} cachegrind utility is used to simulate the cache performance
+of the implementation, and data is collected on L1 and L2 cache miss rates.
 
 \section{Results}
 
