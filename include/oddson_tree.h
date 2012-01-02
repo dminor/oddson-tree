@@ -25,154 +25,69 @@ THE SOFTWARE.
 
 #include "kdtree.h"
 
-#include <algorithm>
 #include <cstdio>
-#include <list>
 #include <vector>
 
 /*
 Odds-on Tree implementation based upon descriptions in: 
-Bose, P. et al (2010) Odds-on Trees retrieved from: http://arxiv.org/abs/1002.1092 
+    Bose, P. et al (2010) Odds-on Trees retrieved from: http://arxiv.org/abs/1002.1092 
 and 
-P. Afshani, J. Barbay, and T. M. Chan (2009) Instance-optimal geometric algorithms
-in Proceedings of FOCS 2009.  
+    P. Afshani, J. Barbay, and T. M. Chan (2009) Instance-optimal geometric algorithms
+    in Proceedings of FOCS 2009.  
 */
-
-#include "zorder.h"
 
 template<class Point> class OddsonTree {
 
 public:
 
-    struct CacheNode { 
-        size_t dim;
+    struct CachedPoint : Point { 
+        bool terminal;
         Point *nn;
-        Point a, b;
 
-        CacheNode *left, *right;
-
-        CacheNode(size_t dim) : nn(0), dim(dim), left(0), right(0)
+        CachedPoint() : terminal(false), nn(0)
         { 
-        }
-
-        bool contains(const Point &pt)
-        {
-            bool found = true;
-            for (size_t d = 0; d < dim; ++d) {
-                if ((a[d] > pt[d] || pt[d] > b[d])) {
-                    found = false;
-                    break;
-                }
-            }
-
-            return found;
-        }
-
-        Point *locate(const Point &pt)
-        {
-            //printf("a: (%d %d) b: (%d %d) pt: (%d %d)\n", a[0], a[1], b[0], b[1], pt[0], pt[1]);
-
-            CacheNode *node = this;
-            Point *result = 0;
-
-            if (contains(pt)) {
-                //if a child
-                if (nn) {
-                    result = nn;
-                } else {
-                    if (left) result = left->locate(pt);
-                    if (!result && right) result = right->locate(pt);
-                }
-            }
-
-            return result;
         }
     };
 
     OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
-        : dim(dim), root(0) 
+        : dim(dim)
     {
 
-        ZOrder<Point, double> comp(dim);
         backup = new KdTree<Point, double>(dim, ps, n);
 
-        std::sort(&qs[0], &qs[m], comp);
+        //track range covered by sample
+        range = new double[2*dim]; 
+        for (size_t d = 0; d < dim; ++d) {
+            range[d*2] = std::numeric_limits<double>::max();
+            range[d*2+1] = -std::numeric_limits<double>::max();
+        }
 
-        int total_useful = 0;
-
-        std::list<CacheNode *> cache;
-
-        Point *last_nn = 0;
-        int run = 0;
+        //generate sample points
+        CachedPoint *sample = new CachedPoint[m];
         for (size_t i = 0; i < m; ++i) {
-            std::list<std::pair<Point *, double> > result = backup->knn(1, qs[i], 0.0); 
-            Point *nn = result.back().first; 
+            Point &pt = qs[i];
 
-            if (nn && nn == last_nn) ++run;
-            else run = 0;
- 
-            if (run >= 2) {
+            //find nearest neighbour
+            std::list<std::pair<Point *, double> > result = backup->knn(1, pt, 0.0); 
 
-                total_useful += 1;
-
-                CacheNode *pt = new CacheNode(dim);
-                pt->nn = last_nn;
-                pt->a = qs[i - run + 1];
-                pt->b = qs[i];
-
-                if (no_interference(pt)) {
-                    for (size_t d = 0; d < dim; ++d) { 
-                        if (pt->a[d] > pt->b[d]) std::swap(pt->a[d], pt->b[d]);
-                    }
-
-                    //linked list of leaf nodes
-                    CacheNode *prev = cache.back();
-                    if (prev) prev->right = pt;
-                    pt->left = prev;
-
-                    cache.push_back(pt); 
-                    run = 0; 
-                } else {
-                    delete pt; 
-                }
+            //copy into cached point
+            for (size_t d = 0; d < dim; ++d) {
+                sample[i][d] = pt[d];
+                if (pt[d] < range[d*2]) range[d*2] = pt[d];
+                if (pt[d] > range[d*2+1]) range[d*2+1] = pt[d];
             }
 
-            last_nn = nn;
         }
 
-        int cache_size = cache.size();
-        while (cache.size() > 1) {
-            
-            size_t size = cache.size();
+        //build kdtree for cache
+        cache = new KdTree<CachedPoint, double>(dim, sample, m); 
 
-            for (size_t i = 0; i < size; i+= 2) {
-                CacheNode *node = new CacheNode(dim);
-                node->left = cache.front();
-                cache.pop_front();
-                node->right = cache.front();
-                cache.pop_front();
+        //and trim nodes
+        nterminal = 0;
+        trim(cache->root, range, 1);
 
-                for (size_t d = 0; d < dim; ++d) {
-                    node->a[d] = std::min(node->left->a[d], node->right->a[d]);
-                    node->b[d] = std::max(node->left->b[d], node->right->b[d]);
-                }
-/*
-                if (node->left->nn == node->right->nn && no_interference(node)) {
-                    printf("here\n");
-                    node->nn = node->left->nn;
-                    delete node->left;
-                    delete node->right;
-                    node->left = 0;
-                    node->right = 0; 
-                }
-*/
-                cache.push_back(node);
-            }
-        }
-
-        if (!cache.empty()) root = cache.front();
-
-        fprintf(stderr, "total terminal: %d of %d percent: %0.2f cache size: %d\n", total_useful, m, (double)total_useful/(double)m, cache_size); 
+        fprintf(stderr, "number terminal %d of %d (%f percent)\n",
+            nterminal, m, (float)nterminal/(float)m);
 
         hits = 0;
         queries = 0;
@@ -182,67 +97,163 @@ public:
     {
         fprintf(stderr, "hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
 
+        delete[] range;
         delete backup;
+        delete cache;
     }
 
-    std::list<std::pair<Point *, double> > knn(size_t k, const Point &pt, int eps) 
+    std::list<std::pair<Point *, double> > knn(size_t k, const Point &pt, double eps) 
     {
         std::list<std::pair<Point *, double> > result;
 
         //check cache
-        bool in_cache = false;
+        CachedPoint cpt;
 
-        Point *nn = root->locate(pt);
+        bool in_cache = true;
+        for (size_t i = 0; i < dim; ++i) {
+            if (pt[i] < range[2*i] || pt[i] > range[2*i+1]) {
+                in_cache = false;
+                break;
+            }
 
-        if (nn) {
-            double dist = (pt[0] - (*nn)[0])*(pt[0] - (*nn)[0]) + 
-            (pt[1] - (*nn)[1])*(pt[1] - (*nn)[1]); 
-
-            result.push_back(std::make_pair<Point *, double>(nn, dist));
-            ++hits;
-        } else {
-            result = backup->knn(k, pt, eps); 
+            cpt[i] = pt[i];
         }
 
-        ++queries;
+        if (in_cache) {
+            CachedPoint *cache_result = locate(cpt);
 
+            //check if terminal
+            if (cache_result->terminal) {
+                for (size_t i = 0; i < k; ++i) {
+                    result.push_back(std::make_pair<Point *, double>(cache_result->nn, -1.0));
+                }
+                ++hits;
+            } else {
+                in_cache = false;
+//                fprintf(stderr, "found, non terminal\n");
+            }
+        }
+
+        if (!in_cache) {
+            result = backup->knn(k, pt, eps); 
+        } 
+
+        ++queries;
         return result; 
     }
 
-    CacheNode *root;
-
 private:
 
+    void trim(typename KdTree<CachedPoint, double>::Node *node, double *range, size_t depth)
+    {
+        //bottom of recursion, non-terminal leaf
+        if (node->left() == 0 && node->right() == 0) {
+            node->pt->terminal = false;
+        } else { 
+
+            bool terminal = true;
+
+            //run interference query (need to make sure all "corners" have same nearest-neighbour)
+            Point *nn = 0;//node->pt->nn;
+            for (size_t i = 0; i < 2*dim; ++i) {
+                Point qp;
+                for (size_t d = 0; d < dim; ++d) {
+                    if (i & 1 << d) qp[d] = range[d*2];
+                    else qp[d] = range[d*2+1];
+
+                    //printf("%f ", qp[d]);
+                }
+
+                std::list<std::pair<Point *, double> > qr = backup->knn(1, qp, 0.0);
+
+                if (nn == 0) {
+                    nn = qr.back().first;
+                } else {
+                    if (nn != qr.back().first) {
+                        terminal = false;
+                        break;
+                    }
+                }
+            }
+//            printf("\n");
+
+//            delete[] range2;
+
+            if (terminal) {
+                node->pt->terminal = true;
+                node->pt->nn = nn;
+                ++nterminal; 
+            } else {
+
+                node->pt->terminal = false;
+
+                //update range and query subtrees
+                size_t range_coord = (depth%dim)*2;
+
+                double t;
+                if (node->left()) {
+                    t = range[range_coord+1]; 
+                    range[range_coord+1] = node->median;
+                    trim(node->left(), range, depth+1);
+                    range[range_coord+1] = t; 
+                }
+
+                if (node->right()) {
+                    t = range[range_coord]; 
+                    range[range_coord] = node->median; 
+                    trim(node->right(), range, depth+1);
+                    range[range_coord] = t; 
+                }
+            }
+        }
+    }
+
+    CachedPoint *locate(const CachedPoint &pt) 
+    { 
+        CachedPoint *qr = 0; 
+        typename KdTree<CachedPoint, double>::Node *node = cache->root; 
+
+        size_t depth = 0;
+
+        while (node && node->pt && !node->pt->terminal) { 
+            qr = node->pt;
+
+            if (pt[depth % dim] < node->median) { 
+                node = node->left(); 
+            } else { 
+                node = node->right(); 
+            }
+
+            ++depth; 
+        } 
+
+        return qr; 
+    }
+ 
+
+/*
+    void delete_subtree(typename KdTree<CachedPoint, double>::Node *node)
+    {
+        std::vector<typename KdTree<CachedPoint, double>::Node *> nodes;
+        nodes.push_back(node);
+        while (!nodes.empty()) {
+            typename KdTree<CachedPoint, double>::Node *n = nodes.back();
+            nodes.pop_back();
+
+            if (n->left) nodes.push_back(n->left);
+            if (n->right) nodes.push_back(n->right);
+            delete n;
+        } 
+    }
+*/
     size_t dim;
     KdTree<Point, double> *backup; 
+    KdTree<CachedPoint, double> *cache;
+    double *range;
 
     int hits;
     int queries;
-
-    bool no_interference(const CacheNode *pt)
-    {
-        Point pt1, pt2;
-        Point *pt1_nn, *pt2_nn;
-        std::list<std::pair<Point *, double> > result;
-
-        pt1[0] = pt->b[0];
-        pt1[1] = pt->a[1];
-        result = backup->knn(1, pt1, 0.0); 
-        pt1_nn = result.back().first; 
-
-        if (pt1_nn == pt->nn) {
-            pt2[0] = pt->a[0];
-            pt2[1] = pt->b[1];
-            result = backup->knn(1, pt2, 0.0); 
-            pt2_nn = result.back().first; 
-
-            if (pt2_nn == pt->nn) {
-                return true;
-            }
-        } 
-
-        return false;
-    }
+    int nterminal;
 };
 
 #endif

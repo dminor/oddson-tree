@@ -84,6 +84,67 @@ future work.
 
 \chapter{Previous Work}
 
+\section{Biased Search}
+
+\subsection{Biased Search Trees}
+
+Biased search trees are a natural generalization of balancing a binary search
+tree where rather than assuming each result is equally likely, a probability
+distribution is given for the results, allowing the tree to be balanced such
+that at each node it is equally likely that the left or right child will be
+followed.  The overall expected running time can then be stated in terms of the
+entropy of the probability distribution of the queries.
+
+Early work on biased search trees is described in Knuth \cite{knuth} where
+the static case (i.e. no deletions and insertions) is considered.  An \(O(n^2)\)
+dynamic programming algorithm is presented which constructs an optimum static
+search tree for a set of weights.
+
+Biased search trees allowing insertions and deletions based upon 2 - 4 and
+red-black trees were described by Bent, Sleator and Tarjan \cite{bst}.  The
+data structures are complex and do not appear to have been implemented.
+Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}. A
+much simpler implementation of biased search based upon randomized search trees
+was developed by Aragon and Seidel \cite{treap}, and a biased version of skip
+lists \cite{skiplist} was presented in \cite{bsl2}.
+
+An alternative approach to biased search is to use data structures which
+modify themselves in response to queries.  In this case, rather than specifying
+the probabilities in advance, the data structure will change itself to match
+the query distribution.  Splaytrees \cite{splaytree}, which were invented by
+Sleator and Tarjan, are a self-modifying binary search tree which have
+received considerable attention, both theoretical and experimental due to the
+dynamic optimality conjecture, which states that splaytrees are within a
+constant factor of optimal for any sequence of queries, without needing to
+know the queries in advance.
+
+Most experimental work with biased search has focused on comparing splaytrees
+with traditional approaches like 2 - 4 trees and red-black trees.
+
+TODO: give some references on previous experimental work with biased search.
+
+\subsection{Distribution Sensitive Data Structures}
+
+A distribution sensitive data structure has a running time which is a multiple 
+of the entropy of the query distribution.  This is similar to biased search
+trees, where the running time is given in terms of the entropy of the query
+results, but provides a better framework for examining geometric search
+problems.
+
+TODO: Explain why better for geometric search.
+
+TODO: Refer to at least Biased Range Trees paper, some results in distribution
+sensitive point location.
+
+\subsection{Instance Optimality}
+
+An instance optimal data structure \cite{chan} has a running time which is
+within a constant factor of any data structure for any instance of the problem.
+
+TODO: Explain why this gives equivalent results to distribution sensitive data
+structures.
+
+
 \section{Geometric Data Structures}
 
 This section describes geometric data structures used to construct the variants
@@ -163,8 +224,24 @@ floating point numbers.
 
 \subsection{Kd-Trees}
 
-TODO: describe kd-trees, construction procedure, use in nearest-neighbour
-search.
+Kd-trees were invented by Jon Bentley in 1975 as an improvement on quadtrees
+\cite{bentley}.  Kd-trees are binary search trees for which each non-leaf node
+divides the point set in half using an axis-aligned line.
+
+Kd-trees are constructed by choosing an axis, determining the median value in
+the point set for the corresponding coordinate, and dividing the points in two
+halves using the median value.  The two child nodes are then built by
+recursively building kd-trees for each half.  Depending upon the application,
+a number of heuristics exist for choosindg which axis to use for dividing the
+points.
+
+\begin{thm} \emph{(Height of a Kd-Tree)}
+The height of a kd-tree with n points is O(log n).
+\end{thm}
+
+TODO: kd-tree diagram
+
+TODO: Use in nearest-neighbour search.
 
 \subsection{Bounding Volume Hierarchies}
 
@@ -178,69 +255,6 @@ range queries.
 \subsection{Odds-on Trees}
 
 TODO: Description of partition tree based Odds-on tree.
-
-
-\section{Biased Search}
-
-TODO: should this be included here?
-
-\subsection{Biased Search Trees}
-
-Biased search trees are a natural generalization of balancing a binary search
-tree where rather than assuming each result is equally likely, a probability
-distribution is given for the results, allowing the tree to be balanced such
-that at each node it is equally likely that the left or right child will be
-followed.  The overall expected running time can then be stated in terms of the
-entropy of the probability distribution of the queries.
-
-Early work on biased search trees is described in Knuth \cite{knuth} where
-the static case (i.e. no deletions and insertions) is considered.  An \(O(n^2)\)
-dynamic programming algorithm is presented which constructs an optimum static
-search tree for a set of weights.
-
-Biased search trees allowing insertions and deletions based upon 2 - 4 and
-red-black trees were described by Bent, Sleator and Tarjan \cite{bst}.  The
-data structures are complex and do not appear to have been implemented.
-Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}. A
-much simpler implementation of biased search based upon randomized search trees
-was developed by Aragon and Seidel \cite{treap}, and a biased version of skip
-lists \cite{skiplist} was presented in \cite{bsl2}.
-
-An alternative approach to biased search is to use data structures which
-modify themselves in response to queries.  In this case, rather than specifying
-the probabilities in advance, the data structure will change itself to match
-the query distribution.  Splaytrees \cite{splaytree}, which were invented by
-Sleator and Tarjan, are a self-modifying binary search tree which have
-received considerable attention, both theoretical and experimental due to the
-dynamic optimality conjecture, which states that splaytrees are within a
-constant factor of optimal for any sequence of queries, without needing to
-know the queries in advance.
-
-Most experimental work with biased search has focused on comparing splaytrees
-with traditional approaches like 2 - 4 trees and red-black trees.
-
-TODO: give some references on previous experimental work with biased search.
-
-\subsection{Distribution Sensitive Data Structures}
-
-A distribution sensitive data structure has a running time which is a multiple 
-of the entropy of the query distribution.  This is similar to biased search
-trees, where the running time is given in terms of the entropy of the query
-results, but provides a better framework for examining geometric search
-problems.
-
-TODO: Explain why better for geometric search.
-
-TODO: Refer to at least Biased Range Trees paper, some results in distribution
-sensitive point location.
-
-\subsection{Instance Optimality}
-
-An instance optimal data structure \cite{chan} has a running time which is
-within a constant factor of any data structure for any instance of the problem.
-
-TODO: Explain why this gives equivalent results to distribution sensitive data
-structures.
 
 \section{Nearest Neighbour Search}
 
@@ -412,6 +426,9 @@ TODO:
 \bibitem{ann}
     Mount, D. M., Arya, S. (2010) ANN: A Library for Approximate Nearest Neighbor Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on Sept. 27, 2010
 
+\bibitem{bentley}
+    Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative Searching,
+In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
 
 \bibitem{compressedquadtree}
     Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
