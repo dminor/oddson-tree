@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "oddson_tree.h"
+#include "oddson_tree_zorder.h"
 
 #include <float.h>
 #include <cstdio>
@@ -42,39 +42,6 @@ struct Point {
     } 
 };
 
-void render_tree(FILE *f, struct KdTree<OddsonTree<Point>::CachedPoint, double>::Node *tree,
-    size_t depth, double x1, double x2, double y1, double y2)
-{
-    //check for empty branch
-    if (!tree) return;
-
-    if (!tree->children) {
-        //leaf
-        if (tree->pt->nn) {
-            fprintf(f, "colour-site-%d\n", tree->pt->nn->id);
-            fprintf(f, "%.0f %.0f draw-point\n", (*tree->pt)[0], (*tree->pt)[1]);
-        }
-
-    } else { 
-        if (depth % 2 == 1) {
-//            fprintf(f, "%.0f %.0f %.0f h-line\n", x1, x2, tree->median);
-            render_tree(f, tree->left(), depth + 1, x1, x2, y1, tree->median);
-            render_tree(f, tree->right(), depth + 1, x1, x2, tree->median, y2);
-        } else {
-//            fprintf(f, "%.0f %.0f %.0f v-line\n", tree->median, y1, y2);
-            render_tree(f, tree->left(), depth + 1, x1, tree->median, y1, y2);
-            render_tree(f, tree->right(), depth + 1, tree->median, x2, y1, y2);
-        }
-
-        if (tree->pt->terminal) {
-            fprintf(f, "colour-site-%d\n", tree->pt->nn->id);
-            fprintf(f, "%.0f %.0f draw-point\n", (*tree->pt)[0], (*tree->pt)[1]);
-        }
-
-    }
-}
-
-/*
 void render_tree(FILE *f, struct OddsonTree<Point>::CacheNode *tree)
 { 
     if (!tree) return;
@@ -92,7 +59,7 @@ void render_tree(FILE *f, struct OddsonTree<Point>::CacheNode *tree)
         render_tree(f, tree->right);
     } 
 }
-*/
+
 Point *read_points(FILE *f, int *pt_count)
 {
     char buf[80];
@@ -150,16 +117,6 @@ int main(int argc, char **argv)
 
     fclose(f);
 
-    double x1 = DBL_MAX, x2 = DBL_MIN, y1 = DBL_MAX, y2 = DBL_MIN;
-    for (int i = 0; i < m; ++i) {
-
-        //set up bounds
-        if (sample[i][0] < x1) x1 = sample[i][0];
-        if (sample[i][0] > x2) x2 = sample[i][0];
-        if (sample[i][1] < y1) y1 = sample[i][1];
-        if (sample[i][1] > y2) y2 = sample[i][1];
-    } 
-
     OddsonTree<Point> oot(2, pts, n, sample, m);
 
     fprintf(stdout, "%%\n");
@@ -170,37 +127,42 @@ int main(int argc, char **argv)
     fprintf(stdout, "    /x exch def\n");
     fprintf(stdout, "    gsave\n");
     fprintf(stdout, "    newpath\n");
+    fprintf(stdout, "    1.0 0.5 0.7 setrgbcolor\n");
     fprintf(stdout, "    x y 1 0 360 arc\n");
     fprintf(stdout, "    closepath\n");
-    fprintf(stdout, "    fill\n");
+    fprintf(stdout, "    stroke\n");
     fprintf(stdout, "    grestore\n");
     fprintf(stdout, "} def\n");
 
-    //vertical line
-    fprintf(stdout, "/v-line {\n");
+    //node bounding box
+    fprintf(stdout, "/draw-line {\n");
     fprintf(stdout, "    /y2 exch def\n");
+    fprintf(stdout, "    /x2 exch def\n");
     fprintf(stdout, "    /y1 exch def\n");
-    fprintf(stdout, "    /x exch def\n");
+    fprintf(stdout, "    /x1 exch def\n");
     fprintf(stdout, "    gsave\n");
-    fprintf(stdout, "    0.7 setgray\n");
+    fprintf(stdout, "    0.7 0.1 0.1 setrgbcolor\n");
     fprintf(stdout, "    newpath\n");
-    fprintf(stdout, "    x y1 moveto\n");
-    fprintf(stdout, "    x y2 lineto\n");
+    fprintf(stdout, "    x1 y1 moveto\n");
+    fprintf(stdout, "    x2 y2 lineto\n");
     fprintf(stdout, "    closepath\n");
     fprintf(stdout, "    stroke \n");
     fprintf(stdout, "    grestore\n");
     fprintf(stdout, "} def\n");
 
-    //horizontal line
-    fprintf(stdout, "/h-line {\n");
-    fprintf(stdout, "    /y exch def\n");
+    //node bounding box
+    fprintf(stdout, "/node-bounds {\n");
+    fprintf(stdout, "    /y2 exch def\n");
+    fprintf(stdout, "    /y1 exch def\n");
     fprintf(stdout, "    /x2 exch def\n");
     fprintf(stdout, "    /x1 exch def\n");
     fprintf(stdout, "    gsave\n");
-    fprintf(stdout, "    0.7 setgray\n");
+//    fprintf(stdout, "    0.7 setgray\n");
     fprintf(stdout, "    newpath\n");
-    fprintf(stdout, "    x1 y moveto\n");
-    fprintf(stdout, "    x2 y lineto\n");
+    fprintf(stdout, "    x2 y2 moveto\n");
+    fprintf(stdout, "    x1 y2 lineto\n");
+    fprintf(stdout, "    x1 y1 lineto\n");
+    fprintf(stdout, "    x2 y1 lineto\n");
     fprintf(stdout, "    closepath\n");
     fprintf(stdout, "    stroke \n");
     fprintf(stdout, "    grestore\n");
@@ -214,7 +176,12 @@ int main(int argc, char **argv)
             (double)rand()/(double)RAND_MAX);
     }
 
-    render_tree(stdout, oot.cache->root, 0, x1, x2, y1, y2); 
+    //draw sample points
+    for (int i = 0; i < m; ++i) {
+        fprintf(stdout, "%.1f %.1f draw-point\n", sample[i][0], sample[i][1]);
+    }
+
+    render_tree(stdout, oot.root);
 
     delete[] pts;
     delete[] sample;

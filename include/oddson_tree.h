@@ -67,9 +67,10 @@ public:
         for (size_t i = 0; i < m; ++i) {
             Point &pt = qs[i];
 
-            //find nearest neighbour
-            std::list<std::pair<Point *, double> > result = backup->knn(1, pt, 0.0); 
-
+            std::list<std::pair<Point *, double> > result;
+            result = backup->knn(1, pt, 0.0); 
+            sample[i].nn = result.back().first;
+            
             //copy into cached point
             for (size_t d = 0; d < dim; ++d) {
                 sample[i][d] = pt[d];
@@ -142,6 +143,8 @@ public:
         return result; 
     }
 
+    KdTree<CachedPoint, double> *cache;
+
 private:
 
     void trim(typename KdTree<CachedPoint, double>::Node *node, double *range, size_t depth)
@@ -154,7 +157,7 @@ private:
             bool terminal = true;
 
             //run interference query (need to make sure all "corners" have same nearest-neighbour)
-            Point *nn = 0;//node->pt->nn;
+            Point *nn = 0;
             for (size_t i = 0; i < 2*dim; ++i) {
                 Point qp;
                 for (size_t d = 0; d < dim; ++d) {
@@ -177,11 +180,9 @@ private:
             }
 //            printf("\n");
 
-//            delete[] range2;
-
             if (terminal) {
                 node->pt->terminal = true;
-                node->pt->nn = nn;
+//                node->pt->nn = nn;
                 ++nterminal; 
             } else {
 
@@ -248,7 +249,6 @@ private:
 */
     size_t dim;
     KdTree<Point, double> *backup; 
-    KdTree<CachedPoint, double> *cache;
     double *range;
 
     int hits;
