@@ -41,7 +41,7 @@ struct Point {
         return v[index]; 
     }
 
-    const bool operator!=(const Point &other)
+    bool operator!=(const Point &other)
     { 
         return !(v[0] == other.v[0] && v[1] == other.v[1]);
     } 
@@ -56,8 +56,8 @@ Point distfn()
     double u = (double)rand()/(double)RAND_MAX; 
     double v = (double)rand()/(double)RAND_MAX; 
 
-    pt[0] = 250.0 + 25.0*sqrt(-2.0*log(u))*cos(2.0*3.14159*v); 
-    pt[1] = 250.0 + 25.0*sqrt(-2.0*log(u))*sin(2.0*3.14159*v); 
+    pt[0] = 250.0 + 10.0*sqrt(-2.0*log(u))*cos(2.0*3.14159*v); 
+    pt[1] = 250.0 + 10.0*sqrt(-2.0*log(u))*sin(2.0*3.14159*v); 
 
     return pt; 
 }
@@ -76,6 +76,10 @@ int main(int argc, char **argv)
         ps[i][1] = 500*(double)rand()/(double)RAND_MAX; 
     }
 
+    //generate data points 
+    Point *ps2 = new Point[N]; 
+    memcpy(ps2, ps, N*sizeof(Point));
+
     //generate query points 
     Point *qs = new Point[M]; 
     for (size_t i = 0; i < M; ++i) { 
@@ -83,7 +87,7 @@ int main(int argc, char **argv)
     }
 
     OddsonTree<Point> oot(2, ps, N, qs, M); 
-    KdTree<Point, double> kdt(2, ps, N); 
+    KdTree<Point, double> kdt(2, ps2, N); 
 
     int errors = 0;
     for (size_t i = 0; i < Q; ++i) { 

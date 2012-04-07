@@ -51,26 +51,25 @@ void render_tree(FILE *f, struct KdTree<OddsonTree<Point>::CachedPoint, double>:
     if (!tree->children) {
         //leaf
         if (tree->pt->nn) {
-            fprintf(f, "colour-site-%d\n", tree->pt->nn->id);
-            fprintf(f, "%.0f %.0f draw-point\n", (*tree->pt)[0], (*tree->pt)[1]);
+            //fprintf(f, "colour-site-%d\n", tree->pt->nn->id);
+            //fprintf(f, "%.0f %.0f draw-point\n", (*tree->pt)[0], (*tree->pt)[1]);
         }
 
     } else { 
         if (depth % 2 == 1) {
-//            fprintf(f, "%.0f %.0f %.0f h-line\n", x1, x2, tree->median);
+            //fprintf(f, "%.0f %.0f %.0f h-line\n", x1, x2, tree->median);
             render_tree(f, tree->left(), depth + 1, x1, x2, y1, tree->median);
             render_tree(f, tree->right(), depth + 1, x1, x2, tree->median, y2);
         } else {
-//            fprintf(f, "%.0f %.0f %.0f v-line\n", tree->median, y1, y2);
+            //fprintf(f, "%.0f %.0f %.0f v-line\n", tree->median, y1, y2);
             render_tree(f, tree->left(), depth + 1, x1, tree->median, y1, y2);
             render_tree(f, tree->right(), depth + 1, tree->median, x2, y1, y2);
         }
 
-        if (tree->pt->terminal) {
+        if (tree->pt->nn) {
             fprintf(f, "colour-site-%d\n", tree->pt->nn->id);
-            fprintf(f, "%.0f %.0f draw-point\n", (*tree->pt)[0], (*tree->pt)[1]);
-        }
-
+            fprintf(f, "%.0f %.0f %.0f %.0f node-bounds\n", x1, x2, y1, y2);
+        } 
     }
 }
 
@@ -160,7 +159,6 @@ int main(int argc, char **argv)
         if (sample[i][1] > y2) y2 = sample[i][1];
     } 
 
-    OddsonTree<Point> oot(2, pts, n, sample, m);
 
     fprintf(stdout, "%%\n");
 
@@ -206,6 +204,25 @@ int main(int argc, char **argv)
     fprintf(stdout, "    grestore\n");
     fprintf(stdout, "} def\n");
 
+    //node bounding box
+    fprintf(stdout, "/node-bounds {\n");
+    fprintf(stdout, "    /y2 exch def\n");
+    fprintf(stdout, "    /y1 exch def\n");
+    fprintf(stdout, "    /x2 exch def\n");
+    fprintf(stdout, "    /x1 exch def\n");
+    fprintf(stdout, "    gsave\n");
+//    fprintf(stdout, "    0.7 setgray\n");
+    fprintf(stdout, "    newpath\n");
+    fprintf(stdout, "    x2 y2 moveto\n");
+    fprintf(stdout, "    x1 y2 lineto\n");
+    fprintf(stdout, "    x1 y1 lineto\n");
+    fprintf(stdout, "    x2 y1 lineto\n");
+    fprintf(stdout, "    closepath\n");
+    fprintf(stdout, "    stroke \n");
+    fprintf(stdout, "    grestore\n");
+    fprintf(stdout, "} def\n");
+
+ 
     //setup colours
     for (int i = 0; i < n; ++i) {
         fprintf(stdout, "/colour-site-%d {%.1f %.1f %.1f setrgbcolor } def\n", i,
@@ -214,7 +231,18 @@ int main(int argc, char **argv)
             (double)rand()/(double)RAND_MAX);
     }
 
-    render_tree(stdout, oot.cache->root, 0, x1, x2, y1, y2); 
+    fprintf(stdout, "0.9 setgray\n"); 
+    for (int i = 0; i < m; ++i) {
+        fprintf(stdout, "%.0f %.0f draw-point\n", sample[i][0], sample[i][1]);
+    }
+
+    for (int i = 0; i < n; ++i) {
+        fprintf(stdout, "colour-site-%d\n", i);
+        fprintf(stdout, "%.0f %.0f draw-point\n", pts[i][0], pts[i][1]);
+    }
+
+    OddsonTree<Point> oot(2, pts, n, sample, m);
+    render_tree(stdout, oot.cache->root, 1, x1, x2, y1, y2); 
 
     delete[] pts;
     delete[] sample;

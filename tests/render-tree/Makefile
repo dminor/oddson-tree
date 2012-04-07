@@ -1,7 +1,7 @@
 
 INCS = -I../../include -I../../../kdtree/include
 LIBS = 
-CFLAGS = -g -O2
+CFLAGS = -g
 LDFLAGS = -g
 OBJS = render_tree.o
 TARGET = ../../bin/render-tree

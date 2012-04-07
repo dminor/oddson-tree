@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include "kdtree.h"
 
 #include <cstdio>
+#include <cstring>
 #include <vector>
 
 /*
@@ -41,12 +42,12 @@ template<class Point> class OddsonTree {
 public:
 
     struct CachedPoint : Point { 
-        bool terminal;
         Point *nn;
 
-        CachedPoint() : terminal(false), nn(0)
+        CachedPoint() : nn(0)
         { 
         }
+
     };
 
     OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
@@ -67,17 +68,12 @@ public:
         for (size_t i = 0; i < m; ++i) {
             Point &pt = qs[i];
 
-            std::list<std::pair<Point *, double> > result;
-            result = backup->knn(1, pt, 0.0); 
-            sample[i].nn = result.back().first;
-            
             //copy into cached point
             for (size_t d = 0; d < dim; ++d) {
                 sample[i][d] = pt[d];
                 if (pt[d] < range[d*2]) range[d*2] = pt[d];
                 if (pt[d] > range[d*2+1]) range[d*2+1] = pt[d];
             }
-
         }
 
         //build kdtree for cache
@@ -107,37 +103,17 @@ public:
     {
         std::list<std::pair<Point *, double> > result;
 
-        //check cache
-        CachedPoint cpt;
+        CachedPoint *cache_result = locate(pt);
 
-        bool in_cache = true;
-        for (size_t i = 0; i < dim; ++i) {
-            if (pt[i] < range[2*i] || pt[i] > range[2*i+1]) {
-                in_cache = false;
-                break;
+        //check if terminal
+        if (cache_result && cache_result->nn) {
+            for (size_t i = 0; i < k; ++i) {
+                result.push_back(std::make_pair<Point *, double>(cache_result->nn, -1.0));
             }
-
-            cpt[i] = pt[i];
-        }
-
-        if (in_cache) {
-            CachedPoint *cache_result = locate(cpt);
-
-            //check if terminal
-            if (cache_result->terminal) {
-                for (size_t i = 0; i < k; ++i) {
-                    result.push_back(std::make_pair<Point *, double>(cache_result->nn, -1.0));
-                }
-                ++hits;
-            } else {
-                in_cache = false;
-//                fprintf(stderr, "found, non terminal\n");
-            }
-        }
-
-        if (!in_cache) {
+            ++hits;
+        } else {
             result = backup->knn(k, pt, eps); 
-        } 
+        }
 
         ++queries;
         return result; 
@@ -149,10 +125,7 @@ private:
 
     void trim(typename KdTree<CachedPoint, double>::Node *node, double *range, size_t depth)
     {
-        //bottom of recursion, non-terminal leaf
-        if (node->left() == 0 && node->right() == 0) {
-            node->pt->terminal = false;
-        } else { 
+        if (node->left() != 0 || node->right() != 0) {
 
             bool terminal = true;
 
@@ -161,13 +134,15 @@ private:
             for (size_t i = 0; i < 2*dim; ++i) {
                 Point qp;
                 for (size_t d = 0; d < dim; ++d) {
-                    if (i & 1 << d) qp[d] = range[d*2];
+                    if (i & (1 << d)) qp[d] = range[d*2];
                     else qp[d] = range[d*2+1];
 
                     //printf("%f ", qp[d]);
                 }
 
                 std::list<std::pair<Point *, double> > qr = backup->knn(1, qp, 0.0);
+                //printf("pt: %f %f qp: %f %f nn: %f %f\n", (*node->pt)[0], (*node->pt)[1], qp[0], qp[1], (*qr.back().first)[0], (*qr.back().first)[1]);
+
 
                 if (nn == 0) {
                     nn = qr.back().first;
@@ -178,15 +153,11 @@ private:
                     }
                 }
             }
-//            printf("\n");
 
             if (terminal) {
-                node->pt->terminal = true;
-//                node->pt->nn = nn;
-                ++nterminal; 
+                node->pt->nn = nn;
+                nterminal += count_kids(node); 
             } else {
-
-                node->pt->terminal = false;
 
                 //update range and query subtrees
                 size_t range_coord = (depth%dim)*2;
@@ -209,22 +180,28 @@ private:
         }
     }
 
-    CachedPoint *locate(const CachedPoint &pt) 
+    CachedPoint *locate(const Point &pt) 
     { 
-        CachedPoint *qr = 0; 
         typename KdTree<CachedPoint, double>::Node *node = cache->root; 
+        CachedPoint *qr = 0; 
 
-        size_t depth = 0;
+        //early out, not covered by cache
+        for (int i = 0; i < dim; ++i) {
+            if (range[i*2] > pt[i] || range[i*2 + 1] < pt[i]) {
+                return qr;
+            }
+        }
 
-        while (node && node->pt && !node->pt->terminal) { 
-            qr = node->pt;
+        size_t depth = 1;
 
+        while (node && node->pt && !node->pt->nn) { 
             if (pt[depth % dim] < node->median) { 
                 node = node->left(); 
             } else { 
                 node = node->right(); 
             }
 
+            if (node && node->pt && node->pt->nn) qr = node->pt; 
             ++depth; 
         } 
 
@@ -254,6 +231,12 @@ private:
     int hits;
     int queries;
     int nterminal;
+
+    int count_kids(typename KdTree<CachedPoint, double>::Node *node)
+    {
+        if (!node) return 0;
+        return 1 + count_kids(node->left()) + count_kids(node->right());
+    }
 };
 
 #endif
