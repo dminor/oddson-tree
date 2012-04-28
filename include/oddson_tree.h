@@ -50,6 +50,40 @@ public:
 
     };
 
+    struct OddsonTreeTerminal : public KdTree<CachedPoint, double>::EndBuildFn {
+
+        KdTree<Point, double> *backup;
+        int dim;
+
+        virtual bool operator()(CachedPoint *pt, double *range)
+        {
+            bool terminal = true;
+
+            //run interference query (need to make sure all "corners" have same nearest-neighbour)
+            Point *nn = 0;
+            for (size_t i = 0; i < 2*dim; ++i) {
+                Point qp;
+                for (size_t d = 0; d < dim; ++d) {
+                    if (i & (1 << d)) qp[d] = range[d*2];
+                    else qp[d] = range[d*2+1];
+                }
+
+                std::list<std::pair<Point *, double> > qr = backup->knn(1, qp, 0.0);
+
+                if (nn == 0) {
+                    nn = qr.back().first;
+                } else {
+                    if (nn != qr.back().first) {
+                        return false;
+                    }
+                }
+            } 
+
+            pt->nn = nn; 
+            return true;
+        } 
+    };
+
     OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
         : dim(dim)
     {
@@ -77,14 +111,10 @@ public:
         }
 
         //build kdtree for cache
-        cache = new KdTree<CachedPoint, double>(dim, sample, m); 
-
-        //and trim nodes
-        nterminal = 0;
-        trim(cache->root, range, 1);
-
-        fprintf(stderr, "number terminal %d of %d (%f percent)\n",
-            nterminal, m, (float)nterminal/(float)m);
+        OddsonTreeTerminal fn;
+        fn.backup = backup;
+        fn.dim = dim;
+        cache = new KdTree<CachedPoint, double>(dim, sample, m, range, fn); 
 
         hits = 0;
         queries = 0;
@@ -123,63 +153,6 @@ public:
 
 private:
 
-    void trim(typename KdTree<CachedPoint, double>::Node *node, double *range, size_t depth)
-    {
-        if (node->left() != 0 || node->right() != 0) {
-
-            bool terminal = true;
-
-            //run interference query (need to make sure all "corners" have same nearest-neighbour)
-            Point *nn = 0;
-            for (size_t i = 0; i < 2*dim; ++i) {
-                Point qp;
-                for (size_t d = 0; d < dim; ++d) {
-                    if (i & (1 << d)) qp[d] = range[d*2];
-                    else qp[d] = range[d*2+1];
-
-                    //printf("%f ", qp[d]);
-                }
-
-                std::list<std::pair<Point *, double> > qr = backup->knn(1, qp, 0.0);
-                //printf("pt: %f %f qp: %f %f nn: %f %f\n", (*node->pt)[0], (*node->pt)[1], qp[0], qp[1], (*qr.back().first)[0], (*qr.back().first)[1]);
-
-
-                if (nn == 0) {
-                    nn = qr.back().first;
-                } else {
-                    if (nn != qr.back().first) {
-                        terminal = false;
-                        break;
-                    }
-                }
-            }
-
-            if (terminal) {
-                node->pt->nn = nn;
-                nterminal += count_kids(node); 
-            } else {
-
-                //update range and query subtrees
-                size_t range_coord = (depth%dim)*2;
-
-                double t;
-                if (node->left()) {
-                    t = range[range_coord+1]; 
-                    range[range_coord+1] = node->median;
-                    trim(node->left(), range, depth+1);
-                    range[range_coord+1] = t; 
-                }
-
-                if (node->right()) {
-                    t = range[range_coord]; 
-                    range[range_coord] = node->median; 
-                    trim(node->right(), range, depth+1);
-                    range[range_coord] = t; 
-                }
-            }
-        }
-    }
-
     CachedPoint *locate(const Point &pt) 
     { 
         typename KdTree<CachedPoint, double>::Node *node = cache->root; 
@@ -192,7 +165,7 @@ private:
             }
         }
 
-        size_t depth = 1;
+        size_t depth = 0; 
 
         while (node && node->pt && !node->pt->nn) { 
             if (pt[depth % dim] < node->median) { 
@@ -208,35 +181,12 @@ private:
         return qr; 
     }
  
-
-/*
-    void delete_subtree(typename KdTree<CachedPoint, double>::Node *node)
-    {
-        std::vector<typename KdTree<CachedPoint, double>::Node *> nodes;
-        nodes.push_back(node);
-        while (!nodes.empty()) {
-            typename KdTree<CachedPoint, double>::Node *n = nodes.back();
-            nodes.pop_back();
-
-            if (n->left) nodes.push_back(n->left);
-            if (n->right) nodes.push_back(n->right);
-            delete n;
-        } 
-    }
-*/
     size_t dim;
     KdTree<Point, double> *backup; 
     double *range;
 
     int hits;
-    int queries;
-    int nterminal;
-
-    int count_kids(typename KdTree<CachedPoint, double>::Node *node)
-    {
-        if (!node) return 0;
-        return 1 + count_kids(node->left()) + count_kids(node->right());
-    }
+    int queries; 
 };
 
 #endif
