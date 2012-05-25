@@ -42,7 +42,8 @@ template<class Point> class OddsonTree {
 public:
 
     struct CachedPoint : Point { 
-        Point *nn;
+        bool terminal;
+        typename KdTree<Point, double>::Node *nn;
 
         CachedPoint() : nn(0)
         { 
@@ -55,12 +56,12 @@ public:
         KdTree<Point, double> *backup;
         int dim;
 
-        virtual bool operator()(CachedPoint *pt, double *range)
+        virtual bool operator()(typename KdTree<CachedPoint, double>::Node *node, double *range)
         {
-            bool terminal = true;
+            CachedPoint *pt = node->pt;
 
             //run interference query (need to make sure all "corners" have same nearest-neighbour)
-            Point *nn = 0;
+            pt->nn = 0;
             for (size_t i = 0; i < 2*dim; ++i) {
                 Point qp;
                 for (size_t d = 0; d < dim; ++d) {
@@ -68,18 +69,18 @@ public:
                     else qp[d] = range[d*2+1];
                 }
 
-                std::list<std::pair<Point *, double> > qr = backup->knn(1, qp, 0.0);
+                typename KdTree<Point, double>::Node *qr = backup->nn(qp);
 
-                if (nn == 0) {
-                    nn = qr.back().first;
+                if (pt->nn == 0) {
+                    pt->nn = qr;
                 } else {
-                    if (nn != qr.back().first) {
+                    if (pt->nn != qr) {
                         return false;
                     }
                 }
             } 
 
-            pt->nn = nn; 
+            pt->terminal = true;
             return true;
         } 
     };
@@ -129,7 +130,8 @@ public:
         delete cache;
     }
 
-    std::list<std::pair<Point *, double> > knn(size_t k, const Point &pt, double eps) 
+
+    std::list<std::pair<Point *, double> > nn(const Point &pt, double eps) 
     {
         std::list<std::pair<Point *, double> > result;
 
@@ -137,17 +139,33 @@ public:
 
         //check if terminal
         if (cache_result && cache_result->nn) {
-            for (size_t i = 0; i < k; ++i) {
-                result.push_back(std::make_pair<Point *, double>(cache_result->nn, -1.0));
-            }
+            double d = 0; 
+            for (int i = 0; i < dim; ++i) {
+                d += ((*(cache_result->nn->pt))[i]-pt[i]) * ((*(cache_result->nn->pt))[i]-pt[i]); 
+            } 
+
+            result.push_back(std::make_pair<Point *, double>(cache_result->nn->pt, d));
+
             ++hits;
         } else {
-            result = backup->knn(k, pt, eps); 
+            result = backup->knn(1, pt, eps); 
         }
 
         ++queries;
         return result; 
+    } 
+
+    std::list<std::pair<Point *, double> > knn(size_t k, const Point &pt, double eps) 
+    {
+        std::list<std::pair<Point *, double> > result;
+
+        FixedSizePriorityQueue<typename KdTree<Point, double>::Node *> pq(k);
+        locate(pq, pt);
+        result = backup->knn(pq, pt, eps); 
+
+        return result; 
     }
+
 
     KdTree<CachedPoint, double> *cache;
 
@@ -167,18 +185,55 @@ private:
 
         size_t depth = 0; 
 
-        while (node && node->pt && !node->pt->nn) { 
+        while (node && node->pt && !node->pt->terminal) { 
             if (pt[depth % dim] < node->median) { 
                 node = node->left(); 
             } else { 
                 node = node->right(); 
             }
 
-            if (node && node->pt && node->pt->nn) qr = node->pt; 
+            if (node && node->pt && node->pt->terminal) qr = node->pt; 
             ++depth; 
         } 
 
         return qr; 
+    }
+
+    void locate(FixedSizePriorityQueue<typename KdTree<Point, double>::Node *> &pq, const Point &pt)
+    { 
+        typename KdTree<CachedPoint, double>::Node *node = cache->root; 
+
+        //early out, not covered by cache
+        for (int i = 0; i < dim; ++i) {
+            if (range[i*2] > pt[i] || range[i*2 + 1] < pt[i]) {
+                return;
+            }
+        }
+
+        size_t depth = 0; 
+
+        while (node && node->pt && !node->pt->terminal) { 
+
+            //calculate distance from query point to this point 
+            if (node->pt->nn) {
+                double d = 0; 
+                for (int i = 0; i < dim; ++i) {
+                    d += ((*(node->pt->nn->pt))[i]-pt[i]) * ((*(node->pt->nn->pt))[i]-pt[i]); 
+                }
+
+                if ((!pq.full() || d < pq.peek().priority)) {
+                    pq.push(d, node->pt->nn);
+                }
+            }
+
+            if (pt[depth % dim] < node->median) { 
+                node = node->left(); 
+            } else { 
+                node = node->right(); 
+            }
+
+            ++depth; 
+        } 
     }
  
     size_t dim;

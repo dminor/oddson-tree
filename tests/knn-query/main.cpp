@@ -133,25 +133,51 @@ int main(int argc, char **argv)
     if (argc == 6) epsilon = atof(argv[5]);
 
     //run queries
-    for (int i = 0; i < p; ++i) { 
+    if (nn == 1) {
 
-        std::list<std::pair<Point *, double> > qr = oot.knn(nn, queries[i], epsilon);  
+        for (int i = 0; i < p; ++i) { 
 
-        std::cout << "query " << i << ": (";
-        for (int d = 0; d < dim; ++d) { 
-            std::cout << queries[i][d];
-            if (d + 1 < dim) std::cout << ", ";
-        }
-        std::cout << ")\n";
+            std::list<std::pair<Point *, double> > qr = oot.nn(queries[i], epsilon);  
 
-        for (std::list<std::pair<Point *, double> >::iterator itor = qr.begin(); itor != qr.end(); ++itor) {
-            std::cout << "("; 
-            for (int d = 0; d < dim; ++d) {
-                std::cout << (*itor->first)[d];
+            std::cout << "query " << i << ": (";
+            for (int d = 0; d < dim; ++d) { 
+                std::cout << queries[i][d];
                 if (d + 1 < dim) std::cout << ", ";
             }
-            std::cout << ") " << itor->second << "\n"; 
-        } 
+            std::cout << ")\n";
+
+            for (std::list<std::pair<Point *, double> >::iterator itor = qr.begin(); itor != qr.end(); ++itor) {
+                std::cout << "("; 
+                for (int d = 0; d < dim; ++d) {
+                    std::cout << (*itor->first)[d];
+                    if (d + 1 < dim) std::cout << ", ";
+                }
+                std::cout << ") " << itor->second << "\n"; 
+            } 
+        }
+
+    } else {
+
+        for (int i = 0; i < p; ++i) { 
+
+            std::list<std::pair<Point *, double> > qr = oot.knn(nn, queries[i], epsilon);  
+
+            std::cout << "query " << i << ": (";
+            for (int d = 0; d < dim; ++d) { 
+                std::cout << queries[i][d];
+                if (d + 1 < dim) std::cout << ", ";
+            }
+            std::cout << ")\n";
+
+            for (std::list<std::pair<Point *, double> >::iterator itor = qr.begin(); itor != qr.end(); ++itor) {
+                std::cout << "("; 
+                for (int d = 0; d < dim; ++d) {
+                    std::cout << (*itor->first)[d];
+                    if (d + 1 < dim) std::cout << ", ";
+                }
+                std::cout << ") " << itor->second << "\n"; 
+            } 
+        }
     }
 
     std::cout << "done." << std::endl;

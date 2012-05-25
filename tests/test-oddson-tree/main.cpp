@@ -66,8 +66,17 @@ Point distfn()
 #define M 20000
 #define Q 1000000
 
+bool pred(std::pair<Point *, double> &fst, std::pair<Point *, double> &snd)
+{
+    return !(*fst.first != *snd.first);
+} 
+
 int main(int argc, char **argv) 
-{ 
+{
+    int k = 1; 
+    if (argc == 2) {
+        k = atoi(argv[1]);
+    }
 
     //generate data points 
     Point *ps = new Point[N]; 
@@ -90,17 +99,28 @@ int main(int argc, char **argv)
     KdTree<Point, double> kdt(2, ps2, N); 
 
     int errors = 0;
-    for (size_t i = 0; i < Q; ++i) { 
-        Point pt = distfn();
 
-        std::list<std::pair<Point *, double> > qr = oot.knn(1, pt, 0.0); 
-        Point nn = *qr.back().first;
+    if (k == 1) {
+        for (size_t i = 0; i < Q; ++i) { 
+            Point pt = distfn();
 
-        std::list<std::pair<Point *, double> > qr2 = kdt.knn(1, pt, 0.0); 
-        Point nn2 = *qr2.back().first;
+            std::list<std::pair<Point *, double> > qr = oot.nn(pt, 0.0); 
+            std::list<std::pair<Point *, double> > qr2 = kdt.knn(k, pt, 0.0); 
 
-        if (nn != nn2) {
-            ++errors; 
+            if (!std::equal(qr.begin(), qr.end(), qr2.begin(), pred)) {   
+                ++errors; 
+            } 
+        }
+    } else { 
+        for (size_t i = 0; i < Q; ++i) { 
+            Point pt = distfn();
+
+            std::list<std::pair<Point *, double> > qr = oot.knn(k, pt, 0.0); 
+            std::list<std::pair<Point *, double> > qr2 = kdt.knn(k, pt, 0.0); 
+
+            if (!std::equal(qr.begin(), qr.end(), qr2.begin(), pred)) {   
+                ++errors; 
+            } 
         }
     }
 
