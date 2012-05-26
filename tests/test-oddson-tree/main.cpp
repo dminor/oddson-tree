@@ -23,8 +23,8 @@ THE SOFTWARE.
 #include <cstring>
 #include <iostream>
 
-#include "kdtree.h" 
 #include "oddson_tree.h" 
+#include "kdtree.h" 
 
 struct Point {
 

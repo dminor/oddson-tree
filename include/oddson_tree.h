@@ -23,6 +23,7 @@ THE SOFTWARE.
 #ifndef ODDSON_TREE_H_
 #define ODDSON_TREE_H_
 
+#define KDTREE_COLLECT_KNN_STATS
 #include "kdtree.h"
 
 #include <cstdio>
@@ -119,11 +120,14 @@ public:
 
         hits = 0;
         queries = 0;
+        backup->knn_nodes_visited = 0;
     }
 
     virtual ~OddsonTree()
     {
         fprintf(stderr, "hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
+
+        fprintf(stderr, "average backup nodes visited / query: %0.2f\n", (double)backup->knn_nodes_visited / (double)queries);
 
         delete[] range;
         delete backup;
@@ -160,9 +164,10 @@ public:
         std::list<std::pair<Point *, double> > result;
 
         FixedSizePriorityQueue<typename KdTree<Point, double>::Node *> pq(k);
-        locate(pq, pt);
+//        locate(pq, pt);
         result = backup->knn(pq, pt, eps); 
 
+        ++queries;
         return result; 
     }
 
