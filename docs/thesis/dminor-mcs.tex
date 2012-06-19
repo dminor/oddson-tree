@@ -33,14 +33,32 @@ TODO:
 \section{Problem Statement}
 
 We investigate the utility of data structures for biased nearest neighbour
-search in practice.   The nearest neighbour search problem is given a set of
-points, a query point, and a metric, return the closest point in the set to the
-query point under the specified metric.  In the biased variant of this problem,
-it is assumed that information is available which allows for more common queries
-to be answered more quickly.
+search in practice. The nearest neighbour search problem is to return the
+closest point in a set of points to a specified query point. In the biased 
+variant of this problem, it is assumed that information is available which
+allows for more common queries to be answered more quickly.
+
+Nearest neighbour search is of considerable practical interest with
+applications in geographical information systems, computer graphics,
+computer vision, signal processing and machine learning.
+
+Nearest neighbour search has received a large amount of attention from both
+theoretical and applied computer scientists since the early 1970s. It is an
+example of a problem which suffers from the so-called "curse of
+dimensionality" where as the number of dimensions increases, an increasingly
+large number of points must be searched until performance in practice is no
+better than a brute force search of all of the points. Even in low dimensions,
+nearest neighbour search can be a difficult problem in practice given a large
+enough point set or the requirement to support a large number of queries in a
+timely fashion.
+
+Due to both the number of practical applications and to the fact that it suffers
+from the curse of dimensionality, a large number of heuristic solutions as well
+as more rigouressly defined data structures and algorithms have been proposed
+for use in solving nearest neighbour search problems.
 
 Recently, two groups of researchers \cite{chan} \cite{oddson} have proposed a
-a distribution sensitive data structure, called odds-on trees,  which can be
+a biased data structure, called odds-on trees in \cite{oddson},  which can be
 applied to a variety of geometrical search problems and which seems as though it
 may be of practical as well as theoretical interest.
 
@@ -49,12 +67,12 @@ probability distribution of the queries in order to answer queries with an
 expected runtime which is of the order of the entropy, or amount of randomness,
 present in the query distribution. 
 
-Nearest neighbour search is of considerable practical interest with
-applications in geographical information systems, computer graphics,
-computer vision, signal processing and machine learning.
-
-TODO: more on NN search, difficulty of problem, relate back to distribution
-sensitivity.
+In a sense, the odds-on tree data structure provides a theoretical basis for
+the creation of heuristics to accelerate geometrical search problems. Since
+nearest neighbour search is a problem of practical interest with a number of
+existing heuristic solutions with varying degrees of justification in theory,
+it seemed a natural area to which to apply the odds-on tree with a view to
+determining its effectiveness in practice.
 
 Our goal is to implement a practical data structure based on the theoretical
 results about odds-on trees.  This involves design and implementation work as
@@ -297,7 +315,6 @@ volume hierarchy.
 
 TODO: implement as proper quadtree as well as b.v.h.  same worse case 
 performance as compressed quadtree, but may be better in practice?
-
 
 \subsection{Query algorithm}
 
