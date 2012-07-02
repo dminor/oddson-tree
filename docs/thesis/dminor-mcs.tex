@@ -86,6 +86,10 @@ including some derived from applications of nearest neighbour search.
 
 TODO:
 
+Query point: A point for which a nearest neighbour should be found. 
+
+Site: a potential nearest neighbour.
+
 \section{Results Summary}
 
 TODO:
@@ -102,71 +106,34 @@ future work.
 
 \chapter{Previous Work}
 
-\section{Biased Search}
-
-\subsection{Biased Search Trees}
-
-Biased search trees are a natural generalization of balancing a binary search
-tree where rather than assuming each result is equally likely, a probability
-distribution is given for the results, allowing the tree to be balanced such
-that at each node it is equally likely that the left or right child will be
-followed.  The overall expected running time can then be stated in terms of the
-entropy of the probability distribution of the queries.
-
-Early work on biased search trees is described in Knuth \cite{knuth} where
-the static case (i.e. no deletions and insertions) is considered.  An \(O(n^2)\)
-dynamic programming algorithm is presented which constructs an optimum static
-search tree for a set of weights.
-
-Biased search trees allowing insertions and deletions based upon 2 - 4 and
-red-black trees were described by Bent, Sleator and Tarjan \cite{bst}.  The
-data structures are complex and do not appear to have been implemented.
-Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}. A
-much simpler implementation of biased search based upon randomized search trees
-was developed by Aragon and Seidel \cite{treap}, and a biased version of skip
-lists \cite{skiplist} was presented in \cite{bsl2}.
-
-An alternative approach to biased search is to use data structures which
-modify themselves in response to queries.  In this case, rather than specifying
-the probabilities in advance, the data structure will change itself to match
-the query distribution.  Splaytrees \cite{splaytree}, which were invented by
-Sleator and Tarjan, are a self-modifying binary search tree which have
-received considerable attention, both theoretical and experimental due to the
-dynamic optimality conjecture, which states that splaytrees are within a
-constant factor of optimal for any sequence of queries, without needing to
-know the queries in advance.
-
-Most experimental work with biased search has focused on comparing splaytrees
-with traditional approaches like 2 - 4 trees and red-black trees.
-
-TODO: give some references on previous experimental work with biased search.
-
-\subsection{Distribution Sensitive Data Structures}
-
-A distribution sensitive data structure has a running time which is a multiple 
-of the entropy of the query distribution.  This is similar to biased search
-trees, where the running time is given in terms of the entropy of the query
-results, but provides a better framework for examining geometric search
-problems.
-
-TODO: Explain why better for geometric search.
-
-TODO: Refer to at least Biased Range Trees paper, some results in distribution
-sensitive point location.
-
-\subsection{Instance Optimality}
-
-An instance optimal data structure \cite{chan} has a running time which is
-within a constant factor of any data structure for any instance of the problem.
-
-TODO: Explain why this gives equivalent results to distribution sensitive data
-structures.
+\section{Nearest Neighbour Search}
 
 
-\section{Geometric Data Structures}
+\subsection{The Post-Office Problem}
 
-This section describes geometric data structures used to construct the variants
-of the odds-on tree investigated in this thesis.
+One way of looking at nearest neighbour search is as a subdivision of the plane
+into disjoint areas based upon which site to which they are closest. Finding
+the nearest neighbour to a query point is then a matter of determining which
+subdivision the query point lies in.
+
+A traditional name for this problem is the post-office problem, where given a
+set of sites (the post-offices) determine for a given query point which
+post-office is closest \cite{dutch}.
+
+An early approach to solving this problem, described in \cite{knuth} was
+developed by Bruce McNutt and called the "post-office tree." This tree was
+a binary search tree where each node contained a name and a radius. The left
+hand side of the tree contained all nodes within the radius plus a
+specified delta, and the right hand side all nodes outside the radius, minus
+a specified delta. By starting at the root of the tree and visiting nodes
+recursively, it is possible to find all nodes within the delta of a query
+point. Unfortunatey, the number of nodes required grows rapidly as the delta
+increases, limiting the practical utitlity of this approach. 
+
+Another approach
+
+TODO: Knuth on post-office query, Bentley's quadtrees and kd-trees.  Fast
+vector quantization paper, ANN.  Metric trees, Locality sensitive hashing
 
 \subsection{Quadtrees}
 
@@ -265,6 +232,67 @@ TODO: Use in nearest-neighbour search.
 
 TODO: describe bounding volume hierarchy.
 
+\section{Biased Search}
+
+\subsection{Biased Search Trees}
+
+Biased search trees are a natural generalization of balancing a binary search
+tree where rather than assuming each result is equally likely, a probability
+distribution is given for the results, allowing the tree to be balanced such
+that at each node it is equally likely that the left or right child will be
+followed.  The overall expected running time can then be stated in terms of the
+entropy of the probability distribution of the queries.
+
+Early work on biased search trees is described in Knuth \cite{knuth} where
+the static case (i.e. no deletions and insertions) is considered.  An \(O(n^2)\)
+dynamic programming algorithm is presented which constructs an optimum static
+search tree for a set of weights.
+
+Biased search trees allowing insertions and deletions based upon 2 - 4 and
+red-black trees were described by Bent, Sleator and Tarjan \cite{bst}.  The
+data structures are complex and do not appear to have been implemented.
+Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}. A
+much simpler implementation of biased search based upon randomized search trees
+was developed by Aragon and Seidel \cite{treap}, and a biased version of skip
+lists \cite{skiplist} was presented in \cite{bsl2}.
+
+An alternative approach to biased search is to use data structures which
+modify themselves in response to queries.  In this case, rather than specifying
+the probabilities in advance, the data structure will change itself to match
+the query distribution.  Splaytrees \cite{splaytree}, which were invented by
+Sleator and Tarjan, are a self-modifying binary search tree which have
+received considerable attention, both theoretical and experimental due to the
+dynamic optimality conjecture, which states that splaytrees are within a
+constant factor of optimal for any sequence of queries, without needing to
+know the queries in advance.
+
+Most experimental work with biased search has focused on comparing splaytrees
+with traditional approaches like 2 - 4 trees and red-black trees.
+
+TODO: give some references on previous experimental work with biased search.
+
+\subsection{Distribution Sensitive Data Structures}
+
+A distribution sensitive data structure has a running time which is a multiple 
+of the entropy of the query distribution.  This is similar to biased search
+trees, where the running time is given in terms of the entropy of the query
+results, but provides a better framework for examining geometric search
+problems.
+
+TODO: Explain why better for geometric search.
+
+TODO: Refer to at least Biased Range Trees paper, some results in distribution
+sensitive point location.
+
+\subsection{Instance Optimality}
+
+An instance optimal data structure \cite{chan} has a running time which is
+within a constant factor of any data structure for any instance of the problem.
+
+TODO: Explain why this gives equivalent results to distribution sensitive data
+structures.
+
+
 \subsection{Partition Trees}
 
 TODO: describe partition trees, construction procedure, use in simplicial
@@ -273,11 +301,6 @@ range queries.
 \subsection{Odds-on Trees}
 
 TODO: Description of partition tree based Odds-on tree.
-
-\section{Nearest Neighbour Search}
-
-TODO: Knuth on post-office query, Bentley's quadtrees and kd-trees.  Fast
-vector quantization paper, ANN.  Metric trees, Locality sensitive hashing
 
 
 \chapter{Implementation}
