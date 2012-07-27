@@ -90,6 +90,14 @@ Query point: A point for which a nearest neighbour should be found.
 
 Site: a potential nearest neighbour.
 
+Metric
+
+\(L^2\) metric.
+
+Comparison Tree model
+
+Planar subdivision
+
 \section{Results Summary}
 
 TODO:
@@ -99,17 +107,40 @@ TODO:
 The remainder of the thesis is organized as follows: Chapter 2 summarizes
 previous work for biased search, distribution sensitive data structures and
 nearest neighbour search.  Chapter 3 describes the design and implementation of
-the Odds-on Tree, including an description of alternative designs which were
-explored.  Chapter 4 gives details on the experiemntation performed and results
+the odds-on tree, including an description of alternative designs which were
+explored.  Chapter 4 gives details on the experimentation performed and results
 obtained, and Chapter 5 summarizes the results and discusses potential 
 future work.
 
 \chapter{Previous Work}
 
+In this section we examine previous work relevant to odds-on tree. In the first
+section we examine data structures for nearest-neighbour search. In the second
+section we present results on biased search in one dimension and describe
+the odds-on tree data structure.
+
 \section{Nearest Neighbour Search}
 
+In this section we examine data structures and algorithms for nearest-neighbour
+search. We restrict ourselves to algorithms which work in a comparison tree
+model, where data structures perform comparisons on coordinates.
 
-\subsection{The Post-Office Problem}
+TODO: better definition of comparison trees
+
+Since they are not relevant for the remainder of this thesis, we do not consider
+approaches based upon hashing, such as locality sensitive hashing or so-called
+metric trees, where points are sorted based upon distance to a reference
+point rather than based upon their coordinates. Locality sensitive hashing and
+several different metric trees are described and evaluated experimentally in
+\cite{practicalann}.
+
+We also restrict ourselves to an in-memory model, and so do not consider
+external memory based data structures such as R-trees \cite{rtree}. Since an
+odds-on tree is essentially a cache, it does not make sense to consider an
+external memory representation, although an odds-on tree may be quite useful
+as an in-memory cache for an external memory data structure. 
+
+\subsection{Voronoi Diagrams}
 
 One way of looking at nearest neighbour search is as a subdivision of the plane
 into disjoint areas based upon which site to which they are closest. Finding
@@ -120,27 +151,68 @@ A traditional name for this problem is the post-office problem, where given a
 set of sites (the post-offices) determine for a given query point which
 post-office is closest \cite{dutch}.
 
-An early approach to solving this problem, described in \cite{knuth} was
-developed by Bruce McNutt and called the "post-office tree." This tree was
-a binary search tree where each node contained a name and a radius. The left
-hand side of the tree contained all nodes within the radius plus a
-specified delta, and the right hand side all nodes outside the radius, minus
-a specified delta. By starting at the root of the tree and visiting nodes
-recursively, it is possible to find all nodes within the delta of a query
-point. Unfortunatey, the number of nodes required grows rapidly as the delta
-increases, limiting the practical utitlity of this approach. 
+The Voronoi diagram is a data structure containing an explicit subdivision of
+the plane based upon which site is closest, according to a specified metric. A
+Voronoi diagram divides the plane (or hyper-plane) into disjoint areas called
+Voronoi cells. For the \(L^2\) metric, these cells will be convex.
 
-Another approach
+\begin{thm} \emph{(Voronoi Diagram Construction)}
+The Voronoi diagram for a set of n points in two dimensions can be computed
+in time \(O(n log n)\). In higher dimensions, the time becomes
+\(O(n log n + n^\ceil(d/2))\) where d is the dimensionality of the space.
+\cite{dutch}.
+\end{thm}
 
-TODO: Knuth on post-office query, Bentley's quadtrees and kd-trees.  Fast
-vector quantization paper, ANN.  Metric trees, Locality sensitive hashing
+TODO: insert voronoi diagram
+
+\subsubsection{Nearest Neighbour Search in a Voronoi Diagram}
+
+Once the Voronoi diagram is constructed, determining the nearest neighbour can
+be done by performing point location to determine in which Voronoi cell the
+query point lies.
+
+In 2D, an efficient data structure for the more general problem of point
+location in a planar subdivision was described by Kirkpatrick
+\cite{kirkpatrick}. It based upon first triangulating the subdivision and then
+removing independent vertices (those which do not share an edge) from the
+triangulation to create a triangulation with fewer faces. Provided a constant
+number of vertices are removed from the triangulation at each step, performing
+the triangulation recursively will result in a data structure which supports
+point location in logarithmic time.
+
+\begin{thm} \emph{(Point Location in the Plane)}
+A data structure exists using \(O(n)\) storage which allows for planar
+point location to be performed in \(O(log n)\) time \cite{kirkpatrick}.
+\end{thm}
+
+In higher dimensions, it is possible to solve this problem 
+
+TODO: description of Chazelle's algorithm.
+
+\begin{thm} \emph{(Point Location in Higher Dimensions)}
+A data structure exists using \(O(n^d)\) storage which allows for  
+point location in a d-dimensional arrangment of hyperplanes to be performed in
+\(O(log n)\) time \cite{chazelle}.
+\end{thm}
+
+Nearest-neigbhour search can be performed using Voronoi diagrams and provides
+efficient algorithms in the plane. To extend this to reporting k-nearest
+neighbours, once the Voronoi cell containting the query point has been
+identified, the neighbour cells of the Voronoi diagram can be examined until
+a sufficient number of neighbours has been found. 
+
+In higher dimensions, the time requirement to build a Voronoi diagram and the
+space requirement for the point location data structure both depend upon the
+dimension of the space in an exponential fasion, which limits both their
+theoretical and practical utility for this problem.
 
 \subsection{Quadtrees}
 
 Quadtrees are based upon recursively dividing n-dimensional space into \(2^n\)
 equal sized hypercubes, with each node in the tree keeping pointers to its
 children.  In the two dimensional case, this means that space is divided into
-four quadrants, hence the name quadtrees.  
+four quadrants, hence the name quadtrees. Quadtrees were introduced in 1974 by
+Finkel and Bentley \cite{quadtree}. 
 
 In this thesis, we only use quadtrees which are derived from an underlying point
 set.  In this case, the recursive sub-division is done until each hypercube
@@ -148,27 +220,67 @@ contains a single point from the point set.
 
 The root of the quadtree is the hypercube containing all of the points, a leaf
 is a hypercube containing a single point, and the height of a quadtree
-is the longest path from the root of the quadtree to the leaf of a quadtree.
+is the longest path from the root of the quadtree to the leaf of a quadtree
+\cite{dutch}.
 
 \begin{thm} \emph{(Height of a Quadtree)}
-The height of a quadtree with n points depends upon the distance between
-the input points, and is not bounded by n.
+The height of a quadtree for a set of n points has an upper bound of \(log(s/c)
++ 3/2\), where c is the smallest distance between any two points in the set, and
+s is the side length of the initial square containing all of the points.
+\cite{dutch}.
 \end{thm}
+
+Note that the height of the quadtree is not bounded by n.
+
+\begin{thm} \emph{(Quadtree Construction)}
+A quadtree of height h containing n points can be constructed in \(O((h + 1)n)\)
+time \cite{dutch}.
+\end{thm}
+
+\subsubsection{Point Location in a Quadtree}
+
+Point location in a quadtree is performed by recursively visiting nodes
+starting with the root node. At each step, the child node containing the query
+point is visited, and the algorithm terminates when a leaf node is reached.
+
+\begin{thm} \emph{(Point Location in a Quadtree)} 
+Point location in a quadtree of height h can be performed in time \(O(h)\). 
+\end{thm}
+
+\subsubsection{Nearest Neighbour Search in a Quadtree}
 
 Given a query point p the quadtree node containing p, if any, can be found by
 starting at the root, comparing p to the bounds of the each child of the root,
 and recursively visiting the child containing p until a leaf node is found.  
 Since the maximum depth of a quadtree with n points is not bounded by n, the
-running time of this search algorithm is also not bounded by n. 
+running time of this search algorithm is also not bounded by n. This search,
+along with a means of performing region queries was described in
+\cite{quadtree}.
+
+To perform nearest neighbour search in a quadtree we adapt the procedure given
+in \cite{samet} for kd-trees. Finding a nearest neighbour in a quadtree is done
+by maintaining a priority queue of nodes to visit, which initially contains the
+root node. The algorithm proceeds by removing a node from the priority queue and
+examining each of its children. If the child node contains a point it is added
+to the result set.
+
+Otherwise, the distance from the query point to each child node is calculated
+and if it is smaller than the distance to the current furthest result point,
+it is added to the priority queue. The work done by this algorithm is at
+least the same amount of work required to do perform a point location query.
+
+\begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
+Nearest neighbour search in a quadtree of height h requires \(O(h)\) time.
+\end{thm}
 
 TODO: quadtree diagram
-
-TODO: reference for this section
 
 \subsection{Compressed Quadtrees}
 
 In a compressed quadtree, only nodes which contain a point, or have at least
-two child nodes are present in the tree.
+two child nodes are present in the tree. Compressed quadtrees were first
+described in \cite{compressedquadtree}, and a detailed description can be found
+in \cite{skipquadtree}.
 
 A compressed quadtree can be created by pruning nodes from an existing quadtree
 as follows:
@@ -178,6 +290,43 @@ as follows:
 \item If a node has a single child node, change the pointer to the node in the
 node's parent to point to the node's child.
 \end{enumerate}
+
+Since this procedure requires first building a regular quadtree, it also
+requires \(O((h + 1)n\) time to complete.
+
+This construction procedure can be made more efficient, or at least bounded by
+n, by first sorting the points according to Morton (or z-) order. Morton order
+is defined by interleaving the bits of each of coordinate of the point, such
+that the first bit of the first coordinate is followed by the first bit of the
+second coordinate and so on until one bit has been used from each coordinate.
+This is then followed by the second bit of the first coordinate \cite{morton}.
+When performed in two dimensions, this results in a Z-shaped curve which is
+related to the TODO space filling curve. This interleaving of bits is called the 
+"shuffle" of a point in \cite{bern}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.4]{diagrams/zorder.eps}
+\caption{Z-Order}
+\end{center}
+\end{figure}
+
+The points are then sorting according their shuffle order. Each two adjacent
+points in the sorted order form a node in the quadtree, which can then be
+nested by finding the first larger square to the left and the right in the
+sorted order \cite{bern}.
+
+\begin{thm} \emph{(Compressed Quadtree Construction)}
+A quadtree containing n points can be constructed in \(O(n log n)\) time
+\cite{bern}.
+\end{thm}
+
+Chan \cite{chan} showed that the shuffle can be calculated without explicitly
+interleaving the bits, and \cite{connor} showed that this can be extended from
+integer values to IEEE-754 floating point values.
+
+TODO: better description of how to build quadtree from sorted points. Better
+description of Morton order, space filling curves.
 
 \begin{figure}
 \begin{center}
@@ -190,27 +339,74 @@ node's parent to point to the node's child.
 The height of a compressed quadtree with n points is O(n).
 \end{thm}
 
-Compressed quadtrees were first described in \cite{compressedquadtree}, and a
-detailed description can be found in \cite{skipquadtree}.
+\subsubsection{Point Location in a Compressed Quadtree}
 
-\subsubsection{Z-Order}
+Point location in a compressed quadtree is done by following the same algorithm
+as for standard quadtrees. Since the height of a compressed quadtree is
+bounded by the number of points, we can bound the time required to perform
+point location.
 
-TODO: describe z-order, relationship to quadtrees, use to build compressed
-quadtree structure.  Outline Chan's algorithm, and the extension to
-floating point numbers.
+\begin{thm} \emph{(Point Location in a Compressed Quadtree)} 
+Point location in a compressed quadtree with n points can be performed in
+time \(O(n)\). 
+\end{thm}
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.4]{diagrams/zorder.eps}
-\caption{Z-Order}
-\end{center}
-\end{figure}
+\subsubsection{Nearest Neighbour Search in a Compressed Quadtree}
 
+Nearest neighbour search in a compressed quadtree can be done by following the
+same algorithm as for standard quadtrees. Again, ince the height of a compressed
+quadtree is bounded by the number of points, we can bound the time required to
+perform point location.
+
+\begin{thm} \emph{(Nearest Neighbour Search in a Compressed Quadtree)} 
+Nearest neighbour search in a compressed quadtree with n points requires
+\(O(n)\) time.
+\end{thm}
+
+\subsection{Skip Quadtrees}
+
+Skip quadtrees extend the idea of skip lists \cite{skiplist} to 2D and higher
+dimensional spaces. In a skip list, multiple levels of linked lists exist, with
+pointers between the levels.  The bottom level contains all of the nodes, the
+top layer is empty, and (in the randomized version of skip lists,) a node
+present in a given layer is present in the layer above it with specified
+probability.  Corresponding nodes on different levels are then linked. The
+expected number of layers is logarithmic, allowing for search in \(O(\log n)\)
+time.
+
+Skip quadtrees use essentially the same idea, except each level is a
+compressed quadtree rather than a linked list.
+
+\begin{thm} \emph{(Height of a Quadtree)}
+\end{thm}
+
+\begin{thm} \emph{(Quadtree Construction)}
+\end{thm}
+
+\subsubsection{Point Location in a Skip Quadtree}
+
+Point location in a skip quadtree is peformed by recursively visiting each level
+of the quadtree. Since each level is a compressed quadtree, point location is
+first performed in that compressed quadtree. Once the node in the compressed
+quadtree is located, the link to the corresponding node in the lower level
+is visited until the bottom level is reached and the node in that compressed
+quadtree is returned as the result of the point location query.
+
+\begin{thm} \emph{(Point Location in a Skip Quadtree)} 
+Point location in a skip quadtree with n points can be performed in time
+\(O(log n\)). 
+\end{thm}
+
+\subsubsection{Nearest Neighbour Search in a Skip Quadtree}
+
+\begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
+Nearest neighbour search in a skip quadtree with n points requires
+\end{thm}
 
 \subsection{Kd-Trees}
 
-Kd-trees were invented by Jon Bentley in 1975 as an improvement on quadtrees
-\cite{bentley}.  Kd-trees are binary search trees for which each non-leaf node
+Kd-trees were described by Jon Bentley in 1975 as an improvement on quadtrees
+\cite{kdtree}.  Kd-trees are binary search trees for which each non-leaf node
 divides the point set in half using an axis-aligned line.
 
 Kd-trees are constructed by choosing an axis, determining the median value in
@@ -226,11 +422,20 @@ The height of a kd-tree with n points is O(log n).
 
 TODO: kd-tree diagram
 
-TODO: Use in nearest-neighbour search.
+\subsubsection{Point Location in a Kd-Tree}
 
-\subsection{Bounding Volume Hierarchies}
+\begin{thm} \emph{(Point Location in a Kd-Tree)} 
+Point location in a skip quadtree with n points can be performed in time
+\(O(n log n\)). 
+\end{thm}
 
-TODO: describe bounding volume hierarchy.
+\subsubsection{Nearest Neighbour Search in a Skip Quadtree}
+
+Nearest neighbour search in a kd-tree is
+
+\begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
+Nearest neighbour search in a kd-tree with n points requires \(O(n)\) time.
+\end{thm}
 
 \section{Biased Search}
 
@@ -293,14 +498,9 @@ TODO: Explain why this gives equivalent results to distribution sensitive data
 structures.
 
 
-\subsection{Partition Trees}
-
-TODO: describe partition trees, construction procedure, use in simplicial
-range queries.
-
 \subsection{Odds-on Trees}
 
-TODO: Description of partition tree based Odds-on tree.
+TODO: Description of partition tree based odds-on tree.
 
 
 \chapter{Implementation}
@@ -388,7 +588,7 @@ neighbour was maintained between trials.  Two distributions were used for the
 
 \subsubsection{Sample Set}
 
-The sample set is the set of searches used to build the Odds-on tree.
+The sample set is the set of searches used to build the odds-on tree.
 
 \subsubsection{Search Set}
 
@@ -461,31 +661,49 @@ TODO:
 \begin{thebibliography}{5}
 
 \bibitem{appnn}
-    Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R. Wu, A. Y. (1998) An Optimal Algorithm for Approximate Nearest Neighbor Searching in Fixed Dimensions , Journal of the ACM, Volume 45, Issue 6, 891--923
+Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R. Wu, A. Y. (1998) An Optimal Algorithm for Approximate Nearest Neighbor Searching in Fixed Dimensions , Journal of the ACM, Volume 45, Issue 6, 891--923
 
 \bibitem{ann}
-    Mount, D. M., Arya, S. (2010) ANN: A Library for Approximate Nearest Neighbor Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on Sept. 27, 2010
+Mount, D. M., Arya, S. (2010) ANN: A Library for Approximate Nearest Neighbor Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on Sept. 27, 2010
 
-\bibitem{bentley}
-    Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative Searching,
-In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
+\bibitem{chan}
+Chan, T. M. (2006) A Minimalist's Implementation of an Approximate Nearest
+Neighbour Algorithm in Fixed Dimensions, unpublished note, retrieved from
+http://TODO on July X, 2012.
+
+\bibitem{connor}
+Connor, M. and Kumar, P. (2009) Fast Construction of k-Nearest Neighbor Graphs
+For Point Clouds, IEEE Transactions of Visualizatoin and Computer Graphics,
+September 2009.
 
 \bibitem{compressedquadtree}
-    Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
+Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
 FOCS '83: Proceedings of the Twenty-fourth Symposium on Foundations of Computer Science,
 Tucson, AZ 
- 
+
+\bibitem{dutch}
+de Berg., M. van Kreveld, M., Overmars, M., Schwarzkopf, O. (2000)
+Computational Geometry: Algorithms and Applications, 2nd Edition, Springer-Verlag,
+Berlin Heidelberg New York
+
+\bibitem{kdtree}
+Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative Searching,
+In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
+
 \bibitem{treap}
 Aragon, C. R.,  Seidel, R. (1996) Randomized Search Trees.
 In Algorithmica, Vol. 16, Number 4/5, pp. 464 – 497
 
 \bibitem{skipquadtree}
-    Eppstein, D., Goodrich, M. T., Sun, J. Z. (2008) The Skip Quadtree: A Simple Dynamic Data Structure for Multidimensional Data, Int. Journal on Computational Geometry and Applications, 18(1/2), 131--160 
+Eppstein, D., Goodrich, M. T., Sun, J. Z. (2008) The Skip Quadtree: A Simple Dynamic Data Structure for Multidimensional Data, Int. Journal on Computational Geometry and Applications, 18(1/2), 131--160 
 
 \bibitem{bsl}
 Bagchi,A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
 In Algorithmica Vol. 42, pp. 31 – 48
- 
+
+\bibitem{chazelle} Chazelle, B. (1993) Cutting hyperplanes for divide-and-conquer.
+Discrete and Compututational Geometry 9, pp. 145--158.
+
 \bibitem{splaytree}
 Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
 In Journal of the ACM, 32, pp. 652 – 686
@@ -493,6 +711,11 @@ In Journal of the ACM, 32, pp. 652 – 686
 \bibitem{knuth}
 Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
 Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
+
+\bibitem{bsl2}
+Ergun, F., Sahinalp, S. C., Sharp, J., Sinha, R. K. (2001) Biased Skip Lists
+for Highly Skewed Access Patterns, Proceedings of ALENEX 2001, Lecture Notes in
+Computer Science, Volume 2153, 216-229 
 
 \bibitem{bst}
 Bent, S. W., Sleator, D. D., Tarjan, R. E. (1984) Biased Search Trees,
@@ -502,14 +725,30 @@ In SIAM Journal on Computing, Volume 14, pp. 545 - 568
 Feigenbaum, J., Tarjan, R. E. (1983) Two New Kinds of Biased Search Tree,
 In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 - 3158
 
+\bibitem{kirkpatrick}
+Kirkpatrick, D. (1983) Optimal Search in Planara Subdivisons,
+Siam Journal of Computing, Vol. 12, No. 1, pp 28 -- 34.
+
+\bibitem{practicalann}
+Liu, T., Moore, A. W., Gray, A., Yang, K. (TODO) An Investigation of Practical
+Approximate Nearest-Neighbour Algorithms, TODO
+
+\bibitem{quadtree}
+Finkel, R. A. and Bentley, J. L. (1974) Quad Trees A Data Structure for
+Retrieval on Composite Keys
+Acta Informatica, 4(1), pp. 1 – 9 
+
+\bibitem{rtree}
+Guttman, A. (1984) R-Trees: A Dynamic Index Structure for Spatial Searching,
+TODO 
+
 \bibitem{skiplist}
 Pugh, W. (1990) Skip Lists: A Probabilistic Alternative to Balanced Trees.
 In Communications of the ACM, 33(6), pp. 668 – 676
 
-\bibitem{bsl2}
-Ergun, F., Sahinalp, S. C., Sharp, J., Sinha, R. K. (2001) Biased Skip Lists
-for Highly Skewed Access Patterns, Proceedings of ALENEX 2001, Lecture Notes in
-Computer Science, Volume 2153, 216-229
+\bibitem{samet}
+Samet, H. (2006) Foundations of Multidimensional and Metric Data Structures
+Morgan-Kaufmann, San Francisco, CA.
 
 \bibitem{satp}
 Williams, H. E., Zobel, J., Heinz, S. (2001) Self-Adjusting Trees in Practice
