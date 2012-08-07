@@ -125,10 +125,9 @@ the odds-on tree data structure.
 \section{Nearest Neighbour Search}
 
 In this section we examine data structures and algorithms for nearest-neighbour
-search. We restrict ourselves to algorithms which operate in a decision tree
-model, where data structures perform comparisons on coordinates.
-
-TODO: better definition of decision trees
+search. We restrict ourselves to algorithms which operate in a comparison tree
+model, where data structures make decisions based upon making comparisons
+between point coordinates.
 
 By operating in a decision tree model, we also restrict ourselves to nearest
 neighbour search in relatively small dimensions. The effective of comparison
@@ -379,16 +378,6 @@ Nearest neighbour search in a compressed quadtree with n points requires
 \(O(n)\) time.
 \end{thm}
 
-\subsection{Approximate Voronoi Diagrams}
-
-For approximate nearest-neighbour searches, it is possible to improve on the
-space requirements by creating an approximation to the Voronoi diagram, for
-instance using quadtrees \cite{avd}. The complexity of the calculation is
-reduced by constructing the Voronoi diagram such that for each cell, any point
-within it is a \(1 + \epsilon\)-nearest neigbhour, rather than an exact
-nearest neigbhour.
-
-
 \subsection{Skip Quadtrees}
 
 Skip quadtrees extend the idea of skip lists \cite{skiplist} to 2D and higher
@@ -435,7 +424,15 @@ Point location in a skip quadtree with n points can be performed in time
 
 \subsubsection{Nearest Neighbour Search in a Skip Quadtree}
 
-TODO
+Nearest neighbour search in a skip quadtree is similar to the procedure for
+searching a standard quadtree, but the skip structure is used to limit
+the number of nodes visited.
+
+For a node p removed from the priority queue, the skip structure is used to
+determine the node q, which is the smallest node in the lowest skip level
+which is equidistant to the query point. It is shown in \cite{skipquadtree}
+that at most \(O(\log 1 \over \epsilon)\) nodes on the path from p to q need
+to be added to the priority queue.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
 Approximate \(1 + \epsilon\) nearest neighbour search for d dimensions in a skip
@@ -464,25 +461,67 @@ TODO: kd-tree diagram
 
 \subsubsection{Point Location in a Kd-Tree}
 
+Point location in a kd-tree can be performed by recursively visiting nodes and
+comparing the appropriate coordinate of the point to the splitting axis used
+to split the children for that node, and the visiting the appropriate child
+node \cite{kdtree}.
+
 \begin{thm} \emph{(Point Location in a Kd-Tree)} 
 Point location in a skip quadtree with n points can be performed in time
-\(O(n \log n\)). 
+\(O(\log n\)). 
 \end{thm}
 
-\subsubsection{Nearest Neighbour Search in a Skip Quadtree}
+\subsubsection{Nearest Neighbour Search in a Kd-tree}
 
-Nearest neighbour search in a kd-tree is
+An algorithm for nearest-neighbour search in a kd-tree tree was described
+by Friedman et al. \cite{friedman} in 1977 as an improvement on the algorithm
+contained in the original paper describing kd-trees.
 
-\begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
-Nearest neighbour search in a kd-tree with n points requires \(O(n)\) time.
+The algorithm proceeds in a manner similar to the procedure for point-location,
+but at each step the child node that was not visited is added to a priority
+queue. When a leaf node is reached, the point at that node is added to the
+result set and the priority queue is examined. If the closest node in the
+priority queue is closer than the furthest point in the result set, then it
+is visited according to the recursive procedure given for point location. 
+
+For a \(1 + \epsilon\) approximate nearest neighbour search, nodes in the
+priority queue are only visited if they closer than \(1 + \epsilon\) times
+the distance to furthest point in the result set. The extension to approximate
+nearest neighbour searches was described by Arya and Mount \cite{ann}. 
+
+\begin{thm} \emph{(Nearest Neighbour Search in a Kd-tree)} 
+The expected time for nearest-neighbour search in a kd-tree with n points is
+\(O \log(n)\), and the worst case is \(O(n)\) \cite{friedman}.
 \end{thm}
 
 \subsection{Balanced Box Decomposition (BBD) Trees}
+
+\cite{appnn}
 
 \subsubsection{Nearest Neighbour Search in a BBD Tree}
 
 \begin{thm} \emph{(Nearest Neighbour Search in a BBD Tree)} 
 \end{thm}
+
+\subsection{Approximate Voronoi Diagrams}
+
+For approximate nearest-neighbour searches, it is possible to improve on the
+space requirements by creating an approximation to the Voronoi diagram, for
+instance using quadtrees \cite{avd}. The complexity of the calculation is
+reduced by constructing the Voronoi diagram such that for each cell, any point
+within it is a \(1 + \epsilon\)-nearest neigbhour, rather than an exact
+nearest neigbhour.
+
+Har-Peled \cite{avd} showed TODO 
+
+Arya et al. \cite{arya-avd} extended this to \(t, \epsilon\)-AVD where each
+cell in the approximate Voronoi diagram stores \(t\) approximate nearest
+neighbours. TODO
+
+In this case, both \(t\) and \(\epsilon\) need to be determined in advance,
+unlike approaches using quadtrees or kd-trees where these parameters can
+be changd on a query by query basis.
+
 
 \section{Biased Search}
 
@@ -707,16 +746,20 @@ TODO:
 
 \begin{thebibliography}{5}
 
+\bibitem{treap}
+Aragon, C. R.,  Seidel, R. (1996) Randomized Search Trees.
+In Algorithmica, Vol. 16, Number 4/5, pp. 464 – 497
+
 \bibitem{fastvector}
 Arya, S., Mount, D. M. (1993) Algorithms for Fast Vector Quantization,
 Proceedings of DCC '93, IEEE Press, pp 381--390. 
 
-\bibitem{bbd}
-Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R., Wu, A. Y. (1994)
-An Optimal Algorithm for Approximate Nearest Neighbour Searhing in Fixed
-Dimension, TODO.
+\bibitem{ann}
+Arya, S., Mount, D. M. (1993) Approximate nearest neighbour queries in Fixed
+Dimensions, Proceedings of the 4th ACIM-SIAM Symposium on Discrete Algorithms,
+pp 271 -- 280.
 
-\bibitem{appnn}
+\bibitem{optimalann}
 Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R. Wu, A. Y. (1998)
 An Optimal Algorithm for Approximate Nearest Neighbor Searching in Fixed
 Dimensions, Journal of the ACM, Volume 45, Issue 6, pp 891--923
@@ -726,47 +769,63 @@ Arya, S., Malamatos, T. Mount, D. M. (2002) Space-efficient Approximate
 Voronoi Diagrams, Proceedings of the 33rd Annual ACM Symposium on the Theory
 of Computing, pp. 721--730.
 
-\bibitem{ann}
-Mount, D. M., Arya, S. (2012) ANN: A Library for Approximate Nearest Neighbor
-Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on July 29, 2012
+\bibitem{bsl}
+Bagchi, A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
+In Algorithmica Vol. 42, pp. 31 – 48
+
+\bibitem{bst}
+Bent, S. W., Sleator, D. D., Tarjan, R. E. (1984) Biased Search Trees,
+In SIAM Journal on Computing, Volume 14, pp. 545 - 568
+
+\bibitem{kdtree}
+Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative Searching,
+In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
 
 \bibitem{chan}
 Chan, T. M. (2006) A Minimalist's Implementation of an Approximate Nearest
 Neighbour Algorithm in Fixed Dimensions, unpublished note, retrieved from
 \url{http://www.cs.uwaterloo.ca/~tmchan/pub\_ann.html} on July 29, 2012
 
-\bibitem{connor}
-Connor, M. and Kumar, P. (2009) Fast Construction of k-Nearest Neighbor Graphs
-For Point Clouds, IEEE Transactions of Visualizatoin and Computer Graphics,
-September 2009.
+\bibitem{chazelle} Chazelle, B. (1993) Cutting hyperplanes for divide-and-conquer.
+Discrete and Compututational Geometry 9, pp. 145--158.
 
 \bibitem{compressedquadtree}
 Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
 FOCS '83: Proceedings of the Twenty-fourth Symposium on Foundations of Computer Science,
 Tucson, AZ 
 
+\bibitem{connor}
+Connor, M. and Kumar, P. (2009) Fast Construction of k-Nearest Neighbor Graphs
+For Point Clouds, IEEE Transactions of Visualizatoin and Computer Graphics,
+September 2009.
+
 \bibitem{dutch}
 de Berg., M. van Kreveld, M., Overmars, M., Schwarzkopf, O. (2000)
 Computational Geometry: Algorithms and Applications, 2nd Edition, Springer-Verlag,
 Berlin Heidelberg New York
 
-\bibitem{kdtree}
-Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative Searching,
-In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
-
-\bibitem{treap}
-Aragon, C. R.,  Seidel, R. (1996) Randomized Search Trees.
-In Algorithmica, Vol. 16, Number 4/5, pp. 464 – 497
-
 \bibitem{skipquadtree}
-Eppstein, D., Goodrich, M. T., Sun, J. Z. (2008) The Skip Quadtree: A Simple Dynamic Data Structure for Multidimensional Data, Int. Journal on Computational Geometry and Applications, 18(1/2), 131--160 
+Eppstein, D., Goodrich, M. T., Sun, J. Z. (2008) The Skip Quadtree: A Simple
+Dynamic Data Structure for Multidimensional Data, Int. Journal on Computational
+Geometry and Applications, 18(1/2), 131--160 
 
-\bibitem{bsl}
-Bagchi,A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
-In Algorithmica Vol. 42, pp. 31 – 48
+\bibitem{bsl2}
+Ergun, F., Sahinalp, S. C., Sharp, J., Sinha, R. K. (2001) Biased Skip Lists
+for Highly Skewed Access Patterns, Proceedings of ALENEX 2001, Lecture Notes in
+Computer Science, Volume 2153, 216-229 
 
-\bibitem{chazelle} Chazelle, B. (1993) Cutting hyperplanes for divide-and-conquer.
-Discrete and Compututational Geometry 9, pp. 145--158.
+\bibitem{bst2}
+Feigenbaum, J., Tarjan, R. E. (1983) Two New Kinds of Biased Search Tree,
+In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 - 3158
+
+\bibitem{quadtree}
+Finkel, R. A. and Bentley, J. L. (1974) Quad Trees A Data Structure for
+Retrieval on Composite Keys, Acta Informatica, 4(1), pp. 1 – 9 
+
+\bibitem{friedman}
+Friedman, J. H., Bentley, J. L., Finkel, R. A. (1977) An Algorithm for Finding
+Best Matches in Logarithmic Expected Time, ACM Transactions on Mathematical
+Software, Vol. 3 Number 3, pp. 209--226
 
 \bibitem{splaytree}
 Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
@@ -775,19 +834,6 @@ In Journal of the ACM, 32, pp. 652 – 686
 \bibitem{knuth}
 Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
 Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
-
-\bibitem{bsl2}
-Ergun, F., Sahinalp, S. C., Sharp, J., Sinha, R. K. (2001) Biased Skip Lists
-for Highly Skewed Access Patterns, Proceedings of ALENEX 2001, Lecture Notes in
-Computer Science, Volume 2153, 216-229 
-
-\bibitem{bst}
-Bent, S. W., Sleator, D. D., Tarjan, R. E. (1984) Biased Search Trees,
-In SIAM Journal on Computing, Volume 14, pp. 545 - 568
-
-\bibitem{bst2}
-Feigenbaum, J., Tarjan, R. E. (1983) Two New Kinds of Biased Search Tree,
-In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 - 3158
 
 \bibitem{kirkpatrick}
 Kirkpatrick, D. (1983) Optimal Search in Planar Subdivisons,
@@ -798,10 +844,9 @@ Liu, T., Moore, A. W., Gray, A., Yang, K. (2004) An Investigation of Practical
 Approximate Nearest-Neighbour Algorithms, Proceedings of Neural Information
 Processing Systems(NIPS 2004), pp. TODO  
 
-\bibitem{quadtree}
-Finkel, R. A. and Bentley, J. L. (1974) Quad Trees A Data Structure for
-Retrieval on Composite Keys
-Acta Informatica, 4(1), pp. 1 – 9 
+\bibitem{ann}
+Mount, D. M., Arya, S. (2012) ANN: A Library for Approximate Nearest Neighbor
+Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on July 29, 2012 
 
 \bibitem{rtree}
 Guttman, A. (1984) R-Trees: A Dynamic Index Structure for Spatial Searching,
