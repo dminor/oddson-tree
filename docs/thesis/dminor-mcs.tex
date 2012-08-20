@@ -136,11 +136,11 @@ cases with 16 dimensions or more, using comparison based approaches performs no
 better than a brute force search of all of the points \cite{fastvector}.
 
 Since they are not relevant for the remainder of this thesis, we do not consider
-approaches based upon hashing, such as locality sensitive hashing or metric
-trees, where points are sorted based upon distance to a reference point rather
-than based upon their coordinates. Chapter 4 of the book by Samet \cite{samet}
-features a comprehensive treatment of nearest neighbour search in higher
-dimensions. The paper by Liu et al. evaluates some of these techniques
+approaches based upon hashing, such as locality sensitive hashing \cite{lsh}
+or metric trees, where points are sorted based upon distance to a reference
+point rather than based upon their coordinates. Chapter 4 of the book by Samet
+\cite{samet} features a comprehensive treatment of nearest neighbour search in
+higher dimensions. The paper by Liu et al. evaluates some of these techniques
 experimentally \cite{practicalann}. 
 
 We also restrict ourselves to an in-memory model, and so do not consider
@@ -486,8 +486,7 @@ is visited according to the recursive procedure given for point location.
 
 For a \(1 + \epsilon\) approximate nearest neighbour search, nodes in the
 priority queue are only visited if they closer than \(1 + \epsilon\) times
-the distance to furthest point in the result set. The extension to approximate
-nearest neighbour searches was described by Arya and Mount \cite{ann}. 
+the distance to furthest point in the result set.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Kd-tree)} 
 The expected time for nearest-neighbour search in a kd-tree with n points is
@@ -496,11 +495,64 @@ The expected time for nearest-neighbour search in a kd-tree with n points is
 
 \subsection{Balanced Box Decomposition (BBD) Trees}
 
-\cite{appnn}
+A balanced box decomposition tree is a data structure invented by Arya et al.
+\cite{optimalann} which combines advantages of both quadtrees and kd-trees.
+Like a kd-tree, as one traverses the tree, the number of points decreases
+exponentially, and like a quadtree, the area also decreases exponentially. By
+combinging these properties, an optimal data structure for approximate nearest
+neighbour search is obtained.
+
+Each node in a BBD-tree covers a cell which is the set theoretic difference
+between an outer box and an optional inner box. Both boxes are axis-aligned.
+If present, the inner box must either touch the edge of the outer box, or be
+separated from each edge by at least the width of the box in the direction of
+the edge. Each node is an BBD-tree has a bounded aspect ratio which ensures
+that the ratio of the shortest edge to the longest edge is bounded by some
+constant.
+
+A BBD-tree is constructed through a sequence of two operations, fair-splits
+and shrinks. A fair-split is a partition of a box using an axis aligned
+hyperplane, which maintains the aspect ratio bound but does not necessarily
+result in an even partition of points. A shrink operation divides a node into
+inner and outer boxes, which is used in a manner similar to a compressed
+quadtree, and can ensure an even partition of points \cite{optimalann}.
+
+Both fair-splits and shrinks can be performed in time linear in the number of
+points contained in the cell. A simple strategy for partitioning the points is
+the midpoint algorithm, which performs a fair-split by partitioning the node
+with a hyperplane orthogonal to the longest edge of the outer box. A shrink
+operation is somewhat more complicated, potentially requiring two shrink nodes
+and one split node to ensure that no child contains more than \(2/3\) of the
+points covered by the parent node \cite{optimalann}.
+
+To prove properties of the BBD-tree, Arya et al. assume that fair-splits and
+shrinks are applied alternately as the tree is constructed. In practice, they
+note that for almost all cases, only fair-splits are required \cite{optimalann}. 
+
+\begin{thm} \emph{(BBD-Tree Construction)} 
+A BBD-tree for a \(d\)-dimensional space has \(O(n)\) nodes and can be build in
+\(O(d n \log n)\) time \cite{optimalann}.
+\end{thm}
 
 \subsubsection{Nearest Neighbour Search in a BBD Tree}
 
+Nearest neighbour search in a BBD Tree is performed in a manner similar to
+search in a kd-tree. A priority queue is maintained of nodes to visit which
+initially contains the root node. At each step of the search, the closest
+node to the point is removed from the queue and is recursively searched for
+the leaf closest to the search point. The distance to the other child nodes
+encountered in the search is calculated and they are enqueued in the priority
+queue. The search continues until the distance to the node at the top of the
+priority queue exceeds the distance to the candidate nearest neighbour. This
+can be easily extended to find k nearest neighbours, and to find approximate
+nearest neighbours rather than an exact ones.
+
 \begin{thm} \emph{(Nearest Neighbour Search in a BBD Tree)} 
+Given a constant \(c_{d,\epsilon} \le \lceil 1 + {6d \over \epsilon} \rceil^d\)
+where d is the dimensionality of the space and \(\epsilon\) is the approximation
+factor, a \((1 + \epsilon)\)-nearest neighbour search in a BBD Tree can be
+performed in time \(O(c_{d,\epsilon} \log n)\) time and k approximate neareest
+neigbhours can be found in \(O((c_{d,\epsilon} + kd) \log n)\) time.
 \end{thm}
 
 \subsection{Approximate Voronoi Diagrams}
@@ -509,19 +561,36 @@ For approximate nearest-neighbour searches, it is possible to improve on the
 space requirements by creating an approximation to the Voronoi diagram, for
 instance using quadtrees \cite{avd}. The complexity of the calculation is
 reduced by constructing the Voronoi diagram such that for each cell, any point
-within it is a \(1 + \epsilon\)-nearest neigbhour, rather than an exact
+within it is a \(1 + \epsilon\)-nearest neighbour, rather than an exact
 nearest neigbhour.
 
-Har-Peled \cite{avd} showed TODO 
+Har-Peled \cite{avd} provides an algorithm for building an approximate
+Voronoi diagram which returns a answers nearest-neighbour searches. His
+construction is complicated, requiring first clustering the input sites, then
+building a data structure for answerings point location in equal ball queries
+(a technique also used in locality sensitive hashing \cite{lsh}) and finally
+using this data structure to build the approximate Voronoi diagram using
+compressed quadtrees.
 
-Arya et al. \cite{arya-avd} extended this to \(t, \epsilon\)-AVD where each
+Arya et al. \cite{arya-avd} extend this to \(t, \epsilon\)-AVD where each
 cell in the approximate Voronoi diagram stores \(t\) approximate nearest
-neighbours. TODO
+neighbours. Their construction makes use of a well-separated pair
+decomposition of the sites of the Voronoi diagram. Two sets of points are well
+separated if each set can be bounded by a ball of radius \(r\) such that the
+distance between the center of each set is at least \(2r\). By decomposing
+the sites into well-separated subsets, a set of quadtree nodes can be
+generated which are then stored in a BBD-tree. 
 
-In this case, both \(t\) and \(\epsilon\) need to be determined in advance,
-unlike approaches using quadtrees or kd-trees where these parameters can
-be changd on a query by query basis.
+We do not describe the construction algorithm in detail as these results are
+not used in the remainder of the thesis. We note that both \(\epsilon\) and t
+need to be fixed at construction time, which is a less flexible than using
+quadtrees or kd-trees directly.
 
+\begin{thm} \emph{(Nearest Neighbour Search in a Approximate Voronoi Diagram)} 
+An approximate Voronoi diagram of size \(O({n \over \epsilon ^ d}\) can be
+constructed which can answer \((1 + \epsilon)\) approximate nearest neighbour
+searches in time \(O(log ({n \over \epsilon}))\) \cite{arya-avd}.
+\end{thm}
 
 \section{Biased Search}
 
@@ -748,13 +817,13 @@ TODO:
 
 \bibitem{treap}
 Aragon, C. R.,  Seidel, R. (1996) Randomized Search Trees.
-In Algorithmica, Vol. 16, Number 4/5, pp. 464 – 497
+In Algorithmica, Vol. 16, Number 4/5, pp. 464--497
 
 \bibitem{fastvector}
 Arya, S., Mount, D. M. (1993) Algorithms for Fast Vector Quantization,
 Proceedings of DCC '93, IEEE Press, pp 381--390. 
 
-\bibitem{ann}
+\bibitem{app-ann}
 Arya, S., Mount, D. M. (1993) Approximate nearest neighbour queries in Fixed
 Dimensions, Proceedings of the 4th ACIM-SIAM Symposium on Discrete Algorithms,
 pp 271 -- 280.
@@ -764,7 +833,7 @@ Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R. Wu, A. Y. (1998)
 An Optimal Algorithm for Approximate Nearest Neighbor Searching in Fixed
 Dimensions, Journal of the ACM, Volume 45, Issue 6, pp 891--923
 
-\bibitem{avd}
+\bibitem{arya-avd}
 Arya, S., Malamatos, T. Mount, D. M. (2002) Space-efficient Approximate
 Voronoi Diagrams, Proceedings of the 33rd Annual ACM Symposium on the Theory
 of Computing, pp. 721--730.
@@ -778,8 +847,12 @@ Bent, S. W., Sleator, D. D., Tarjan, R. E. (1984) Biased Search Trees,
 In SIAM Journal on Computing, Volume 14, pp. 545 - 568
 
 \bibitem{kdtree}
-Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative Searching,
-In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
+Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative
+Searching, In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
+
+\bibitem{bern}
+Bern, M., Eppstein, D., Teng, S-H. (TODO) Parallel Construction of Quadtrees and
+Quality Triangulations, TODO
 
 \bibitem{chan}
 Chan, T. M. (2006) A Minimalist's Implementation of an Approximate Nearest
@@ -827,17 +900,33 @@ Friedman, J. H., Bentley, J. L., Finkel, R. A. (1977) An Algorithm for Finding
 Best Matches in Logarithmic Expected Time, ACM Transactions on Mathematical
 Software, Vol. 3 Number 3, pp. 209--226
 
-\bibitem{splaytree}
-Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
-In Journal of the ACM, 32, pp. 652 – 686
+\bibitem{rtree}
+Guttman, A. (1984) R-Trees: A Dynamic Index Structure for Spatial Searching,
+TODO 
+
+\bibitem{avd}
+Har-Peled, S. (2001) A Replacement for Voronoi Diagrams of Near Linear Size, 
+FOCS '01: Proceedings of the TODO Symposium on Foundations of Computer Science, 
+pp. TODO
+
+\bibitem{lsh}
+Indyk, P., Motwani, R. (1998) Approximate Nearest Neighbors: Towards Removing
+the Cursoe of Dimensionality, In Proceedings of the Thirtieth Annual ACM
+Symposium on Theory of Computing, pp. 604 -- 613 
+
+\bibitem{kirkpatrick}
+Kirkpatrick, D. (1983) Optimal Search in Planar Subdivisons,
+Siam Journal of Computing, Vol. 12, No. 1, pp. 28 -- 34.
 
 \bibitem{knuth}
 Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
 Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
 
-\bibitem{kirkpatrick}
-Kirkpatrick, D. (1983) Optimal Search in Planar Subdivisons,
-Siam Journal of Computing, Vol. 12, No. 1, pp. 28 -- 34.
+\bibitem{valgrind}
+Nethercote, N., Seward, J. (2007) Valgrind: A Framework for Heavyweight Dynamic
+Binary Instrumentation.  Proceedings of ACM SIGPLAN 2007 Conference on
+Programming Language Design and Implementation (PLDI 2007),
+San Diego, California, USA 
 
 \bibitem{practicalann}
 Liu, T., Moore, A. W., Gray, A., Yang, K. (2004) An Investigation of Practical
@@ -848,10 +937,6 @@ Processing Systems(NIPS 2004), pp. TODO
 Mount, D. M., Arya, S. (2012) ANN: A Library for Approximate Nearest Neighbor
 Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on July 29, 2012 
 
-\bibitem{rtree}
-Guttman, A. (1984) R-Trees: A Dynamic Index Structure for Spatial Searching,
-TODO 
-
 \bibitem{skiplist}
 Pugh, W. (1990) Skip Lists: A Probabilistic Alternative to Balanced Trees.
 In Communications of the ACM, 33(6), pp. 668 – 676
@@ -860,16 +945,14 @@ In Communications of the ACM, 33(6), pp. 668 – 676
 Samet, H. (2006) Foundations of Multidimensional and Metric Data Structures
 Morgan-Kaufmann, San Francisco, CA.
 
+\bibitem{splaytree}
+Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
+In Journal of the ACM, 32, pp. 652 – 686
+
 \bibitem{satp}
 Williams, H. E., Zobel, J., Heinz, S. (2001) Self-Adjusting Trees in Practice
 for Large Text Collections, In Software - Practice and Experience,
 Volume 31, pp. 925 - 939
-
-\bibitem{valgrind}
-Nethercote, N., Seward, J. (2007) Valgrind: A Framework for Heavyweight Dynamic
-Binary Instrumentation.  Proceedings of ACM SIGPLAN 2007 Conference on
-Programming Language Design and Implementation (PLDI 2007),
-San Diego, California, USA
 
 \end{thebibliography}
 
