@@ -163,9 +163,9 @@ public:
     {
         std::list<std::pair<Point *, double> > result;
 
-        FixedSizePriorityQueue<typename KdTree<Point, double>::Node *> pq(k);
+        PriorityQueue<typename KdTree<Point, double>::Node *> pq(k);
 //        locate(pq, pt);
-        result = backup->knn(pq, pt, eps); 
+        result = backup->knn(k, pq, pt, eps); 
 
         ++queries;
         return result; 
@@ -204,7 +204,7 @@ private:
         return qr; 
     }
 
-    void locate(FixedSizePriorityQueue<typename KdTree<Point, double>::Node *> &pq, const Point &pt)
+    void locate(PriorityQueue<typename KdTree<Point, double>::Node *> &pq, const Point &pt)
     { 
         typename KdTree<CachedPoint, double>::Node *node = cache->root; 
 
