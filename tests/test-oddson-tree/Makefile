@@ -1,18 +1,13 @@
-
-INCS = -I../../include -I../../../kdtree/include
-LIBS = 
+INCS = -I../../include
 CFLAGS = -g -O2
-LDFLAGS = -L../../bin 
-OBJS = main.o
-TARGET = ../../bin/test-oddson-tree
 
-all: $(OBJS)
-	g++ $(LDFLAGS) $(LIBS) $(OBJS) -o $(TARGET) 
+all: kdtree quadtree 
 
-.cpp.o:
-	g++ $(INCS) $(CFLAGS) -c $< -o $@
+kdtree: ../../include/oddson_tree.h ../../include/kdtree.h
+	g++ -DODDSON_TREE_KDTREE_IMPLEMENTATION $(INCS) $(CFLAGS) main.cpp -o ../../bin/test-oddson-tree-kt
 
-main.o: ../../include/oddson_tree.h ../../../kdtree/include/kdtree.h
+quadtree: ../../include/oddson_tree.h ../../include/compressed_quadtree.h
+	g++ -DODDSON_TREE_QUADTREE_IMPLEMENTATION $(INCS) $(CFLAGS) main.cpp -o ../../bin/test-oddson-tree-qt
 
 clean:
-	rm *.o $(TARGET) 
+	rm *.o

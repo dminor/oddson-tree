@@ -23,20 +23,22 @@ THE SOFTWARE.
 #ifndef ODDSON_TREE_H_
 #define ODDSON_TREE_H_
 
-#define KDTREE_COLLECT_KNN_STATS
-#include "kdtree.h"
-
-#include <cstdio>
-#include <cstring>
-#include <vector>
-
 /*
 Odds-on Tree implementation based upon descriptions in: 
     Bose, P. et al (2010) Odds-on Trees retrieved from: http://arxiv.org/abs/1002.1092 
 and 
     P. Afshani, J. Barbay, and T. M. Chan (2009) Instance-optimal geometric algorithms
     in Proceedings of FOCS 2009.  
-*/
+*/ 
+
+#if defined ODDSON_TREE_KDTREE_IMPLEMENTATION
+
+#define KDTREE_COLLECT_KNN_STATS
+#include "kdtree.h"
+
+#include <cstdio>
+#include <cstring>
+#include <vector>
 
 template<class Point> class OddsonTree {
 
@@ -248,6 +250,214 @@ private:
     int hits;
     int queries; 
 };
+
+#elif defined ODDSON_TREE_QUADTREE_IMPLEMENTATION
+
+#include "compressed_quadtree.h"
+#include "kdtree.h"
+
+#include <algorithm>
+#include <cstdio>
+#include <list>
+#include <vector>
+
+template<class Point> class OddsonTree {
+
+public:
+
+     struct CachedPoint : Point { 
+        bool terminal;
+        typename KdTree<Point, double>::Node *nn;
+
+        CachedPoint() : nn(0)
+        { 
+        }
+
+        CachedPoint(const Point &pt)
+            : Point(pt)
+        {
+
+        } 
+    };
+
+    struct OddsonTreeTerminal : public CompressedQuadtree<CachedPoint>::EndBuildFn {
+
+        KdTree<Point, double> *backup;
+        int dim;
+
+        virtual bool operator()(typename CompressedQuadtree<CachedPoint>::Node *node)
+        {
+            //run interference query (need to make sure all "corners" have same nearest-neighbour)
+            typename KdTree<Point, double>::Node *nn = 0;
+            for (size_t i = 0; i < 2*dim; ++i) {
+                Point qp;
+                for (size_t d = 0; d < dim; ++d) {
+                    if (i & (1 << d)) qp[d] = node->mid[d] - node->radius;
+                    else qp[d] = node->mid[d] + node->radius;
+                }
+
+                typename KdTree<Point, double>::Node *qr = backup->nn(qp);
+
+                if (nn == 0) {
+                    nn = qr;
+                } else {
+                    if (nn != qr) {
+                        return false;
+                    }
+                }
+            } 
+
+            node->pt = new CachedPoint();
+            node->pt->nn = nn;
+            node->pt->terminal = true;
+
+            return true;
+        } 
+    };
+
+    OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
+        : dim(dim)
+    {
+
+        backup = new KdTree<Point, double>(dim, ps, n);
+
+        double *range = new double[2*dim]; 
+
+        //generate sample points
+        CachedPoint *sample = new CachedPoint[m];
+        for (size_t i = 0; i < m; ++i) {
+            Point &pt = qs[i];
+
+            //copy into cached point
+            for (size_t d = 0; d < dim; ++d) {
+                sample[i][d] = pt[d]; 
+                if (pt[d] < range[d*2]) range[d*2] = pt[d];
+                if (pt[d] > range[d*2+1]) range[d*2+1] = pt[d]; 
+            }
+        }
+
+        OddsonTreeTerminal fn;
+        fn.backup = backup;
+        fn.dim = dim; 
+        cache = new CompressedQuadtree<CachedPoint>(dim, sample, m, range, fn);
+ 
+        delete[] range;
+
+        hits = 0;
+        queries = 0;
+    }
+
+    virtual ~OddsonTree()
+    {
+        fprintf(stderr, "hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
+
+        //FIXME: double delete in compressed quadtree
+        //delete cache;
+        delete backup; 
+    }
+
+    std::list<std::pair<Point *, double> > nn(const Point &pt, double eps) 
+    {
+        std::list<std::pair<Point *, double> > result;
+
+        CachedPoint *cache_result = locate(pt);
+
+        //check if terminal
+        if (cache_result && cache_result->nn) {
+            double d = 0; 
+            for (int i = 0; i < dim; ++i) {
+                d += ((*(cache_result->nn->pt))[i]-pt[i]) * ((*(cache_result->nn->pt))[i]-pt[i]); 
+            } 
+
+            result.push_back(std::make_pair<Point *, double>(cache_result->nn->pt, d));
+
+            ++hits;
+        } else {
+            result = backup->knn(1, pt, eps); 
+        }
+
+        ++queries;
+        return result; 
+    } 
+
+    std::list<std::pair<Point *, double> > knn(size_t k, const Point &pt, int eps) 
+    {
+        std::list<std::pair<Point *, double> > result;
+
+        //check cache
+        bool in_cache = false;
+
+        CachedPoint *cp = locate(pt);
+
+        if (cp) {
+            Point *nn = cp->nn->pt;
+
+            double dist = (pt[0] - (*nn)[0])*(pt[0] - (*nn)[0]) + 
+            (pt[1] - (*nn)[1])*(pt[1] - (*nn)[1]); 
+
+            result.push_back(std::make_pair<Point *, double>(nn, dist));
+            ++hits;
+        } else {
+            result = backup->knn(k, pt, eps); 
+        }
+
+        ++queries;
+
+        return result; 
+    }
+
+    CompressedQuadtree<CachedPoint> *cache; 
+
+private:
+
+    size_t dim;
+    KdTree<Point, double> *backup; 
+
+    int hits;
+    int queries;
+
+    CachedPoint *locate(const Point &pt) 
+    {
+
+        typename CompressedQuadtree<CachedPoint>::Node *node = 0;
+        CachedPoint *qr = 0; 
+
+        //search for node containing the query point 
+        if (cache->root->in_node(pt, cache->dim)) { 
+            node = cache->root; 
+
+            while (node) {
+
+                if (node->nodes) { 
+                    size_t n = 0; 
+                    for (size_t d = 0; d < dim; ++d) { 
+                        if (pt[d] > node->mid[d]) n += 1 << d; 
+                    } 
+
+                    if (node->nodes[n] && node->nodes[n]->in_node(pt, cache->dim)) {
+                        node = node->nodes[n]; 
+                        if (node && node->pt && node->pt->terminal) {
+                            qr = node->pt; 
+                            break;
+                        }
+                    } else {
+                        break;
+                    } 
+                } else {
+                    break;
+                } 
+            } 
+        } 
+
+        return qr; 
+    } 
+};
+
+#else
+
+#error oddson tree implementation not defined
+
+#endif 
 
 #endif
 

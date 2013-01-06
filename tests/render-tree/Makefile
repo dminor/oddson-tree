@@ -1,18 +1,14 @@
 
-INCS = -I../../include -I../../../kdtree/include
-LIBS = 
+INCS = -I../../include
 CFLAGS = -g
-LDFLAGS = -g
-OBJS = render_tree.o
-TARGET = ../../bin/render-tree
 
-all: $(OBJS)
-	g++ $(LDFLAGS) $(LIBS) $(OBJS) -o $(TARGET) 
+all: kdtree quadtree 
 
-.cpp.o:
-	g++ $(INCS) $(CFLAGS) -c $< -o $@
+kdtree: ../../include/oddson_tree.h ../../include/kdtree.h
+	g++ -DODDSON_TREE_KDTREE_IMPLEMENTATION $(INCS) $(CFLAGS) render_tree.cpp -o ../../bin/render-tree-kt
 
-render_tree.o: ../../include/oddson_tree.h
+quadtree: ../../include/oddson_tree.h ../../include/compressed_quadtree.h
+	g++ -DODDSON_TREE_QUADTREE_IMPLEMENTATION $(INCS) $(CFLAGS) render_tree.cpp -o ../../bin/render-tree-qt
 
 clean:
-	rm *.o $(TARGET) 
+	rm *.o

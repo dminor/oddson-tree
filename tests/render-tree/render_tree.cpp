@@ -42,6 +42,8 @@ struct Point {
     } 
 };
 
+#ifdef ODDSON_TREE_KDTREE_IMPLEMENTATION
+
 void render_tree(FILE *f, struct KdTree<OddsonTree<Point>::CachedPoint, double>::Node *tree,
     size_t depth, double x1, double x2, double y1, double y2)
 {
@@ -67,31 +69,46 @@ void render_tree(FILE *f, struct KdTree<OddsonTree<Point>::CachedPoint, double>:
         }
 
         if (tree->pt->nn) {
-            fprintf(f, "colour-site-%d\n", tree->pt->nn->id);
+            fprintf(f, "colour-site-%d\n", tree->pt->nn->pt->id);
             fprintf(f, "%.0f %.0f %.0f %.0f node-bounds\n", x1, x2, y1, y2);
         } 
     }
 }
 
-/*
-void render_tree(FILE *f, struct OddsonTree<Point>::CacheNode *tree)
-{ 
-    if (!tree) return;
+#elif ODDSON_TREE_QUADTREE_IMPLEMENTATION
 
-    double &x1 = tree->a[0];
-    double &x2 = tree->b[0];
-    double &y1 = tree->a[1];
-    double &y2 = tree->b[1]; 
+void render_tree(FILE *f, CompressedQuadtree<OddsonTree<Point>::CachedPoint>::Node *tree,
+    size_t depth, double, double, double, double)
+{
 
-    if (tree->nn) { 
-        fprintf(f, "colour-site-%d\n", tree->nn->id);
-        fprintf(f, "%.0f %.0f %.0f %.0f node-bounds\n", x1, x2, y1, y2); 
+    double x1 = tree->mid[0] - tree->radius;
+    double x2 = tree->mid[0] + tree->radius;
+    double y1 = tree->mid[1] - tree->radius;
+    double y2 = tree->mid[1] + tree->radius;
+
+    //square
+    if (depth < 1) fprintf(f, "4 setlinewidth\n");
+    else if (depth < 2) fprintf(f, "3 setlinewidth\n"); 
+    else if (depth < 4) fprintf(f, "2 setlinewidth\n");
+    else fprintf(f, "1 setlinewidth\n");
+
+    fprintf(f, "%.0f %.0f %.0f %.0f node-bounds\n", x1, x2, y1, y2); 
+
+    if (!tree->nodes) {
+        fprintf(f, "%.0f %.0f draw-point\n", (*tree->pt)[0], (*tree->pt)[1]);
     } else { 
-        render_tree(f, tree->left);
-        render_tree(f, tree->right);
+        for (int i = 0; i < 4; ++i) {
+            if (tree->nodes[i]) render_tree(f, tree->nodes[i], depth+1, 0.0, 0.0, 0.0, 0.0);
+        } 
     } 
 }
-*/
+
+#else
+
+#error odds-on tree implementation not defined
+
+#endif
+
 Point *read_points(FILE *f, int *pt_count)
 {
     char buf[80];
