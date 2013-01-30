@@ -34,38 +34,30 @@ TODO:
 
 We investigate the utility of data structures for biased nearest neighbour
 search in practice. The nearest neighbour search problem is to return the
-closest point in a set of points to a specified query point. In the biased 
-variant of this problem, it is assumed that information is available which
-allows for more common queries to be answered more quickly.
+closest point in a set of points to a specified query point. In the biased
+version of this problem, information on the relative frequence of queries
+is available, allowing for more common queries to be answered more quickly.
 
 Nearest neighbour search is of considerable practical interest with
 applications in geographical information systems, computer graphics,
-computer vision, signal processing and machine learning.
+computer vision, signal processing and machine learning, and has received
+considerable attention from both theoretical and applied computer scienets
+since the early 1970s.
 
-Nearest neighbour search has received a large amount of attention from both
-theoretical and applied computer scientists since the early 1970s. It is an
-example of a problem which suffers from the so-called "curse of
-dimensionality" where as the number of dimensions increases, an increasingly
-large number of points must be searched until performance in practice is no
-better than a brute force search of all of the points. Even in low dimensions,
-nearest neighbour search can be a difficult problem in practice given a large
-enough point set or the requirement to support a large number of queries in a
-timely fashion.
-
-Due to both the number of practical applications and to the fact that it suffers
-from the curse of dimensionality, a large number of heuristic solutions as well
-as more rigouressly defined data structures and algorithms have been proposed
-for use in solving nearest neighbour search problems.
-
+Although theoretically optimal solutions have existed since the 1990s, these
+suffer from the so-called "curse of dimensionality" where as the number of
+dimensions increases, an increasingly large number of points must be searched
+until performance in practice is no better than a brute force search of all of
+the points. Even in low dimensions, nearest neighbour search can be a difficult
+problem in practice given a large enough point set or the requirement to support
+a large number of queries in a timely fashion. For these reasons, research has
+continued to investigate heuristic and approximate approaches to nearest
+neighbour search. 
+ 
 Recently, two groups of researchers \cite{chan} \cite{oddson} have proposed a
 a biased data structure, called odds-on trees in \cite{oddson},  which can be
 applied to a variety of geometrical search problems and which seems as though it
 may be of practical as well as theoretical interest.
-
-A distribution sensitive data structure makes use of knowledge of the
-probability distribution of the queries in order to answer queries with an
-expected runtime which is of the order of the entropy, or amount of randomness,
-present in the query distribution. 
 
 In a sense, the odds-on tree data structure provides a theoretical basis for
 the creation of heuristics to accelerate geometrical search problems. Since
@@ -77,10 +69,10 @@ determining its effectiveness in practice.
 Our goal is to implement a practical data structure based on the theoretical
 results about odds-on trees.  This involves design and implementation work as
 well as extensive experimentation to establish correctness and performance
-characteristics.  Since the performance of odds-on trees is by design
-dependent upon the probability distribution of the queries, it is necessary
-to do experimentation based upon a wide variety of query distributions,
-including some derived from applications of nearest neighbour search.
+characteristics. Since the performance of odds-on trees is dependent upon the
+probability distribution of the queries, it is necessary to do experimentation
+based upon a wide variety of query distributions, including some derived from
+applications of nearest neighbour search.
 
 \section{Definitions}
 
@@ -129,7 +121,7 @@ search. We restrict ourselves to algorithms which operate in a comparison tree
 model, where data structures make decisions based upon making comparisons
 between point coordinates.
 
-By operating in a decision tree model, we also restrict ourselves to nearest
+By operating in a comparison tree model, we also restrict ourselves to nearest
 neighbour search in relatively small dimensions. The effective of comparison
 based approaches diminishes as the dimensional increases. Evidence suggests in
 cases with 16 dimensions or more, using comparison based approaches performs no
@@ -147,7 +139,7 @@ We also restrict ourselves to an in-memory model, and so do not consider
 external memory based data structures such as R-trees \cite{rtree}. Since an
 odds-on tree is essentially a cache, it is less interesting to consider an
 external memory representation, although an odds-on tree may be quite useful
-as an in-memory cache for an external memory data structure. 
+as an in-memory cache for an external memory data structure.
 
 \subsection{Voronoi Diagrams}
 
@@ -162,7 +154,8 @@ post-office is closest \cite{dutch}.
 
 The Voronoi diagram for a set of sites is the subdivison of the plane (or
 hyper-plane) into cells, where for every point in a cell, its nearest neighbour
-is the site associated with the cell.
+is the site associated with the cell. Efficient algorithms exist for creating
+Voronoi diagrams in low dimensions:
 
 \begin{thm} \emph{(Voronoi Diagram Construction)}
 The Voronoi diagram for a set of n points in two dimensions can be computed
@@ -231,7 +224,8 @@ until the portion of the region covered by a hypercube has the same value for
 some property of interest. For example, given an input image, a region based
 quadtree would continue to subdivide until each square covered an area which
 had the same colour. Quadtrees over a region are called Trie-based quadtrees in
-\cite{samet} and can be used to approximate Voronoi diagrams. 
+\cite{samet} and can be used to approximate Voronoi diagrams, as discussed
+below.
 
 In this section we use quadtrees that are defined over a set of points, in which
 case the recursive subdivision is done until each hypercube contains a single
@@ -369,7 +363,7 @@ time \(O(n)\).
 \subsubsection{Nearest Neighbour Search in a Compressed Quadtree}
 
 Nearest neighbour search in a compressed quadtree can be done by following the
-same algorithm as for standard quadtrees. Again, ince the height of a compressed
+same algorithm as for standard quadtrees. Again, since the height of a compressed
 quadtree is bounded by the number of points, we can bound the time required to
 perform point location.
 
@@ -392,11 +386,9 @@ time.
 Skip quadtrees use essentially the same idea, except each level is a
 compressed quadtree rather than a linked list, and terminal nodes in the
 compressed quadtree at one level are linked to corresponding nodes in the
-lower level tree.
-
-The following results are for the randomized version of skip quadtrees. The
-original paper also presents deterministic results \cite{skiplist} based upon
-using a deterministic skip list.
+lower level tree.  We summarize the results are for the randomized version of
+skip quadtrees.  Deterministic results can also be derived using deterministic
+skip lists \cite{skipquadtree}.
 
 Since each level of a skip quadtree consists of a compressed quadtree with
 approximately half as many points as that in the level below, we expect to
@@ -594,6 +586,10 @@ searches in time \(O(log ({n \over \epsilon}))\) \cite{arya-avd}.
 
 \section{Biased Search}
 
+In this section we examine biased search problem in a comparison tree model.
+We begin with some classical results for biased search trees in a single
+dimension, before considering the problem in higher dimensional spaces.
+
 \subsection{Biased Search Trees}
 
 Biased search trees are a natural generalization of balancing a binary search
@@ -603,110 +599,116 @@ that at each node it is equally likely that the left or right child will be
 followed.  The overall expected running time can then be stated in terms of the
 entropy of the probability distribution of the queries.
 
+\subsubsection{Static Biased Search Trees}
 Early work on biased search trees is described in Knuth \cite{knuth} where
-the static case (i.e. no deletions and insertions) is considered.  An \(O(n^2)\)
-dynamic programming algorithm is presented which constructs an optimum static
-search tree for a set of weights.
+the static case (i.e. no deletions and insertions) is considered.
+
+TODO: more detail from knuth
+
+\begin{thm} \emph{(Construction of a Static Biased Binary Search Tree)} 
+An optimal static biased search tree can be constructed in time \(O(n^2)\).
+\end{thm}
+
+\subsubsection{Dynamic Biased Search Trees}
 
 Biased search trees allowing insertions and deletions based upon 2 - 4 and
-red-black trees were described by Bent, Sleator and Tarjan \cite{bst}.  The
-data structures are complex and do not appear to have been implemented.
-Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}. A
-much simpler implementation of biased search based upon randomized search trees
-was developed by Aragon and Seidel \cite{treap}, and a biased version of skip
-lists \cite{skiplist} was presented in \cite{bsl2}.
+red-black trees were described by Bent, Sleator and Tarjan \cite{bst} in 1984.
+The data structures are complex and do not appear to have been implemented.
+Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}.
+
+TODO: more details
+
+\begin{thm} \emph{(Construction of a Dynamic Biased Binary Search Tree)} 
+\end{thm}
+
+Simpler implementations of biased search exist, based upon randomized search
+trees (treaps) \cite{treap} and biased skip lists \cite{bsl2}.
+
+TODO: re-read these papers to see if they provide any performance analysis
+
+\subsubsection{Splaytrees}
 
 An alternative approach to biased search is to use data structures which
 modify themselves in response to queries.  In this case, rather than specifying
 the probabilities in advance, the data structure will change itself to match
-the query distribution.  Splaytrees \cite{splaytree}, which were invented by
-Sleator and Tarjan, are a self-modifying binary search tree which have
-received considerable attention, both theoretical and experimental due to the
-dynamic optimality conjecture, which states that splaytrees are within a
-constant factor of optimal for any sequence of queries, without needing to
-know the queries in advance.
+the query distribution.
 
-Most experimental work with biased search has focused on comparing splaytrees
-with traditional approaches like 2 - 4 trees and red-black trees.
+Splaytrees \cite{splaytree}, which were invented by Sleator and Tarjan, are a
+self-modifying binary search tree which have received considerable attention,
+both theoretical and experimental due to the dynamic optimality conjecture,
+which states that splaytrees are within a constant factor of optimal for any
+sequence of queries, without needing to know the queries in advance.
 
-TODO: give some references on previous experimental work with biased search.
+TODO: more details on this...
+
+\begin{thm} \emph{(TODO)} 
+TODO: theorems on splaytrees
+\end{thm}
 
 \subsection{Distribution Sensitive Data Structures}
 
-A distribution sensitive data structure has a running time which is a multiple 
-of the entropy of the query distribution.  This is similar to biased search
-trees, where the running time is given in terms of the entropy of the query
-results, but provides a better framework for examining geometric search
-problems.
+A distribution sensitive data structure makes use of knowledge of the
+probability distribution of the queries in order to answer queries with an
+expected runtime which is of the order of the entropy present in the query
+distribution. This is a slightly different formulation of the problem than
+biased search, where the running time is given in terms of the entropy of
+the query results.
 
-TODO: Explain why better for geometric search.
+Another way of viewing the problem is to consider instance optimal data
+structures \cite{chan}, where the running time is within a constant factor
+of any data structure for any instance of the problem. TODO: more details,
+mention how different viewpoint results in similar analysis.
 
 TODO: Refer to at least Biased Range Trees paper, some results in distribution
 sensitive point location.
 
-\subsection{Instance Optimality}
+\subsubsection{Odds-on Trees}
 
-An instance optimal data structure \cite{chan} has a running time which is
-within a constant factor of any data structure for any instance of the problem.
-
-TODO: Explain why this gives equivalent results to distribution sensitive data
-structures.
-
-
-\subsection{Odds-on Trees}
-
-TODO: Description of partition tree based odds-on tree.
-
+TODO: Description of partition tree based odds-on tree and theorems for
+running time.
 
 \chapter{Implementation}
 
-This chapter describes how the odds-on tree was implemented, design decisions
-that were made and the performance tuning that was done.
+This chapter describes the implementation of the odds-on tree data structure
+for nearest-neighbour search.
 
-The original description of odds-on trees made use of partition trees.  Although
-theoretically optimal, partition trees are not practical to implement, and
-implementations were made using both kd-trees and quadtrees.  This chapter
-begins with a description of partition tree based odds-on trees, as the
-construction and query algorithms are broadly similar to the partition tree
-versions.
+The theoretical properties of odds-on trees were derived using partition trees.
+Since partition trees are not practical to implement, we instead chose to use
+compressed quadtrees and kd-trees. Kd-trees have better theoretical performance
+than quadtrees, and typically perform better in practice as well, but we
+decided to implement both to see if this holds true when used to implement
+odds-on trees.
 
-\section{Kd-tree Implementation}
 
-TODO: brief description of design decisions made during kd-tree implementation,
-e.g. point storage, splitting decision, optimizations made.   Refer to 
+
+\section{Kd-tree Odds-on Tree Implementation}
+
+TODO
+
+\subsection{Construction algorithm}
+
+TODO
+
+e.g. point storage, splitting decision, optimizations made. Refer to 
 kd-tree implementation notes in \cite{physicallybasedrendering}.
 
-\section{Kd-tree Based Odds-on Tree}
+\subsection{Query algorithm}
+
+TODO
+
+\section{Quadtree Odds-on Tree Implementation}
+
+TODO
 
 \subsection{Construction algorithm}
 
-\subsection{Query algorithm}
-
-\section{Quadtree Based Odds-on Tree}
-
-\subsection{Construction algorithm}
-
-TODO: input of m sample points, run NN queries for each point, sort according
-to z-order, look for runs in the sort, run interference query, if no
-interference, add to cache.  Combine adjacent cache nodes to build bounding
-volume hierarchy.
-
-TODO: implement as proper quadtree as well as b.v.h.  same worse case 
-performance as compressed quadtree, but may be better in practice?
+TODO
 
 \subsection{Query algorithm}
 
-TODO: describe query procedure using b.v.h.
-
-\section{Performance Tuning}
-
-TODO: Do some profiling to see if there are any spots which can be optimized. 
-TODO: Do experimentation to determine appropriate sample size.
-TODO: Do experimentation to determine whether or not it is best to sort by NN
-      then by z-order or not.
+TODO
 
 \chapter{Experimental Results}
-
 
 \section{Experiment Design}
 
@@ -719,6 +721,12 @@ distributions, and with data derived from applications of nearest neighbour
 search. 
 
 \subsection{Synthetic Data}
+
+\subsubsection{Implementation}
+
+Since preliminary experimentation with the kd-tree and quadtree based
+implementations did not show one to out perform the other consistently, each
+experiment was repeated for both implementations.
 
 \subsubsection{Dimension}
 
@@ -757,33 +765,13 @@ mixture of gaussians.
 
 \subsection{Application Data}
 
-\subsubsection{Foursquare Dataset}
-
-TODO: describe foursquare dataset, how it is biased, size of dataset, queries
-run, etc.
-
-\subsubsection{Photon Mapping Dataset}
-
-Photon mapping is technique used in ray tracing in computer graphics
-where lighting is estimated by first creating a photon map by tracing light as
-it is emitted from light sources and bounces through the scene, storing the
-location each time it hits a surface.  Rays are then traced from the view
-location, and each time they hit a surface, the photon map is queried to get an
-estimate of the light present at the hit location.  This is a nearest neighbour
-search, and it is biased since the queries will only occur on surfaces visible
-to the view point, but the photon map will have points for all surfaces visible
-to a light source \cite{physicallybased}.
-
-TODO: size of dataset, how to generate a sample dataset, etc.
-
+TODO: Decide whether or not to use application data for this.
 
 \section{Measuring Performance}
 
 \subsection{Benchmark Platform}
 
 An Intel Core I5 laptop was used as the benchmark platform.
-
-TODO: Possibly also run experiments on an ARM processor?
 
 \subsection{Performance Metrics}
 
