@@ -30,50 +30,82 @@ THE SOFTWARE.
 #include "oddson_tree.h"
 
 struct Point {
+    static int dim;
 
-    double v[2]; 
+    double *coords;
     long id;
 
-    double &operator[](const int &index) 
-    { 
-        return v[index]; 
+    Point()
+    {
+        coords = new double[dim];
+    };
+
+    virtual ~Point()
+    {
+        delete[] coords;
     } 
 
-    const double &operator[](const int &index) const 
+    Point(const Point &other)
     { 
-        return v[index]; 
-    } 
+        coords = new double[dim];
+
+        for (int d = 0; d < dim; ++d) {
+            coords[d] = other.coords[d];
+        }
+    }
+
+    void operator=(const Point &other)
+    {
+        for (int d = 0; d < dim; ++d) {
+            coords[d] = other.coords[d];
+        } 
+    }
+
+    double operator[](size_t idx) const {return coords[idx];}
+    double &operator[](size_t idx) {return coords[idx];}
 };
 
-Point *read_points(FILE *f, int *pt_count)
-{
-    int err;
-    char buf[80];
-    err = fscanf(f, "%d", pt_count);
-    fgets(buf, 80, f);
+int Point::dim = 0;
 
-    if (err != 1 || pt_count < 0) {
-        fprintf(stderr, "error: invalid point count %d\n", *pt_count);
-        return 0;
+Point *read_points(const char *filename, int &count, int &dim)
+{ 
+    std::ifstream ptf(filename);
+
+    if (!ptf) {
+        std::cout << "error: could not open file: " << filename << std::endl;
+        exit(1); 
     }
 
-    Point *pts = new Point[*pt_count];
+    ptf >> count;
+    ptf >> dim;
 
-    double x, y;
-    for (int i = 0; i < *pt_count; ++i) {
-        err = fscanf(f, "%lf, %lf", &x, &y);
-        if (err != 2) {
-            fprintf(stderr, "error: invalid points in file\n"); 
+    if (count < 0) {
+        std::cerr << "error: invalid point count: " << count << std::endl;
+        exit(1);
+    }
+
+    if (dim < 2) {
+        std::cerr << "error: invalid dimension: " << dim << std::endl;
+        exit(1);
+    }
+
+    Point::dim = dim;
+
+    Point *pts = new Point[count]; 
+    for (int i = 0; i < count; ++i) { 
+        char c;
+        double value;
+
+        for (int d = 0; d < dim; ++d) {
+            ptf >> value; pts[i][d] = value;
+            if (d < dim - 1) ptf >> c; 
         }
-        pts[i][0] = x;
-        pts[i][1] = y; 
-        pts[i].id = i;
     }
+
+    ptf.close();
 
     return pts; 
 }
-
-const int dim = 2;
 
 int main(int argc, char **argv)
 { 
@@ -83,46 +115,44 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    int n, m, p;
+    int n, pt_dim, sample_dim, m, p, query_dim;
 
-    FILE *f = fopen(argv[1], "r");
+    Point *pts = read_points(argv[1], n, pt_dim);
 
-    if (!f) {
-        fprintf(stderr, "error: could not open points file: %s\n", argv[1]);
+    if (!pts) {
+        fprintf(stderr, "error: could not read points file: %s\n", argv[1]);
         exit(1); 
     }
 
-    Point *pts = read_points(f, &n);
-    if (!pts) exit(1);
+    Point *sample = read_points(argv[2], m, sample_dim);
 
-    fclose(f);
-
-    f = fopen(argv[2], "r");
-
-    if (!f) {
-        fprintf(stderr, "error: could not open sample file: %s\n", argv[2]);
+    if (!sample) {
+        fprintf(stderr, "error: could not read sample file: %s\n", argv[2]);
         exit(1); 
     }
 
-    Point *sample = read_points(f, &m);
-    if (!sample) exit(1);
+    if (pt_dim != sample_dim) {
+        fprintf(stderr, "error: point dim does not match sample dim\n");
+        exit(1); 
+    } 
 
-    fclose(f);
-
-    OddsonTree<Point> oot(2, pts, n, sample, m);
+    OddsonTree<Point> oot(Point::dim, pts, n, sample, m);
 
     if (argc < 4) {
         return 1;
     }
 
-    f = fopen(argv[3], "r");
+    Point *queries = read_points(argv[3], p, query_dim); 
 
-    if (!f) {
-        fprintf(stderr, "error: could not open query file: %s\n", argv[3]);
+    if (!queries) {
+        fprintf(stderr, "error: could not read query file: %s\n", argv[3]);
         exit(1); 
     }
 
-    Point *queries = read_points(f, &p); 
+    if (pt_dim != query_dim) {
+        fprintf(stderr, "error: query dim does not match point dim\n");
+        exit(1); 
+    } 
 
     //how many nearest neighbours to retrieve
     int nn = 1;
@@ -140,17 +170,17 @@ int main(int argc, char **argv)
             std::list<std::pair<Point *, double> > qr = oot.nn(queries[i], epsilon);  
 
             std::cout << "query " << i << ": (";
-            for (int d = 0; d < dim; ++d) { 
+            for (int d = 0; d < Point::dim; ++d) { 
                 std::cout << queries[i][d];
-                if (d + 1 < dim) std::cout << ", ";
+                if (d + 1 < Point::dim) std::cout << ", ";
             }
             std::cout << ")\n";
 
             for (std::list<std::pair<Point *, double> >::iterator itor = qr.begin(); itor != qr.end(); ++itor) {
                 std::cout << "("; 
-                for (int d = 0; d < dim; ++d) {
+                for (int d = 0; d < Point::dim; ++d) {
                     std::cout << (*itor->first)[d];
-                    if (d + 1 < dim) std::cout << ", ";
+                    if (d + 1 < Point::dim) std::cout << ", ";
                 }
                 std::cout << ") " << itor->second << "\n"; 
             } 
@@ -163,17 +193,17 @@ int main(int argc, char **argv)
             std::list<std::pair<Point *, double> > qr = oot.knn(nn, queries[i], epsilon);  
 
             std::cout << "query " << i << ": (";
-            for (int d = 0; d < dim; ++d) { 
+            for (int d = 0; d < Point::dim; ++d) { 
                 std::cout << queries[i][d];
-                if (d + 1 < dim) std::cout << ", ";
+                if (d + 1 < Point::dim) std::cout << ", ";
             }
             std::cout << ")\n";
 
             for (std::list<std::pair<Point *, double> >::iterator itor = qr.begin(); itor != qr.end(); ++itor) {
                 std::cout << "("; 
-                for (int d = 0; d < dim; ++d) {
+                for (int d = 0; d < Point::dim; ++d) {
                     std::cout << (*itor->first)[d];
-                    if (d + 1 < dim) std::cout << ", ";
+                    if (d + 1 < Point::dim) std::cout << ", ";
                 }
                 std::cout << ") " << itor->second << "\n"; 
             } 
@@ -183,6 +213,7 @@ int main(int argc, char **argv)
     std::cout << "done." << std::endl;
 
     delete[] pts;
+    delete[] sample;
     delete[] queries; 
 
     return 0;
