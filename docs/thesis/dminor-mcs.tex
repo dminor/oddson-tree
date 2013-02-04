@@ -449,7 +449,12 @@ points.
 The height of a kd-tree with n points is \(O(\log n)\).
 \end{thm}
 
-TODO: kd-tree diagram
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/kdtree.eps}
+\caption{Kd-Tree}
+\end{center}
+\end{figure}
 
 \subsubsection{Point Location in a Kd-Tree}
 
@@ -600,8 +605,20 @@ followed.  The overall expected running time can then be stated in terms of the
 entropy of the probability distribution of the queries.
 
 \subsubsection{Static Biased Search Trees}
-Early work on biased search trees is described in Knuth \cite{knuth} where
-the static case (i.e. no deletions and insertions) is considered.
+
+The initial work on biased search trees focused on the static case, where
+the query frequencies are known in advance and no deletions and insertions
+are allowed. This work is summarized in \cite{knuth}.
+
+Given a set of n keys \(K_i\) and \(2n + 1\) probabilities
+\(p_1, p_2, ..., p_n\) and \(q_1, q_2, ..., q_n\) where \(p_i\) is the
+probability that \(K_i\) is the search item and \(q_i\) is the
+probability that the search item lies between \(K_i\) and \(K_{i+1}\), an
+optimal biased search tree is one that minimizes the expected number of
+comparisons to search the tree \cite{knuth}.
+
+Each subtree of a optimal biased search tree is itself optimal, and so the
+problem can be solved through a dynamic programming algorithm.
 
 TODO: more detail from knuth
 
@@ -678,8 +695,6 @@ compressed quadtrees and kd-trees. Kd-trees have better theoretical performance
 than quadtrees, and typically perform better in practice as well, but we
 decided to implement both to see if this holds true when used to implement
 odds-on trees.
-
-
 
 \section{Kd-tree Odds-on Tree Implementation}
 
@@ -765,7 +780,23 @@ mixture of gaussians.
 
 \subsection{Application Data}
 
-TODO: Decide whether or not to use application data for this.
+Sites such as ColorLovers.com \cite{colorlovers} allow users to define a
+colours as a triplet of RGB values, which are used in turn to define colour
+themes, which are sets of 1 or more colours which work well together in a
+design.
+
+One may want to find the nearest named colour to a given RGB value for
+a number of reasons, including buying a paint formulation which matches the
+desired colour.  For instance, ColorLovers will provided the closest Martha
+Stewart paint colour to a given colour if a user wishes to use a paint.
+
+In the Pantone \cite{pantone} printing process, colours are chosen from a set of
+approximately 1000 spot colours rather than using mixtures of four inks as is
+done in the CMYK process.
+
+Since some colours are more popular choices than others, in particular when
+creating colour themes, this provides a biased search in three dimensions. We
+use the colour theme datasets created by \cite{colorthemes}.
 
 \section{Measuring Performance}
 
