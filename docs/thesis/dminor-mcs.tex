@@ -608,7 +608,8 @@ entropy of the probability distribution of the queries.
 
 The initial work on biased search trees focused on the static case, where
 the query frequencies are known in advance and no deletions and insertions
-are allowed. This work is summarized in \cite{knuth}.
+are allowed. This work is summarized in Volume 3 of the Art of Computer
+Programming \cite{knuth}.
 
 Given a set of n keys \(K_i\) and \(2n + 1\) probabilities
 \(p_1, p_2, ..., p_n\) and \(q_1, q_2, ..., q_n\) where \(p_i\) is the
@@ -618,45 +619,88 @@ optimal biased search tree is one that minimizes the expected number of
 comparisons to search the tree \cite{knuth}.
 
 Each subtree of a optimal biased search tree is itself optimal, and so the
-problem can be solved through a dynamic programming algorithm.
+problem can be solved through a dynamic programming algorithm, using the
+following relation: Define \( c(i,j)\) as the cost of an optimum subtree with
+weights \((p_{i+1}, ..., p_j; q_{i+1}, ..., q_j;)\) and \(w(i, j)\) be the
+sum of the weights, i.e. \(p_{i+1} + ... + p_j + q_{i + 1} + ... + q_j \)
+\cite{knuth}.
 
-TODO: more detail from knuth
+Then we have that:
 
-\begin{thm} \emph{(Construction of a Static Biased Binary Search Tree)} 
-An optimal static biased search tree can be constructed in time \(O(n^2)\).
+\begin{equation}
+    \begin{aligned}
+    c(i, i) & = 0 \\
+    c(i, j) & = w(i, j) + \min_{1<k<j} (c(i, k - 1) + c(k, j)), \text{for } i<j, \\
+    \end{aligned}
+\end{equation}
+
+This recurrence allows us to find all optimal one node trees and then use that
+to find all optimal two node trees, and so forth, until an optimal search
+tree has been determined. This minimization is applied to \({1\over{6}} n^{3} \)
+values of \( k \), but an monoticity property allows the running time
+to be reduced to \( O(n^2) \) \cite{knuth}.
+
+\begin{thm} \emph{(Construction of an Optimal Static Biased Binary Search Tree)} 
+An optimal static biased search tree can be constructed in time \(O(n^2)\) and
+space \(O(n^2)\) using a dynamic programming approach \cite{knuth}.
+\end{thm}
+
+Knuth also proposed two heuristics which run in \(O(n \log n)\) time and
+\(O(n)\) space which produce nearly optimal trees:
+
+Rule I: Use the most frequent item as the root of the tree and apply the same
+rule to the subtrees.
+
+Rule II: Choose as the root the item which results in the weight of the left
+and right subtrees being as close to equal as possible and apply the same
+rule to the subtrees. 
+
+Mehlhorn \cite{mehlhorn} analyzed the results of applying these two rules. He
+provides a simple example where Rule I will produce a tree with expected
+search time \(O(n)\). His analysis of Rule II shows that the expected search
+time for item in the tree is bounded from above by the entropy \(H\) of the
+query frequency distribution.
+
+\begin{thm} \emph{(Nearly Optimal Static Biased Binary Search Tree)} 
+A static biased search tree where the search time for an item is bounded by
+the entropy of the frequency distribution can be constructed in time
+\(O(n \log n)\) and space \(O(n)\).
 \end{thm}
 
 \subsubsection{Dynamic Biased Search Trees}
 
 Biased search trees allowing insertions and deletions based upon 2 - 4 and
 red-black trees were described by Bent, Sleator and Tarjan \cite{bst} in 1984.
-The data structures are complex and do not appear to have been implemented.
-Feigenbaum and Tarjan describe somewhat simpler data structures \cite{bst2}.
-
-TODO: more details
+As with 2 - 4 trees, there data structure relies upon maintaing invariants
+on the tree during updates through complicated, multi-case rules for
+re-parenting nodes to maintain balance. In this case, the balance condition
+depends upon the weight of the node. If all of the weights are one, the
+resulting tree is simply a 2 - 4 tree. Somewhat simpler trees are provided
+by Feigenbaum and Tarjan \cite{bst2}. Due to the complexity and number of
+sub-cases, we do not provide further implementation details.
 
 \begin{thm} \emph{(Construction of a Dynamic Biased Binary Search Tree)} 
+A dynamic biased search tree can be constructed in time \(O(n)\) which can
+perform searches in time \(O(\log(w))\) where \(w\) is the weight of the item
+searched for and insertions and deletions in ammortized time \(O(W / w)\)
+where \(W\) is the total weight of all items in the search tree and \(w\) is
+the weight of the item added or removed \cite{bst2}.
 \end{thm}
 
-Simpler implementations of biased search exist, based upon randomized search
-trees (treaps) \cite{treap} and biased skip lists \cite{bsl2}.
-
-TODO: re-read these papers to see if they provide any performance analysis
+It is possible to create biased versions of other, more simpler data structures
+such as randomized search trees (treaps) \cite{treap} and skip lists
+\cite{bsl2} but these do not provide better theoretical performance guarantees
+than biased search trees, and in practice seem do not perform as well as
+splaytrees \cite{minor} and so are not discussed further in this thesis. 
 
 \subsubsection{Splaytrees}
 
 An alternative approach to biased search is to use data structures which
 modify themselves in response to queries.  In this case, rather than specifying
 the probabilities in advance, the data structure will change itself to match
-the query distribution.
-
-Splaytrees \cite{splaytree}, which were invented by Sleator and Tarjan, are a
-self-modifying binary search tree which have received considerable attention,
-both theoretical and experimental due to the dynamic optimality conjecture,
-which states that splaytrees are within a constant factor of optimal for any
-sequence of queries, without needing to know the queries in advance.
-
-TODO: more details on this...
+the query distribution.  Splaytrees, which were invented by Sleator and
+Tarjan \cite{splaytree} are a self-modifying binary search tree which perform
+well in practice.
 
 \begin{thm} \emph{(TODO)} 
 TODO: theorems on splaytrees
@@ -679,10 +723,22 @@ mention how different viewpoint results in similar analysis.
 TODO: Refer to at least Biased Range Trees paper, some results in distribution
 sensitive point location.
 
+\subsubsection{Distribution Sensitive Point Location in Convex Subdivions}
+
+TODO
+
+\subsubsection{Biased Range Search}
+
+TODO
+
 \subsubsection{Odds-on Trees}
 
 TODO: Description of partition tree based odds-on tree and theorems for
 running time.
+
+\subsubsection{Instance Optimal Geometric Algorithms}
+
+TODO
 
 \chapter{Implementation}
 
@@ -941,6 +997,9 @@ Siam Journal of Computing, Vol. 12, No. 1, pp. 28 -- 34.
 Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
 Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
 
+\bibitem{minor}
+Minor, D. (2011) Entropy and Biased Search in Practice, Unpublished report.
+
 \bibitem{valgrind}
 Nethercote, N., Seward, J. (2007) Valgrind: A Framework for Heavyweight Dynamic
 Binary Instrumentation.  Proceedings of ACM SIGPLAN 2007 Conference on
@@ -951,6 +1010,10 @@ San Diego, California, USA
 Liu, T., Moore, A. W., Gray, A., Yang, K. (2004) An Investigation of Practical
 Approximate Nearest-Neighbour Algorithms, Proceedings of Neural Information
 Processing Systems(NIPS 2004), pp. TODO  
+
+\bibitem{mehlhorn}
+Mehlhorn, K. (1975) Nearly Optimal Binary Search Trees 
+In Acta Informatica, 5(1), pp. 287 – 295
 
 \bibitem{ann}
 Mount, D. M., Arya, S. (2012) ANN: A Library for Approximate Nearest Neighbor
