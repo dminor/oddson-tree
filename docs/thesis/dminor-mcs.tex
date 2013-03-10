@@ -657,7 +657,9 @@ rule to the subtrees.
 
 Mehlhorn \cite{mehlhorn} analyzed the results of applying these two rules. He
 provides a simple example where Rule I will produce a tree with expected
-search time \(O(n)\). His analysis of Rule II shows that the expected search
+search time \(O(n)\).
+
+ His analysis of Rule II shows that the expected search
 time for item in the tree is bounded from above by the entropy \(H\) of the
 query frequency distribution.
 
@@ -687,24 +689,43 @@ where \(W\) is the total weight of all items in the search tree and \(w\) is
 the weight of the item added or removed \cite{bst2}.
 \end{thm}
 
-It is possible to create biased versions of other, more simpler data structures
-such as randomized search trees (treaps) \cite{treap} and skip lists
-\cite{bsl2} but these do not provide better theoretical performance guarantees
-than biased search trees, and in practice seem do not perform as well as
-splaytrees \cite{minor} and so are not discussed further in this thesis. 
-
 \subsubsection{Splaytrees}
 
 An alternative approach to biased search is to use data structures which
 modify themselves in response to queries.  In this case, rather than specifying
 the probabilities in advance, the data structure will change itself to match
-the query distribution.  Splaytrees, which were invented by Sleator and
-Tarjan \cite{splaytree} are a self-modifying binary search tree which perform
-well in practice.
+the query distribution. 
 
-\begin{thm} \emph{(TODO)} 
-TODO: theorems on splaytrees
+Splaytrees, which were invented by Sleator and Tarjan \cite{splaytree} are a
+self-modifying binary search tree which perform well in practice.  They operate
+by moving the most recently accessed node to the root of the tree using a
+process called splaying which rotates items in pairs according to three cases
+which depend upon the structure of the tree.
+
+Although splaying can be costly for an individual access, in an ammortized
+sense, operations on a splay tree take \(O(\log n)\) time.
+
+\begin{thm} \emph{(Splay Trees)} 
+Insertion, deletion and search in a splay tree take \(O(\log n)\) time in
+an ammortized sense \cite{splaytree}.
 \end{thm}
+
+Sleator and Tarjan also showed that splay trees perform within a constant
+factor of any static optimal search tree over a sequence of accesses, and
+famously, conjectured that splay trees also perform within a constant factor
+of any dynamic search tree as well.
+
+\begin{thm} \emph{(Static Optimality of Splay Trees)} 
+The total ammortized time required for a sequence of \(m\) accesses to a \(n\)
+node splay tree is \(O(n \log n + m)\) \cite{splaytree}.
+\end{thm}
+
+It is possible to create biased versions of other, more simpler data structures
+such as randomized search trees (treaps) \cite{treap} and skip lists
+\cite{bsl2} but these do not provide better theoretical performance guarantees
+than biased search trees. In practice, splaytrees have better performance and
+are as easy to implement, and so these data structures are not discussed
+further \cite{minor}.
 
 \subsection{Distribution Sensitive Data Structures}
 
