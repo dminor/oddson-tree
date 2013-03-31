@@ -186,6 +186,9 @@ A data structure exists using \(O(n)\) storage which allows for planar
 point location to be performed in \(O(\log n)\) time \cite{kirkpatrick}.
 \end{thm}
 
+The same bounds were achieved using different data structures by Sarnak and
+Tarjan \cite{sarnak} and Edelsbrunner et al. \cite{edelsbrunner}.
+
 In higher dimensions, given n hyperplanes, it is possible to solve this problem
 by constructing a \(1/r\)-cutting, which is a collection of simplices which
 covers the space and is constructed such that each simplice intersects with no
@@ -584,9 +587,9 @@ need to be fixed at construction time, which is a less flexible than using
 quadtrees or kd-trees directly.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Approximate Voronoi Diagram)} 
-An approximate Voronoi diagram of size \(O({n \over \epsilon ^ d}\) can be
+An approximate Voronoi diagram of size \(O({n \over \epsilon ^ d})\) can be
 constructed which can answer \((1 + \epsilon)\) approximate nearest neighbour
-searches in time \(O(log ({n \over \epsilon}))\) \cite{arya-avd}.
+searches in time \(O(log {n \over \epsilon})\) \cite{arya-avd}.
 \end{thm}
 
 \section{Biased Search}
@@ -595,16 +598,48 @@ In this section we examine biased search problem in a comparison tree model.
 We begin with some classical results for biased search trees in a single
 dimension, before considering the problem in higher dimensional spaces.
 
+
+
+\subsection{Information Theory}
+
+Information theory is the study of the fundamental properties of communication
+systems. A data structure can be seen as a form of communication system, since
+it provides a means of communicating data from the present to the future.
+A data structure which allows for efficient search is essentially solving the
+same problem as creating an efficient code with which to transmit a message.
+
+Based upon earlier work by Ralph Hartley, Claude Shannon \cite{claudeshannonwasagod}
+defined entropy as the measure (in bits) of the amount of randomness of a set.
+That is if \(p_i\) is the probability of the i-th member of the set, then the
+entropy \(H\) is defined as
+$$
+H = \sum{ p_i \log{1 \over p_i}}
+$$
+
+Shannon also proved that the efficient of any communication system is limited
+by the entropy of the set of messages to be transmitted.
+
+\begin{thm} \emph{(Fundamental Theorem for a Noiseless Channel)} 
+Given a source with entropy H (in bits) and a channel with capacity C (in bits
+per second), then it is possible to encode a source in such a way as to
+transmit at an average rate of \({C \over H} - \epsilon\) symbols per second
+where \(\epsilon\) is arbitrarily small, and it is not possible to transmit
+at an average rate greater than \(C \over H\) \cite{claudeshannonwasagod}.
+\end{thm}
+
+Any data structure for search can not have an average search time which
+exceeds this entropy bound, that is \(O(H)\) is a lower bound on the search time
+for any data structure.
+
 \subsection{Biased Search Trees}
 
 Biased search trees are a natural generalization of balancing a binary search
 tree where rather than assuming each result is equally likely, a probability
-distribution is given for the results, allowing the tree to be balanced such
-that at each node it is equally likely that the left or right child will be
-followed.  The overall expected running time can then be stated in terms of the
-entropy of the probability distribution of the queries.
-
-\subsubsection{Static Biased Search Trees}
+distribution (or set of weights) is given for the results, allowing the tree to
+be balanced such that at each node the probability of choosing the right child
+is as close as possible to the probability of choosing the left child, or
+alternately, the weight of the right child is approximately equal to the weight
+of the left child.
 
 The initial work on biased search trees focused on the static case, where
 the query frequencies are known in advance and no deletions and insertions
@@ -659,17 +694,22 @@ Mehlhorn \cite{mehlhorn} analyzed the results of applying these two rules. He
 provides a simple example where Rule I will produce a tree with expected
 search time \(O(n)\).
 
- His analysis of Rule II shows that the expected search
-time for item in the tree is bounded from above by the entropy \(H\) of the
-query frequency distribution.
+His analysis of Rule II shows that the expected search time for item in the tree
+is bounded from above by the entropy \(H\) of the query frequency distribution.
+That is, if we have n keys \(K_i\) and \(2n + 1\) probabilities
+\(p_1, p_2, ..., p_n\) and \(q_1, q_2, ..., q_n\) where \(p_i\) is the
+probability that \(K_i\) is the search item and \(q_i\) is the
+probability that the search item lies between \(K_i\) and \(K_{i+1}\), then
+the search time is bounded by
+$$
+H = \sum{ p_i \log{1 \over p_i}} + \sum{ q_i \log{1 \over q_i}}
+$$
 
 \begin{thm} \emph{(Nearly Optimal Static Biased Binary Search Tree)} 
 A static biased search tree where the search time for an item is bounded by
-the entropy of the frequency distribution can be constructed in time
+the entropy \(H\) of the frequency distribution can be constructed in time
 \(O(n \log n)\) and space \(O(n)\).
 \end{thm}
-
-\subsubsection{Dynamic Biased Search Trees}
 
 Biased search trees allowing insertions and deletions based upon 2 - 4 and
 red-black trees were described by Bent, Sleator and Tarjan \cite{bst} in 1984.
@@ -689,7 +729,7 @@ where \(W\) is the total weight of all items in the search tree and \(w\) is
 the weight of the item added or removed \cite{bst2}.
 \end{thm}
 
-\subsubsection{Splaytrees}
+\subsection{Splaytrees}
 
 An alternative approach to biased search is to use data structures which
 modify themselves in response to queries.  In this case, rather than specifying
@@ -723,43 +763,59 @@ node splay tree is \(O(n \log n + m)\) \cite{splaytree}.
 It is possible to create biased versions of other, more simpler data structures
 such as randomized search trees (treaps) \cite{treap} and skip lists
 \cite{bsl2} but these do not provide better theoretical performance guarantees
-than biased search trees. In practice, splaytrees have better performance and
-are as easy to implement, and so these data structures are not discussed
-further \cite{minor}.
+than biased search trees. In practice, splaytrees appear to have better
+performance and are as easy to implement as treaps and skip lists, and so these
+data structures are not discussed further \cite{minor}.
 
-\subsection{Distribution Sensitive Data Structures}
+\subsection{Planar Point Location}
 
-A distribution sensitive data structure makes use of knowledge of the
-probability distribution of the queries in order to answer queries with an
-expected runtime which is of the order of the entropy present in the query
-distribution. This is a slightly different formulation of the problem than
-biased search, where the running time is given in terms of the entropy of
-the query results.
+Looking at biased search in higher dimensions, we first consider the planar
+point location problem, which is, given a subdivision of the plane and a
+query point \(p\), construct a data structure which allows us to efficiently
+determine which face of the plane contains \(p\). If all of the planar
+subdivisions and the query point lie on a single line then this problem is the
+traditional one dimensional search problem, and the appropriate data structure
+is a binary search tree.
 
-Another way of viewing the problem is to consider instance optimal data
-structures \cite{chan}, where the running time is within a constant factor
-of any data structure for any instance of the problem. TODO: more details,
-mention how different viewpoint results in similar analysis.
+We discussed this problem above in the section on nearest-neighbour
+search in a Voronoi diagram, and noted that a linear space and \(O(\log n)\)
+search time solution existed for this problem.  As is the case with binary
+search trees, if we are given a probability distribution over the query points
+\(p\) such that each point is chosen with probability \(p_i\), then the
+expected number of decisions made during search is bounded by the entropy of
+the query set.
 
-TODO: Refer to at least Biased Range Trees paper, some results in distribution
+When considering distribution sensitive point location convex partitions or
+triangulations of the plane are often considered rather than arbitrary
+subdivisions. A convex subdivision is one where all of the faces except the
+outer are convex polygons, and a triangulation is one where all of the faces
+are triangles \cite{distsenspointloc}.
+
+TODO: John Iacono and Arya et al. proved for triangulations that 
+
+\begin{thm} \emph{(Distribution Sensitive Point Location in a Triangulation)} 
+Given a triangulation, it is possible to perform point location in time
+\(O(H + 1)\) and space \(O(n)\).
+\end{thm}
+
+TODO:
+
+\begin{thm} \emph{(Distribution Sensitive Point Location in a Convex Subdivison)} 
+
+\end{thm}
+
+
+\subsection{Biased Range Search}
+
+TODO: Refer to at least Biased Range Trees paper
 sensitive point location.
 
-\subsubsection{Distribution Sensitive Point Location in Convex Subdivions}
-
-TODO
-
-\subsubsection{Biased Range Search}
-
-TODO
-
-\subsubsection{Odds-on Trees}
+\subsection{Odds-on Trees}
 
 TODO: Description of partition tree based odds-on tree and theorems for
 running time.
 
-\subsubsection{Instance Optimal Geometric Algorithms}
-
-TODO
+TODO: Also discuss Chan et al. Instance Optimal Geometric Algorithms
 
 \chapter{Implementation}
 
@@ -963,6 +1019,10 @@ Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Proble
 FOCS '83: Proceedings of the Twenty-fourth Symposium on Foundations of Computer Science,
 Tucson, AZ 
 
+\bibitem{distsenspointloc}
+Collette, S., Iacono, J., Langerman, S., Morin, P. (200x) Distribution-Sensitive
+Point Location in Convex Subdivisions, TODO
+
 \bibitem{connor}
 Connor, M. and Kumar, P. (2009) Fast Construction of k-Nearest Neighbor Graphs
 For Point Clouds, IEEE Transactions of Visualizatoin and Computer Graphics,
@@ -973,28 +1033,32 @@ de Berg., M. van Kreveld, M., Overmars, M., Schwarzkopf, O. (2000)
 Computational Geometry: Algorithms and Applications, 2nd Edition, Springer-Verlag,
 Berlin Heidelberg New York
 
+\bibitem{edelsbrunner}
+Edelsbrunner, H., Guibas, L. J., Stolfi, J. (1986) Optimal Point Location in a
+Monotone Subdivision, SIAM Journal on Computing, 15(2), pp. 317--340. 
+
 \bibitem{skipquadtree}
 Eppstein, D., Goodrich, M. T., Sun, J. Z. (2008) The Skip Quadtree: A Simple
 Dynamic Data Structure for Multidimensional Data, Int. Journal on Computational
-Geometry and Applications, 18(1/2), 131--160 
+Geometry and Applications, 18(1/2), pp. 131--160 
 
 \bibitem{bsl2}
 Ergun, F., Sahinalp, S. C., Sharp, J., Sinha, R. K. (2001) Biased Skip Lists
 for Highly Skewed Access Patterns, Proceedings of ALENEX 2001, Lecture Notes in
-Computer Science, Volume 2153, 216-229 
+Computer Science, Volume 2153, pp. 216--229 
 
 \bibitem{bst2}
 Feigenbaum, J., Tarjan, R. E. (1983) Two New Kinds of Biased Search Tree,
-In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 - 3158
+In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 -- 3158
 
 \bibitem{quadtree}
 Finkel, R. A. and Bentley, J. L. (1974) Quad Trees A Data Structure for
-Retrieval on Composite Keys, Acta Informatica, 4(1), pp. 1 – 9 
+Retrieval on Composite Keys, Acta Informatica, 4(1), pp. 1 –- 9 
 
 \bibitem{friedman}
 Friedman, J. H., Bentley, J. L., Finkel, R. A. (1977) An Algorithm for Finding
 Best Matches in Logarithmic Expected Time, ACM Transactions on Mathematical
-Software, Vol. 3 Number 3, pp. 209--226
+Software, Vol. 3 Number 3, pp. 209 -- 226
 
 \bibitem{rtree}
 Guttman, A. (1984) R-Trees: A Dynamic Index Structure for Spatial Searching,
@@ -1047,6 +1111,14 @@ In Communications of the ACM, 33(6), pp. 668 – 676
 \bibitem{samet}
 Samet, H. (2006) Foundations of Multidimensional and Metric Data Structures
 Morgan-Kaufmann, San Francisco, CA.
+
+\bibitem{sarnak}
+Sarnak, N. and Tarjan, R. E. (1986) Planar Point Location Using Persistent
+Search Trees. Communications of the ACM, 29(7), pp. 669 -- 679
+
+\bibitem{claudeshannonwasagod}
+Shannon, Claude E. (1948) A Mathematical Theory of Communication,
+Bell System Technical Journal, 27, pp. 379--423 and 623--656.
 
 \bibitem{splaytree}
 Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
