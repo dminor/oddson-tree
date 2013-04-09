@@ -598,8 +598,6 @@ In this section we examine biased search problem in a comparison tree model.
 We begin with some classical results for biased search trees in a single
 dimension, before considering the problem in higher dimensional spaces.
 
-
-
 \subsection{Information Theory}
 
 Information theory is the study of the fundamental properties of communication
@@ -785,30 +783,33 @@ search trees, if we are given a probability distribution over the query points
 expected number of decisions made during search is bounded by the entropy of
 the query set.
 
-When considering distribution sensitive point location convex partitions or
-triangulations of the plane are often considered rather than arbitrary
-subdivisions. A convex subdivision is one where all of the faces except the
-outer are convex polygons, and a triangulation is one where all of the faces
-are triangles \cite{distsenspointloc}.
-
-TODO: John Iacono and Arya et al. proved for triangulations that 
+A data structure for biased point location in a triangulation was described
+by Iacono \cite{iacono}. It is based on a variation of Kirkpatrick's data
+structure for solving point location \cite{kirkpatrick}, which works by
+constructed a hierarchical triangulation by selectively removing vertices
+from each level of the hierarchy, until the top level contains a single triangle.
+In Iacono's version, the vertices chosen to be removed are such that they are
+not of large degree and are not incident to a high probability region. Another
+approach, by Arya et al. matches these space and time bounds \cite{simpleentropy}.
 
 \begin{thm} \emph{(Distribution Sensitive Point Location in a Triangulation)} 
 Given a triangulation, it is possible to perform point location in time
-\(O(H + 1)\) and space \(O(n)\).
+\(O(H + 1)\) and space \(O(n)\) where H is the entropy of the set of triangles
+making up the triangulation. 
 \end{thm}
-
-TODO:
-
-\begin{thm} \emph{(Distribution Sensitive Point Location in a Convex Subdivison)} 
-
-\end{thm}
-
 
 \subsection{Biased Range Search}
 
-TODO: Refer to at least Biased Range Trees paper
-sensitive point location.
+We next consider results by Dujmovic et al. \cite{biasedrange} on 2-sided
+planar orthogonal range counting Range counting is the problem of counting the
+number of elements in a set contained within a query space. The 2-sided
+orthogonal planar variant restricts this to counting the number of elements
+\((p_x, p_y)\) given a query point \((q_x, q_y)\) where \(p_x \ge q_x\) and
+\(p_y \ge q_y\). Although this is a restricted problem definition, the approach
+taken is similar to that used by Odds-on Trees to solve more general geometric 
+search problems.
+
+TODO:
 
 \subsection{Odds-on Trees}
 
@@ -985,10 +986,19 @@ Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R. Wu, A. Y. (1998)
 An Optimal Algorithm for Approximate Nearest Neighbor Searching in Fixed
 Dimensions, Journal of the ACM, Volume 45, Issue 6, pp 891--923
 
+\bibitem{simpleentropy}
+Arya, S., Malamatos, T. Mount, D. M. (2001) A Simple Entropy-Based Algorithm
+for Planar Point Location. In Proceedings of the Twelfth Annual ACM-SIAM
+Symposium on Discrete Algorithms, pp. 262--268
+
 \bibitem{arya-avd}
 Arya, S., Malamatos, T. Mount, D. M. (2002) Space-efficient Approximate
 Voronoi Diagrams, Proceedings of the 33rd Annual ACM Symposium on the Theory
 of Computing, pp. 721--730.
+
+A simple entropy-based algorithm for planar point
+location. In Proceedings of the Twelfth Annual ACM-SIAM Symposium on Discrete Algorithms, pages
+262–268, 2001.
 
 \bibitem{bsl}
 Bagchi, A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
@@ -1018,10 +1028,6 @@ Discrete and Compututational Geometry 9, pp. 145--158.
 Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
 FOCS '83: Proceedings of the Twenty-fourth Symposium on Foundations of Computer Science,
 Tucson, AZ 
-
-\bibitem{distsenspointloc}
-Collette, S., Iacono, J., Langerman, S., Morin, P. (200x) Distribution-Sensitive
-Point Location in Convex Subdivisions, TODO
 
 \bibitem{connor}
 Connor, M. and Kumar, P. (2009) Fast Construction of k-Nearest Neighbor Graphs
@@ -1068,6 +1074,11 @@ TODO
 Har-Peled, S. (2001) A Replacement for Voronoi Diagrams of Near Linear Size, 
 FOCS '01: Proceedings of the TODO Symposium on Foundations of Computer Science, 
 pp. TODO
+
+\bibitem{iacono}
+Iacono, J. (2001) Optimal Planar Point Location
+In Proceedings of the Twelfth Annual ACM-SIAM Symposium on Discrete Algorithms,
+pp. 240-–241
 
 \bibitem{lsh}
 Indyk, P., Motwani, R. (1998) Approximate Nearest Neighbors: Towards Removing
