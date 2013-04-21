@@ -93,6 +93,22 @@ A \(1 + \epsilon\) approximate \(k\)-nearest neighbour search is given a point
 \(p\), return \(k\) points such than none are further away than \(1 + \epsilon\)
 times the true \(k\)th nearest neighbour.
 
+Entropy is the measure (in bits) of the amount of randomness of a set.  That is,
+if \(p_i\) is the probability of the i-th member of the set, then the entropy
+\(H\) is defined as
+$$
+H = \sum{ p_i \log{1 \over p_i}}
+$$
+
+A simplex is the intersection of at most \(d + 1\) halfspaces. A triangle is an
+example of a simplex in two dimensions, and a tetrahedron is an example of a
+three dimensional simplex.
+
+A linear decision tree is a search tree where the child node to visit next
+is determined by a linear function of point coordinates. A comparison tree is a
+search tree where the decision of which child node to visit is based upon making
+a comparison of coordinates.
+
 \section{Results Summary}
 
 TODO
@@ -815,7 +831,14 @@ dimensional range tree is simply a balanced binary search tree, and in \(d\)
 dimensions, one coordinate is chosen to create a binary search tree, and each
 child node contains a \(d - 1\) range tree. 
 
-TODO: size, search time properties of range trees. fractional cascading.
+\begin{thm} \emph{(Planar Range Search using Range Trees)} 
+A range tree for a set of points \(S\) of cardinality \(n\) can be built in
+time \(O(n \log n)\) and requires \(O(n \log n)\) space. It can report the
+points in a rectangular query area in time \(O(\log^2 n + k)\) time, where
+\(k\) is the number of points in the query area. A technique called
+fractional cascading can reduce the query time to \(O(\log n + k)\)
+\cite{dutch}. 
+\end{thm}
 
 Kd-Trees and Quadtrees can also be used to solve the range counting problem,
 but with linear worst case query time.
@@ -862,10 +885,67 @@ set \cite{biasedrange}.
 
 \subsection{Odds-on Trees}
 
-TODO: Description of partition tree based odds-on tree and theorems for
-running time.
+Odds-on trees make use of similar ideas of those described above to solve
+2-sided orthogonal range searches, but are capable of solving a large class
+of geometric search problems.
 
-TODO: Also discuss Chan et al. Instance Optimal Geometric Algorithms
+Given a probability distribution \(D\) over a set of queries, the odds-on tree
+is capable of answering any query drawn from \(D\) in expected time
+\(O(H^* + 1)\) where \(H^*\) is a lower bound on the expected cost of any
+linear decision tree which solves the search problem. In particular, the
+entropy \(H\) of the query distribution \(D\) is one such bound for many search
+problems. A linear decision tree is a search tree where the decision of which
+child node to follow is based on a linear function.
+
+An Odds-on tree consists of a primary search tree and a backup search tree.
+The primary search tree is based upon a data structure called partition trees,
+which are an means of dividing \(d\)-dimensional spaces into simplices. A
+simplex is the intersection of at most \(d + 1\) halfspaces; a triangle is an
+example of a simplex in two dimensions. The simplices in the partition tree
+potentially overlap each other.
+
+\begin{thm} \emph{(Partition Trees)} 
+Given a set of \(S\) points, for any \(\epsilon > 0\) a data structure called
+a partition tree can be constructed which uses \(O(n)\) storage and can answer
+counting queries for a search simplex in time \(O(n^{1/2 + \epsilon})\) time and
+report those points in an additional \(O(k)\) time, where \(k\) is the number
+of points in the search simplex. A partition tree can be constructed in
+\(O(n^{1 + \epsilon})\) time \cite{dutch}.
+\end{thm}
+
+The points used to create this partition are drawn from the query distribution
+\(D\), and the maximum depth of any node in the tree does not exceed a specified
+constant. For each node in the partition tree the area corresponding ot the node
+is searched to see if the answer to the search problem is the same for all points
+associated with the area. Since the simplices created by a partition tree are
+possibly overlapping, it is necessary to determine the polytope associated with
+the node which is not associated with any other node in the tree.
+
+If the result of the search is the same for all points in the polytope, the node
+is marked as terminal, any children nodes are removed, and the result of the
+search is stored with the node to answer future searches.
+
+The backup tree can be any data structure capable of answering the original
+search problem in \(O(\log n)\) time.
+
+Search in the tree occurs as follows. Given a query, the tree is searched until
+either a terminal leaf node is reached, in which case the stored result is used
+to answer a query, or a non-terminal leaf node is reached, in which case the
+backup tree is used to answer the query \cite{oddson}. The same data structure
+with a different analysis was presented by Chan et al. \cite{chan}.
+
+\begin{thm} \emph{(Odds-on Tree)}
+For any \(n\) and \(\tau\) an odds-on tree of size \(m = n^\tau\) of maximum
+depth k = \(\lfloor {1 \over 4} \log_{r \over 3} m \rfloor \), where \(r\) is
+the number of simplices associated with the root node of the odds-on tree, can
+be constructed in time \(O(m \log^{O(1)} n)\) plus the cost of \(O(m)\) samples
+from \(D\) plus the cost of \(O(m \log^{O(1)} n)\) searches to determine whether
+a node is terminal.
+
+The odds-on tree can be answer searches in expected time \(O(H^* + 1)\) where
+\(H^*\) is a lower bound on the expected cost of any linear decision tree
+which answers the search \cite{oddson}.  
+\end{thm}
 
 \chapter{Implementation}
 
