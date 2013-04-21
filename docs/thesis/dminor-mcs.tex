@@ -802,14 +802,63 @@ making up the triangulation.
 
 We next consider results by Dujmovic et al. \cite{biasedrange} on 2-sided
 planar orthogonal range counting Range counting is the problem of counting the
-number of elements in a set contained within a query space. The 2-sided
+number of elements in a set \(S\) contained within a query space. The 2-sided
 orthogonal planar variant restricts this to counting the number of elements
 \((p_x, p_y)\) given a query point \((q_x, q_y)\) where \(p_x \ge q_x\) and
 \(p_y \ge q_y\). Although this is a restricted problem definition, the approach
 taken is similar to that used by Odds-on Trees to solve more general geometric 
 search problems.
 
-TODO:
+A data structure invented by Jon Bentley \cite{rangetree} called a Range Tree
+can solve range search problems in linear space and logarithmic time. A one
+dimensional range tree is simply a balanced binary search tree, and in \(d\)
+dimensions, one coordinate is chosen to create a binary search tree, and each
+child node contains a \(d - 1\) range tree. 
+
+TODO: size, search time properties of range trees. fractional cascading.
+
+Kd-Trees and Quadtrees can also be used to solve the range counting problem,
+but with linear worst case query time.
+
+A Biased Range Tree relies upon two data structures. The primary search tree
+is based upon a kd-tree. The nodes of the primary tree are associated with
+regions of space, and the root node covers the plane. Any node in the primary
+search tree that has depth greater than \(O(\log n)\) is called a "bad" node.
+These regions are potentially open on two sides, since the data structure is
+designed to support 2-sided queries \cite{biasedrange}. 
+
+Each child node in the tree is constructed by removing a horizontal (at even
+depths) or vertical (at odd depths) strip from region associated with the
+parent region. These strips are constructed such that the probability a point
+being in the region associated with a child node is at most half the probability
+of the point being in the parent region.
+
+Each node also has two associated data structures, called catalogues, which
+contain subsets of \(S\) sorted by the x- and y- coordinates respectively.
+Each catalogue is indexed by a biased search tree, and fractional cascading is
+used to speed up search within the catalogues.
+
+The second data structure is a backup range tree, as described above, which
+uses \(O(n \log n)\) space and can answer range search queries in time
+\(O(\log n)\). This data structure is used to answer queries for which the
+depth of correpsonding node in the primary tree would exceed \(O(\log n)\),
+that is the "bad" nodes.
+
+Search within the biased range tree occurs as follows: the primary tree is
+first searched to find a node such that the query region defined by \(q_x\) and
+\(q_y\) is contained within the region corresponding to the node. If this node
+is a "bad" node, then the backup range tree is used to answer the query.
+Otherwise, the indices are used to locate the node are used to locate \(q_x\)
+and \(q_y\) in the catalogues for the node determine the result of the range
+counting query, and the tree is walked back to the root, locating the query
+point in the catalogues of each node along the way, and adding results to
+the range counting query.
+
+\begin{thm} \emph{(Two-Sided Orthogonal Biased Range Search)} 
+Two sided orthogonal biased range search can be performed using space
+\(O \log n\) and expected time \(O(H)\) where \(H\) is the entropy of the query
+set \cite{biasedrange}.
+\end{thm}
 
 \subsection{Odds-on Trees}
 
@@ -996,9 +1045,10 @@ Arya, S., Malamatos, T. Mount, D. M. (2002) Space-efficient Approximate
 Voronoi Diagrams, Proceedings of the 33rd Annual ACM Symposium on the Theory
 of Computing, pp. 721--730.
 
-A simple entropy-based algorithm for planar point
-location. In Proceedings of the Twelfth Annual ACM-SIAM Symposium on Discrete Algorithms, pages
-262–268, 2001.
+\bibitem{TODO}
+TODO (2001) A simple entropy-based algorithm for planar point location.
+In Proceedings of the Twelfth Annual ACM-SIAM Symposium on Discrete Algorithms,
+pp. 262-–268
 
 \bibitem{bsl}
 Bagchi, A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
@@ -1011,6 +1061,10 @@ In SIAM Journal on Computing, Volume 14, pp. 545 - 568
 \bibitem{kdtree}
 Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative
 Searching, In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
+
+\bibitem{rangetree}
+Bentley, J. L. (1980) Multidimensional Divide-and-Conquer.
+In Communications of the ACM, Volume 23, pp. 214--229.
 
 \bibitem{bern}
 Bern, M., Eppstein, D., Teng, S-H. (TODO) Parallel Construction of Quadtrees and
@@ -1038,6 +1092,11 @@ September 2009.
 de Berg., M. van Kreveld, M., Overmars, M., Schwarzkopf, O. (2000)
 Computational Geometry: Algorithms and Applications, 2nd Edition, Springer-Verlag,
 Berlin Heidelberg New York
+
+\bibitem{biasedrange}
+Dujmovic, V., Howat, J., Morin, P. (2009) Biased Range Trees
+In Proceedings of the twentieth Annual ACM-SIAM Symposium on Discrete Algorithms,
+New York, New York, pp. 486 -- 495.
 
 \bibitem{edelsbrunner}
 Edelsbrunner, H., Guibas, L. J., Stolfi, J. (1986) Optimal Point Location in a
