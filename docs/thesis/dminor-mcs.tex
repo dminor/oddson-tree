@@ -41,8 +41,8 @@ is available, allowing for more common queries to be answered more quickly.
 Nearest neighbour search is of considerable practical interest with
 applications in geographical information systems, computer graphics,
 computer vision, signal processing and machine learning, and has received
-considerable attention from both theoretical and applied computer scienets
-since the early 1970s.
+attention from both theoretical and applied computer scienets since the early
+1970s.
 
 Although theoretically optimal solutions have existed since the 1990s, these
 suffer from the so-called "curse of dimensionality" where as the number of
@@ -104,10 +104,13 @@ A simplex is the intersection of at most \(d + 1\) halfspaces. A triangle is an
 example of a simplex in two dimensions, and a tetrahedron is an example of a
 three dimensional simplex.
 
-A linear decision tree is a search tree where the child node to visit next
-is determined by a linear function of point coordinates. A comparison tree is a
-search tree where the decision of which child node to visit is based upon making
-a comparison of coordinates.
+A decision tree model is a model of computation where the progress of the
+algorithm is viewed as decision tree. At each step of an algorithm, a decision
+is made as to what operation to perform next, which can be viewed as a branch
+in a tree. Which child node to be chosen is determined according to a given
+criteria. In a comparison tree, this decision is based upon comparing point
+coordinate values to one another using a suitable ordering. In a linear decision
+tree, a linear function of the point coordinates is used.
 
 \section{Results Summary}
 
@@ -127,8 +130,8 @@ future work.
 
 In this section we examine previous work relevant to odds-on tree. In the first
 section we examine data structures for nearest-neighbour search. In the second
-section we present results on biased search in one dimension and describe
-the odds-on tree data structure.
+section we present results on biased search and describe the odds-on tree data
+structure.
 
 \section{Nearest Neighbour Search}
 
@@ -238,6 +241,13 @@ children.  In the two dimensional case, this means that space is divided into
 four quadrants, hence the name quadtrees. Quadtrees were introduced in 1974 by
 Finkel and Bentley \cite{quadtree}. 
 
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.35]{diagrams/quadtree.eps}
+\caption{Quadtree}
+\end{center}
+\end{figure}
+
 Quadtrees can be built over a region, in which case the subdivision proceeds
 until the portion of the region covered by a hypercube has the same value for
 some property of interest. For example, given an input image, a region based
@@ -305,8 +315,6 @@ least the same amount of work required to do perform a point location query.
 Nearest neighbour search in a quadtree of height h requires \(O(h)\) time.
 \end{thm}
 
-TODO: quadtree diagram
-
 \subsection{Compressed Quadtrees}
 
 In a compressed quadtree, only nodes which contain a point, or have at least
@@ -337,7 +345,7 @@ interleaving of bits is called the "shuffle" of a point in \cite{bern}.
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.4]{diagrams/zorder.eps}
+\includegraphics[scale=0.35]{diagrams/zorder.eps}
 \caption{Z-Order}
 \end{center}
 \end{figure}
@@ -358,7 +366,7 @@ integer values to IEEE-754 floating point values.
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.4]{diagrams/compressed_quadtree.eps}
+\includegraphics[scale=0.35]{diagrams/compressed_quadtree.eps}
 \caption{Compressed Quadtree}
 \end{center}
 \end{figure}
@@ -470,7 +478,7 @@ The height of a kd-tree with n points is \(O(\log n)\).
 
 \begin{figure}
 \begin{center}
-\includegraphics[scale=0.5]{diagrams/kdtree.eps}
+\includegraphics[scale=0.35]{diagrams/kdtree.eps}
 \caption{Kd-Tree}
 \end{center}
 \end{figure}
@@ -611,16 +619,20 @@ searches in time \(O(log {n \over \epsilon})\) \cite{arya-avd}.
 \section{Biased Search}
 
 In this section we examine biased search problem in a comparison tree model.
-We begin with some classical results for biased search trees in a single
-dimension, before considering the problem in higher dimensional spaces.
+The comparison tree model is suitable for geometric problems as it avoids
+numerical and geometrical robustness problems that can arise from computations
+using coordinates.  We begin with some classical results for biased search trees
+in a single dimension, before considering the problem in higher dimensional spaces.
 
 \subsection{Information Theory}
 
-Information theory is the study of the fundamental properties of communication
-systems. A data structure can be seen as a form of communication system, since
-it provides a means of communicating data from the present to the future.
-A data structure which allows for efficient search is essentially solving the
-same problem as creating an efficient code with which to transmit a message.
+Lower bounds for search, in particular biased search depend upon results from
+information theory. We briefly summarize these results here.  Information theory
+is the study of the fundamental properties of communication systems. A data
+structure can be seen as a form of communication system, since it provides a
+means of communicating data from the present to the future.  A data structure
+which allows for efficient search is essentially solving the same problem as
+creating an efficient code with which to transmit a message.
 
 Based upon earlier work by Ralph Hartley, Claude Shannon \cite{claudeshannonwasagod}
 defined entropy as the measure (in bits) of the amount of randomness of a set.
@@ -641,7 +653,7 @@ where \(\epsilon\) is arbitrarily small, and it is not possible to transmit
 at an average rate greater than \(C \over H\) \cite{claudeshannonwasagod}.
 \end{thm}
 
-Any data structure for search can not have an average search time which
+Any data structure for search can not have an expected average search time which
 exceeds this entropy bound, that is \(O(H)\) is a lower bound on the search time
 for any data structure.
 
@@ -733,7 +745,8 @@ re-parenting nodes to maintain balance. In this case, the balance condition
 depends upon the weight of the node. If all of the weights are one, the
 resulting tree is simply a 2 - 4 tree. Somewhat simpler trees are provided
 by Feigenbaum and Tarjan \cite{bst2}. Due to the complexity and number of
-sub-cases, we do not provide further implementation details.
+sub-cases that must be considered to maintain balance in the search tree, we do
+not provide further implementation details.
 
 \begin{thm} \emph{(Construction of a Dynamic Biased Binary Search Tree)} 
 A dynamic biased search tree can be constructed in time \(O(n)\) which can
@@ -746,12 +759,12 @@ the weight of the item added or removed \cite{bst2}.
 \subsection{Splaytrees}
 
 An alternative approach to biased search is to use data structures which
-modify themselves in response to queries.  In this case, rather than specifying
+modify themselves in response to queries. In this case, rather than specifying
 the probabilities in advance, the data structure will change itself to match
 the query distribution. 
 
 Splaytrees, which were invented by Sleator and Tarjan \cite{splaytree} are a
-self-modifying binary search tree which perform well in practice.  They operate
+self-modifying binary search tree which perform well in practice. They operate
 by moving the most recently accessed node to the root of the tree using a
 process called splaying which rotates items in pairs according to three cases
 which depend upon the structure of the tree.
@@ -1150,13 +1163,17 @@ In Communications of the ACM, Volume 23, pp. 214--229.
 Bern, M., Eppstein, D., Teng, S-H. (TODO) Parallel Construction of Quadtrees and
 Quality Triangulations, TODO
 
+\bibitem{oddson}
+Bose, P., Devroye, L, Douieb, K., Dujmovic, V., King, J., Morin, P. (2010)
+Odds-On Trees, retrieved from http://arxiv.org/abs/1002.1092 on April 27, 2013.
+
 \bibitem{chan}
 Chan, T. M. (2006) A Minimalist's Implementation of an Approximate Nearest
 Neighbour Algorithm in Fixed Dimensions, unpublished note, retrieved from
 \url{http://www.cs.uwaterloo.ca/~tmchan/pub\_ann.html} on July 29, 2012
 
 \bibitem{chazelle} Chazelle, B. (1993) Cutting hyperplanes for divide-and-conquer.
-Discrete and Compututational Geometry 9, pp. 145--158.
+Discrete and Computational Geometry 9, pp. 145--158.
 
 \bibitem{compressedquadtree}
 Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
