@@ -966,24 +966,70 @@ This chapter describes the implementation of the odds-on tree data structure
 for nearest-neighbour search.
 
 The theoretical properties of odds-on trees were derived using partition trees.
-Since partition trees are not practical to implement, we instead chose to use
-compressed quadtrees and kd-trees. Kd-trees have better theoretical performance
-than quadtrees, and typically perform better in practice as well, but we
-decided to implement both to see if this holds true when used to implement
-odds-on trees.
+Partition trees are a complicated data structure and to our knowledge, have
+never been implemented. Although compressed quadtrees and kd-trees lack strong
+theoretical performance guarantees, they have the advantage that they are
+simple to implement and perform well in practice.
+
+In general, kd-trees out perform quadtrees, but we chose to implement both data
+structures to see if building a compressed quadtree "bottom up" using z-order
+sorting would result either in faster construction time or faster query time
+than a traditional "top down" recursive build process.
 
 \section{Kd-tree Odds-on Tree Implementation}
 
 TODO
 
-\subsection{Construction algorithm}
+\subsection{Kd-tree Implementation}
 
-TODO
+We first describe the kd-tree implementation. The kd-tree is built as described
+in chapter two, by recursively splitting the point set along each axis.  A lot
+of work has been done on heuristics for choosing which axis to split along when
+constructing kd-trees, particularly in the computer graphics community (TODO:
+cite some papers).
 
-e.g. point storage, splitting decision, optimizations made. Refer to 
-kd-tree implementation notes in \cite{physicallybasedrendering}.
+We choose to use a naive approach of splitting along each axis in sequence.
+In our experimental work, we are comparing the performance of the odds-on tree
+to same kd-tree implementation used by the odds-on tree, so any performance
+gains would most likely be realized by both data structures and so would not
+impact the experimental results.
 
-\subsection{Query algorithm}
+The most significant optimization made during the implementation is to use
+a memory pool rather than the system allocator for allocations. This allowed
+for left and right children of a node to be placed at adjacent locations in
+memory for better locality of reference and avoided the overhead associated
+with many small allocations using the system allocator, which resulting in a
+50 percent improvement in running time. The implementation was based upon the
+kd-tree optimization notes in \cite{physicallybasedrendering}.
+
+In order to support odds-on tree construction, the construction routines in
+the kd-tree were modified to optionally support making a callback function
+call as each node is constructed. If the callback returns false, the kd-tree
+construction ends without processing all of the points. This callback
+mechanism also allows for additional information to be stored at the kd-tree
+node if it is so desired.
+
+\subsection{Odds-on Tree Construction algorithm}
+
+The odds-on tree is built using two point sets. The first point set is used
+to build the backup kd-tree which is used to answer queries which can not be
+efficiently answered using the odds-on tree, and during construction to
+determine if a newly constructed node.
+
+The second point set is a set of points drawn from the probability distribution
+describing query frequencies, and is also used to build a kd-tree. This build
+process takes advantage of the callback functionality to stop building the
+kd-tree if it can be determined that the answer to a nearest-neighbour query
+would be the same for all points covered by the node, which is done by
+running a nearest neighbour query for each of the "corner" points of the node.
+If each query returns the same nearest neighbour point, the node is marked
+as terminal and the nearest neighbour is stored with the node. The build
+process continues until every node in the tree is terminal or all input sample
+points have been processed.
+
+TODO: maybe investigate enforcing maximum depth when processing nodes?
+
+\subsection{Odds-on Tree Query algorithm}
 
 TODO
 
