@@ -68,7 +68,7 @@ void render_tree(FILE *f, struct KdTree<OddsonTree<Point>::CachedPoint, double>:
             render_tree(f, tree->right(), depth + 1, tree->median, x2, y1, y2);
         }
 
-        if (tree->pt->nn) {
+        if (tree->pt->terminal) { 
             fprintf(f, "colour-site-%d\n", tree->pt->nn->pt->id);
             fprintf(f, "%.0f %.0f %.0f %.0f node-bounds\n", x1, x2, y1, y2);
         } 
