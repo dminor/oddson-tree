@@ -978,7 +978,8 @@ than a traditional "top down" recursive build process.
 
 \section{Kd-tree Odds-on Tree Implementation}
 
-TODO
+This section describes the implementation of kd-trees and the kd-tree based
+odds-on tree implementation.
 
 \subsection{Kd-tree Implementation}
 
@@ -988,11 +989,15 @@ of work has been done on heuristics for choosing which axis to split along when
 constructing kd-trees, particularly in the computer graphics community (TODO:
 cite some papers).
 
-We choose to use a naive approach of splitting along each axis in sequence.
+We choose to use the naive approach of splitting along each axis in sequence.
 In our experimental work, we are comparing the performance of the odds-on tree
 to same kd-tree implementation used by the odds-on tree, so any performance
 gains would most likely be realized by both data structures and so would not
 impact the experimental results.
+
+TODO: This might actually be interesting to investigate in the experimentation.
+A better partitioning strategy could potentially build a better odds-on tree,
+or at least build a good one more quickly.
 
 The most significant optimization made during the implementation is to use
 a memory pool rather than the system allocator for allocations. This allowed
@@ -1009,7 +1014,11 @@ construction ends without processing all of the points. This callback
 mechanism also allows for additional information to be stored at the kd-tree
 node if it is so desired.
 
-\subsection{Odds-on Tree Construction algorithm}
+TODO: provide a few numbers comparing our implementation to ANN for some
+representative sample / search sizes, to give readers an idea of how this
+implementation stacks up.
+
+\subsection{Odds-on Tree Implementation}
 
 The odds-on tree is built using two point sets. The first point set is used
 to build the backup kd-tree which is used to answer queries which can not be
@@ -1023,27 +1032,48 @@ kd-tree if it can be determined that the answer to a nearest-neighbour query
 would be the same for all points covered by the node, which is done by
 running a nearest neighbour query for each of the "corner" points of the node.
 If each query returns the same nearest neighbour point, the node is marked
-as terminal and the nearest neighbour is stored with the node. The build
-process continues until every node in the tree is terminal or all input sample
-points have been processed.
+as terminal and the nearest neighbour is stored with the node.
 
-TODO: maybe investigate enforcing maximum depth when processing nodes?
+A maximum depth for a constructed node is also enforced by the callback
+function which will end the build process for a node without marking it
+terminal if the depth of its subtree will exceed a pre-determined maximum.
 
-\subsection{Odds-on Tree Query algorithm}
-
-TODO
+The build process continues until one of three conditons occurs: all input nodes
+have been processed, all nodes have been marked terminal, or all remaining nodes
+exceed the maximum depth specified.
 
 \section{Quadtree Odds-on Tree Implementation}
 
 TODO
 
-\subsection{Construction algorithm}
+\subsection{Quadtree Implementation}
 
 TODO
 
-\subsection{Query algorithm}
+\subsection{Odds-on Tree Implementation}
 
 TODO
+
+\section{Odds-on Tree Query algorithm}
+
+The query algorithm is handled in a similar fashion by both the kd-tree and
+quadtree based implementions, and is described in this section.
+
+Both implementations rely upon a locate procedure which searches the cache for a
+terminal node containing the query point. If only a single nearest neighbour
+is required, if such a terminal node exists, the cached value for nearest
+neighbour is returned; otherwise, the backup cache is searched for the
+nearest neighbour.
+
+If k nearest neighbours are required, it is always necessary to use the the
+backup cache. In this case, the locate procedure is used as above, but as it
+proceeds, each node visited is stored in a priority queue which is then passed
+into the backup node. This is used to prune the search while locating the true
+k nearest neighbours, which in favourable conditions can greatly accelerate
+the search process.
+
+TODO: Is there anyway we can use the odds-on tree more efficiently when doing
+approximate k-nearest neighbour searches?
 
 \chapter{Experimental Results}
 
