@@ -135,8 +135,8 @@ Point *read_points(FILE *f, int *pt_count)
 
 int main(int argc, char **argv)
 { 
-    if (argc != 3) {
-        fprintf(stderr, "usage: render_tree <points> <sample>\n");
+    if (argc != 4) {
+        fprintf(stderr, "usage: render_tree <points> <sample> <maxdepth>\n");
         exit(1);
     }
 
@@ -165,6 +165,8 @@ int main(int argc, char **argv)
     if (!sample) exit(1);
 
     fclose(f);
+
+    size_t maxdepth = (size_t)atoi(argv[2]);
 
     double x1 = DBL_MAX, x2 = DBL_MIN, y1 = DBL_MAX, y2 = DBL_MIN;
     for (int i = 0; i < m; ++i) {
@@ -258,7 +260,7 @@ int main(int argc, char **argv)
         fprintf(stdout, "%.0f %.0f draw-point\n", pts[i][0], pts[i][1]);
     }
 
-    OddsonTree<Point> oot(2, pts, n, sample, m);
+    OddsonTree<Point> oot(2, pts, n, sample, m, maxdepth);
     render_tree(stdout, oot.cache->root, 1, x1, x2, y1, y2); 
 
     delete[] pts;

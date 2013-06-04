@@ -91,7 +91,7 @@ template<class Point> class CompressedQuadtree {
         }; 
 
         struct EndBuildFn {
-            virtual bool operator()(Node *)
+            virtual bool operator()(Node *, size_t depth)
             {
                 return false;
             }
@@ -117,7 +117,7 @@ template<class Point> class CompressedQuadtree {
                 pts_vector.push_back(&pts[i]);
             }
 
-            root = worker(mid, radius, pts_vector, fn);
+            root = worker(mid, radius, pts_vector, fn, 0);
         }
 
         virtual ~CompressedQuadtree()
@@ -195,7 +195,7 @@ template<class Point> class CompressedQuadtree {
 
         size_t nnodes;
 
-        Node *worker(const Point &mid, double radius, std::vector<Point *> &pts, EndBuildFn &fn)
+        Node *worker(const Point &mid, double radius, std::vector<Point *> &pts, EndBuildFn &fn, size_t depth)
         {
             Node *node = new Node; 
             for (size_t d = 0; d < dim; ++d) {
@@ -206,8 +206,8 @@ template<class Point> class CompressedQuadtree {
             if (pts.size() == 1) {
                 node->nodes = 0;
                 node->pt = pts[0];
-                fn(node);
-            } else if (!fn(node)) { 
+                fn(node, depth);
+            } else if (!fn(node, depth)) { 
                 node->pt = 0;
                 node->nodes = new Node *[nnodes];
 
@@ -242,7 +242,7 @@ template<class Point> class CompressedQuadtree {
                         }
 
                         ++ninteresting;
-                        node->nodes[n] = worker(new_mid, new_radius, node_pts[n], fn);
+                        node->nodes[n] = worker(new_mid, new_radius, node_pts[n], fn, depth + 1);
                     } else {
                         node->nodes[n] = 0; 
                     }

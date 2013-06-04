@@ -71,7 +71,7 @@ public:
     }
 
     struct EndBuildFn {
-        virtual bool operator()(Node *, Number *)
+        virtual bool operator()(Node *, Number *, size_t)
         {
             return false;
         }
@@ -306,7 +306,7 @@ private:
             result->pt = pts;
             result->median = 0;
             result->children = 0;
-            fn(result, range);
+            fn(result, range, depth);
         } else {
 
             result = new (arena + arena_offset) Node; 
@@ -325,7 +325,7 @@ private:
             result->children = 0;
 
             //if not terminal, recursively build tree
-            if (!fn(result, range)) { 
+            if (!fn(result, range, depth)) { 
                 double t;
                 size_t range_coord = (depth%dim)*2;
 

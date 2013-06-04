@@ -109,9 +109,9 @@ Point *read_points(const char *filename, int &count, int &dim)
 
 int main(int argc, char **argv)
 { 
-    if (argc < 3) {
+    if (argc < 4) {
         fprintf(stderr,
-            "usage: knn <pts> <samples> [queries] [nn] [epsilon]\n)");
+            "usage: knn <pts> <samples> <maxdepth> [queries] [nn] [epsilon]\n)");
         return 1;
     }
 
@@ -136,13 +136,16 @@ int main(int argc, char **argv)
         exit(1); 
     } 
 
-    OddsonTree<Point> oot(Point::dim, pts, n, sample, m);
+    //max depth
+    size_t maxdepth = (size_t)atoi(argv[3]);
 
-    if (argc < 4) {
+    OddsonTree<Point> oot(Point::dim, pts, n, sample, m, maxdepth);
+
+    if (argc < 5) {
         return 1;
     }
 
-    Point *queries = read_points(argv[3], p, query_dim); 
+    Point *queries = read_points(argv[4], p, query_dim); 
 
     if (!queries) {
         fprintf(stderr, "error: could not read query file: %s\n", argv[3]);
@@ -156,11 +159,11 @@ int main(int argc, char **argv)
 
     //how many nearest neighbours to retrieve
     int nn = 1;
-    if (argc >= 5) nn = atoi(argv[4]);
+    if (argc >= 6) nn = atoi(argv[5]);
 
     //read query epsilon
     double epsilon = 0.0;
-    if (argc == 6) epsilon = atof(argv[5]);
+    if (argc == 7) epsilon = atof(argv[6]);
 
     //run queries
     if (nn == 1) {

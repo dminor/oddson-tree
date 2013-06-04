@@ -58,10 +58,15 @@ public:
 
         KdTree<Point, double> *backup;
         int dim;
+        size_t max_depth;
 
-        virtual bool operator()(typename KdTree<CachedPoint, double>::Node *node, double *range)
+        virtual bool operator()(typename KdTree<CachedPoint, double>::Node *node, double *range, size_t depth)
         {
             CachedPoint *pt = node->pt;
+
+            if (depth > max_depth) {
+                return true;
+            }
 
             //run interference query (need to make sure all "corners" have same nearest-neighbour)
             pt->nn = 0;
@@ -88,7 +93,7 @@ public:
         } 
     };
 
-    OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
+    OddsonTree(int dim, Point *ps, int n, Point *qs, int m, size_t max_depth)
         : dim(dim)
     {
 
@@ -118,6 +123,7 @@ public:
         OddsonTreeTerminal fn;
         fn.backup = backup;
         fn.dim = dim;
+        fn.max_depth = max_depth;
         cache = new KdTree<CachedPoint, double>(dim, sample, m, range, fn); 
 
         hits = 0;
@@ -166,7 +172,7 @@ public:
         std::list<std::pair<Point *, double> > result;
 
         PriorityQueue<typename KdTree<Point, double>::Node *> pq(k);
-//        locate(pq, pt);
+        locate(pq, pt);
         result = backup->knn(k, pq, pt, eps); 
 
         ++queries;
@@ -228,7 +234,7 @@ private:
                     d += ((*(node->pt->nn->pt))[i]-pt[i]) * ((*(node->pt->nn->pt))[i]-pt[i]); 
                 }
 
-                if ((!pq.full() || d < pq.peek().priority)) {
+                if (d < pq.peek().priority) {
                     pq.push(d, node->pt->nn);
                 }
             }
@@ -284,9 +290,14 @@ public:
 
         KdTree<Point, double> *backup;
         int dim;
+        size_t max_depth;
 
-        virtual bool operator()(typename CompressedQuadtree<CachedPoint>::Node *node)
+        virtual bool operator()(typename CompressedQuadtree<CachedPoint>::Node *node, size_t depth)
         {
+            if (depth > max_depth) {
+                return true;
+            }
+
             //run interference query (need to make sure all "corners" have same nearest-neighbour)
             typename KdTree<Point, double>::Node *nn = 0;
             for (size_t i = 0; i < 2*dim; ++i) {
@@ -315,7 +326,7 @@ public:
         } 
     };
 
-    OddsonTree(int dim, Point *ps, int n, Point *qs, int m)
+    OddsonTree(int dim, Point *ps, int n, Point *qs, int m, size_t max_depth)
         : dim(dim)
     {
 
@@ -338,7 +349,8 @@ public:
 
         OddsonTreeTerminal fn;
         fn.backup = backup;
-        fn.dim = dim; 
+        fn.dim = dim;
+        fn.max_depth = max_depth;
         cache = new CompressedQuadtree<CachedPoint>(dim, sample, m, range, fn);
  
         delete[] range;

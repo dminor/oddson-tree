@@ -62,9 +62,11 @@ Point distfn()
     return pt; 
 }
 
+
 #define N 100000
 #define M 20000
 #define Q 1000000
+#define MAX_DEPTH 20
 
 bool pred(std::pair<Point *, double> &fst, std::pair<Point *, double> &snd)
 {
@@ -95,7 +97,7 @@ int main(int argc, char **argv)
         qs[i] = distfn();
     }
 
-    OddsonTree<Point> oot(2, ps, N, qs, M); 
+    OddsonTree<Point> oot(2, ps, N, qs, M, MAX_DEPTH); 
     KdTree<Point, double> kdt(2, ps2, N); 
 
     int errors = 0;
