@@ -986,8 +986,9 @@ odds-on tree implementation.
 We first describe the kd-tree implementation. The kd-tree is built as described
 in chapter two, by recursively splitting the point set along each axis.  A lot
 of work has been done on heuristics for choosing which axis to split along when
-constructing kd-trees, particularly in the computer graphics community (TODO:
-cite some papers).
+constructing kd-trees, particularly in the computer graphics community where
+kd-trees are used to accelerate ray tracing applications
+\cite{physicallybasedrendering}.
 
 We choose to use the naive approach of splitting along each axis in sequence.
 In our experimental work, we are comparing the performance of the odds-on tree
@@ -1014,9 +1015,12 @@ construction ends without processing all of the points. This callback
 mechanism also allows for additional information to be stored at the kd-tree
 node if it is so desired.
 
-TODO: provide a few numbers comparing our implementation to ANN for some
-representative sample / search sizes, to give readers an idea of how this
-implementation stacks up.
+We performed some experiments comparing our kd-tree implementation to the 
+kd-tree implementation in Mount and Arya's ANN library\cite{ann}. Our
+implementation was slower, but not by a large amount. For instance, running
+1000000 queries on a point set of 100000 points, our implementation was eleven
+percent slower in two dimensions and eighteen percent slower in three
+dimensions.
 
 \subsection{Odds-on Tree Implementation}
 
@@ -1044,15 +1048,60 @@ exceed the maximum depth specified.
 
 \section{Quadtree Odds-on Tree Implementation}
 
-TODO
+The Quadtree based odds-on tree is implemented using compressed quadtrees.
+Initially, the compressed quadtrees were based upon sorting by Morton order.
+This was found to not perform well, and a second implemention, based upon top
+down recursive construction is now used.
 
-\subsection{Quadtree Implementation}
+\subsection{Morton Order Implementation}
 
-TODO
+The compressed quadtree data structure used by the odds-on tree was first
+implemented using Morton order based sorting. As described in section 2.1.3,
+points sorted by Morton order are sorted in the order in which they would be
+visited during a depth first traversal of a compressed quadtree.
 
-\subsection{Odds-on Tree Implementation}
+The sorted points were then visited in order to find sequences of points with
+a common nearest neigbhour. Once a sequence was discovered, the end points
+were used to construct a bounding box, and the "corners" of the bounding box
+were tested using a backup kd-tree structure. If all of the corners shared a
+common nearest-neigbhour, the bounding box is marked as terminal and added to
+a list of cache nodes.
 
-TODO
+After all of the sorted points have been processed, adjacent nodes in the list
+of cache nodes are used to build a bounding volume hierarchy which is used as
+the cache for the odds-on tree.
+
+Both minimal (i.e. two point) and maximum sequences were tested to see which
+would perform better when constructing the tree. Maximal sequences result in
+smaller cache structures, but correspondingly worse cache hit rates. Neither
+implementation is competitive with kd-trees, and so the Morton order based
+implementation was replaced with a compressed quadtree based implementation.
+
+\subsection{Compressed Quadtree Implementation}
+
+The compressed quadtree is built from the top down through recursive calls to a
+build function. The root node is covers the area containing all of the input
+points, and each node is split in to \(2^d\) equal size children. The build
+procedure is then called recursively for each child. Once the children are
+built, the node is examined to see if it only contains one child node. If so,
+the node is removed and the child node is returned in its place, which causes
+a compressed quadtree to be built.
+
+As with the kd-tree based implementation, a callback function is called as
+each node is created, which allows for the build process to end before all
+nodes are processed.
+
+The odds-on tree itself is built using a similar process to the kd-tree based
+version, using two point sets. The first point set is used to build a backup
+kd-tree, and the second set is used to build the compressed quadtree which
+is used as the cache. The interference query procedure is identical with the
+version used in the kd-tree based odds-on tree. A maximum depth is enforced.
+
+Building the compressed quadtree implementation top down was not as fast as
+sorting by Morton order, but resulted in a higher quality cache, so that cache
+hit rates were higher, and overall performance was better.
+
+TODO: give some figures comparing build times and query times between versions.
 
 \section{Odds-on Tree Query algorithm}
 
@@ -1071,9 +1120,6 @@ proceeds, each node visited is stored in a priority queue which is then passed
 into the backup node. This is used to prune the search while locating the true
 k nearest neighbours, which in favourable conditions can greatly accelerate
 the search process.
-
-TODO: Is there anyway we can use the odds-on tree more efficiently when doing
-approximate k-nearest neighbour searches?
 
 \chapter{Experimental Results}
 
@@ -1346,6 +1392,10 @@ In Acta Informatica, 5(1), pp. 287 – 295
 \bibitem{ann}
 Mount, D. M., Arya, S. (2012) ANN: A Library for Approximate Nearest Neighbor
 Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on July 29, 2012 
+
+\bibitem{physicallybasedrendering}
+Pharr, M., Humphreys, G. (2010) Physically Based Rendering
+Morgan-Kaufmann, San Francisco, CA.  
 
 \bibitem{skiplist}
 Pugh, W. (1990) Skip Lists: A Probabilistic Alternative to Balanced Trees.
