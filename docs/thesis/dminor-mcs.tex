@@ -5,6 +5,7 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 
+
 \title {Biased Nearest Neighbour Search}
 \author {Daniel Minor}
 \thesissupervisor {Patrick Morin}
@@ -41,11 +42,11 @@ is available, allowing for more common queries to be answered more quickly.
 Nearest neighbour search is of considerable practical interest with
 applications in geographical information systems, computer graphics,
 computer vision, signal processing and machine learning, and has received
-attention from both theoretical and applied computer scienets since the early
+attention from both theoretical and applied computer scientists since the early
 1970s.
 
 Although theoretically optimal solutions have existed since the 1990s, these
-suffer from the so-called "curse of dimensionality" where as the number of
+suffer from the so-called ``curse of dimensionality'' where as the number of
 dimensions increases, an increasingly large number of points must be searched
 until performance in practice is no better than a brute force search of all of
 the points. Even in low dimensions, nearest neighbour search can be a difficult
@@ -54,7 +55,7 @@ a large number of queries in a timely fashion. For these reasons, research has
 continued to investigate heuristic and approximate approaches to nearest
 neighbour search. 
  
-Recently, two groups of researchers \cite{chan} \cite{oddson} have proposed a
+Recently, two groups of researchers \cite{oddson,chan} have proposed a
 a biased data structure, called odds-on trees in \cite{oddson},  which can be
 applied to a variety of geometrical search problems and which seems as though it
 may be of practical as well as theoretical interest.
@@ -79,22 +80,23 @@ applications of nearest neighbour search.
 Following terminology associated with Voronoi diagrams, we define the set of
 points for which nearest neighbour searches will be performed as sites. Each
 site defines an area, called a cell, which for all points inside the cell, the
-associated site is the nearest neigbhour for a given metric.
+associated site is the nearest neighbour for a given metric.
+
+TODO: Define nearest-neighbour and $k$-nearest neighbour.
 
 A nearest neighbour search is given a point \(p\) determine which site is
 closest to it for a given metric. A \(k\)-nearest neighbour search is given a
 point \(p\) and an integer \(k\) return the \(k\) sites which are closest to it. 
-
 A \(1 + \epsilon\) approximate nearest neighbour search is given a point \(p\),
-return a site which is no more than \(1 + \epsilon\) times further away than
+return a site which is no more than \(1 + \epsilon\) times further away from $p$ than
 the true nearest neigbhour.
 
 A \(1 + \epsilon\) approximate \(k\)-nearest neighbour search is given a point
 \(p\), return \(k\) points such than none are further away than \(1 + \epsilon\)
-times the true \(k\)th nearest neighbour.
+times the true \(k\)th nearest neighbour of $p$.
 
 Entropy is the measure (in bits) of the amount of randomness of a set.  That is,
-if \(p_i\) is the probability of the i-th member of the set, then the entropy
+if \(p_i\) is the probability of the $i$th member of the set, then the entropy
 \(H\) is defined as
 $$
 H = \sum{ p_i \log{1 \over p_i}}
@@ -121,7 +123,7 @@ TODO
 The remainder of the thesis is organized as follows: Chapter 2 summarizes
 previous work for biased search, distribution sensitive data structures and
 nearest neighbour search.  Chapter 3 describes the design and implementation of
-the odds-on tree, including an description of alternative designs which were
+the odds-on tree, including a description of alternative designs which were
 explored.  Chapter 4 gives details on the experimentation performed and results
 obtained, and Chapter 5 summarizes the results and discusses potential 
 future work.
@@ -135,14 +137,15 @@ structure.
 
 \section{Nearest Neighbour Search}
 
+% See http://grammar.quickanddirtytips.com/which-versus-that.aspx for quick and dirty tips about using 'which' versus 'that'
 In this section we examine data structures and algorithms for nearest-neighbour
-search. We restrict ourselves to algorithms which operate in a comparison tree
+search. We restrict ourselves to algorithms that operate in a comparison tree
 model, where data structures make decisions based upon making comparisons
 between point coordinates.
 
 By operating in a comparison tree model, we also restrict ourselves to nearest
 neighbour search in relatively small dimensions. The effective of comparison
-based approaches diminishes as the dimensional increases. Evidence suggests in
+based approaches diminishes as the dimension increases. Evidence suggests in
 cases with 16 dimensions or more, using comparison based approaches performs no
 better than a brute force search of all of the points \cite{fastvector}.
 
@@ -179,7 +182,7 @@ Voronoi diagrams in low dimensions:
 \begin{thm} \emph{(Voronoi Diagram Construction)}
 The Voronoi diagram for a set of n points in two dimensions can be computed
 in time \(O(n \log n)\). In higher dimensions, the time becomes
-\(O(n \log n + n^(\lceil(d/2)\rceil))\) where d is the dimensionality of the
+\(O(n \log n + n^r{\lceil(d/2)\rceil})\) where $d$ is the dimensionality of the
 space \cite{dutch}.
 \end{thm}
 
@@ -208,9 +211,10 @@ point location to be performed in \(O(\log n)\) time \cite{kirkpatrick}.
 The same bounds were achieved using different data structures by Sarnak and
 Tarjan \cite{sarnak} and Edelsbrunner et al. \cite{edelsbrunner}.
 
+% simplicies is plural, simplex is singular
 In higher dimensions, given n hyperplanes, it is possible to solve this problem
-by constructing a \(1/r\)-cutting, which is a collection of simplices which
-covers the space and is constructed such that each simplice intersects with no
+by constructing a \(1/r\)-cutting, which is a collection of simplices that
+covers the space and is constructed such that each simplex intersects with no
 more than \(n/r\) hyperplanes. Chazelle gives a hierarchical construction
 procedure for these hyperplanes such that a simplice is eventually fully
 contained in one of the cells, which can then be labelled and used to perform
@@ -224,7 +228,7 @@ point location in a d-dimensional arrangment of hyperplanes to be performed in
 
 Nearest-neigbhour search can be performed using Voronoi diagrams and provides
 efficient algorithms in the plane. To extend this to reporting k-nearest
-neighbours, once the Voronoi cell containting the query point has been
+neighbours, once the Voronoi cell containing the query point has been
 identified, the neighbour cells of the Voronoi diagram can be examined until
 a sufficient number of neighbours has been found. 
 
@@ -272,7 +276,7 @@ s is the side length of the initial square containing all of the points.
 \cite{dutch}.
 \end{thm}
 
-Note that the height of the quadtree is not bounded by n.
+Note that the height of the quadtree is not bounded by $n$.
 
 \begin{thm} \emph{(Quadtree Construction)}
 A quadtree of height h containing n points can be constructed in \(O((h + 1)n)\)
@@ -291,9 +295,10 @@ Point location in a quadtree of height h can be performed in time \(O(h)\).
 
 \subsubsection{Nearest Neighbour Search in a Quadtree}
 
-Given a query point p the quadtree node containing p, if any, can be found by
-starting at the root, comparing p to the bounds of the each child of the root,
-and recursively visiting the child containing p until a leaf node is found.  
+Given a query point $p$ the quadtree node containing $p$, if any, can be found by
+starting at the root, comparing $p$ to the bounds of the each child of the root,
+and recursively visiting the child containing $p$ until a leaf node is found.  
+% Fix the remaining missing inline math markup on $n$ and $p$
 Since the maximum depth of a quadtree with n points is not bounded by n, the
 running time of this search algorithm is also not bounded by n. This search,
 along with a means of performing region queries was described in
@@ -350,7 +355,7 @@ interleaving of bits is called the "shuffle" of a point in \cite{bern}.
 \end{center}
 \end{figure}
 
-The points are then sorting according their Morton order. Each two adjacent
+The points are then sorted according their Morton order. Each two adjacent
 points in the sorted order form a node in the quadtree, which can then be
 nested by finding the first larger square to the left and the right in the
 sorted order \cite{bern}.
@@ -361,7 +366,7 @@ A quadtree containing n points can be constructed in \(O(n \log n)\) time
 \end{thm}
 
 Chan \cite{chan} showed that the shuffle can be calculated without explicitly
-interleaving the bits, and \cite{connor} showed that this can be extended from
+interleaving the bits, and Connor and Kumar \cite{connor} showed that this can be extended from
 integer values to IEEE-754 floating point values.
 
 \begin{figure}
@@ -422,6 +427,7 @@ approximately half as many points as that in the level below, we expect to
 create \(O(\log n)\) compressed quadtrees.
 
 \begin{thm} \emph{(Skip Quadtree Construction)}
+% QUESTION: Do you mean to say skip quadtree here?
 A quadtree containing n points can be constructed in \(O(n \log^2 n)\)
 expected time.
 \end{thm}
@@ -447,16 +453,17 @@ Nearest neighbour search in a skip quadtree is similar to the procedure for
 searching a standard quadtree, but the skip structure is used to limit
 the number of nodes visited.
 
+% TODO: More math markup around p's and q's
 For a node p removed from the priority queue, the skip structure is used to
 determine the node q, which is the smallest node in the lowest skip level
 which is equidistant to the query point. It is shown in \cite{skipquadtree}
-that at most \(O(\log 1 \over \epsilon)\) nodes on the path from p to q need
+that at most \(O(\log \frac{1}{\epsilon})\) nodes on the path from p to q need
 to be added to the priority queue.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
 Approximate \(1 + \epsilon\) nearest neighbour search for d dimensions in a skip
 quadtree with n points requires
-\(O(\epsilon^(1 - d)(\log n + \log \epsilon^(-1)))\) expected time.
+\(O(\epsilon^{1 - d}(\log n + \log \epsilon^(-1)))\) expected time.
 \end{thm}
 
 \subsection{Kd-Trees}
@@ -469,8 +476,10 @@ Kd-trees are constructed by choosing an axis, determining the median value in
 the point set for the corresponding coordinate, and dividing the points in two
 halves using the median value.  The two child nodes are then built by
 recursively building kd-trees for each half.  Depending upon the application,
-a number of heuristics exist for choosindg which axis to use for dividing the
+a number of heuristics exist for choosing which axis to use for dividing the
 points.
+
+FIXME: Actually, Bentley specifies that the discriminators (axes) are chosen roud-robin, level-by-level.
 
 \begin{thm} \emph{(Height of a Kd-Tree)}
 The height of a kd-tree with n points is \(O(\log n)\).
@@ -575,7 +584,7 @@ nearest neighbours rather than an exact ones.
 Given a constant \(c_{d,\epsilon} \le \lceil 1 + {6d \over \epsilon} \rceil^d\)
 where d is the dimensionality of the space and \(\epsilon\) is the approximation
 factor, a \((1 + \epsilon)\)-nearest neighbour search in a BBD Tree can be
-performed in time \(O(c_{d,\epsilon} \log n)\) time and k approximate neareest
+performed in time \(O(c_{d,\epsilon} \log n)\) time and k approximate nearest
 neigbhours can be found in \(O((c_{d,\epsilon} + kd) \log n)\) time.
 \end{thm}
 
@@ -589,7 +598,7 @@ within it is a \(1 + \epsilon\)-nearest neighbour, rather than an exact
 nearest neigbhour.
 
 Har-Peled \cite{avd} provides an algorithm for building an approximate
-Voronoi diagram which returns a answers nearest-neighbour searches. His
+Voronoi diagram which that answers nearest-neighbour searches. His
 construction is complicated, requiring first clustering the input sites, then
 building a data structure for answerings point location in equal ball queries
 (a technique also used in locality sensitive hashing \cite{lsh}) and finally
@@ -613,8 +622,11 @@ quadtrees or kd-trees directly.
 \begin{thm} \emph{(Nearest Neighbour Search in a Approximate Voronoi Diagram)} 
 An approximate Voronoi diagram of size \(O({n \over \epsilon ^ d})\) can be
 constructed which can answer \((1 + \epsilon)\) approximate nearest neighbour
-searches in time \(O(log {n \over \epsilon})\) \cite{arya-avd}.
+searches in time \(O(\log {n \over \epsilon})\) \cite{arya-avd}.
 \end{thm}
+
+% TODO: give further justification for not considering AVD more seriously
+% (too complicated? unimplementable? ...)
 
 \section{Biased Search}
 
@@ -626,7 +638,7 @@ in a single dimension, before considering the problem in higher dimensional spac
 
 \subsection{Information Theory}
 
-Lower bounds for search, in particular biased search depend upon results from
+Lower bounds for search, in particular biased search, depend upon results from
 information theory. We briefly summarize these results here.  Information theory
 is the study of the fundamental properties of communication systems. A data
 structure can be seen as a form of communication system, since it provides a
@@ -642,7 +654,7 @@ $$
 H = \sum{ p_i \log{1 \over p_i}}
 $$
 
-Shannon also proved that the efficient of any communication system is limited
+Shannon also proved that the efficiency of any communication system is limited
 by the entropy of the set of messages to be transmitted.
 
 \begin{thm} \emph{(Fundamental Theorem for a Noiseless Channel)} 
@@ -654,8 +666,16 @@ at an average rate greater than \(C \over H\) \cite{claudeshannonwasagod}.
 \end{thm}
 
 Any data structure for search can not have an expected average search time which
-exceeds this entropy bound, that is \(O(H)\) is a lower bound on the search time
+exceeds this entropy bound, that is \(\Omega(H)\) is a lower bound on the search time
 for any data structure.
+
+% Emphasize somewhere, early on, that "search time" = "# comparisons"
+
+% This is critical, and needs to be elaborated on.
+% You say that Omega(H) is a lower-bound, but H is defined in terms of p_i's,
+% so you also have to say what those are.  Also specify that this is for a
+% random query where the data structure has no information about this query
+% other than the distribution of its outcomes
 
 \subsection{Biased Search Trees}
 
@@ -698,7 +718,7 @@ Then we have that:
 This recurrence allows us to find all optimal one node trees and then use that
 to find all optimal two node trees, and so forth, until an optimal search
 tree has been determined. This minimization is applied to \({1\over{6}} n^{3} \)
-values of \( k \), but an monoticity property allows the running time
+values of \( k \), but an monotonicity property allows the running time
 to be reduced to \( O(n^2) \) \cite{knuth}.
 
 \begin{thm} \emph{(Construction of an Optimal Static Biased Binary Search Tree)} 
@@ -718,7 +738,7 @@ rule to the subtrees.
 
 Mehlhorn \cite{mehlhorn} analyzed the results of applying these two rules. He
 provides a simple example where Rule I will produce a tree with expected
-search time \(O(n)\).
+search time \(\Theta(n)\).
 
 His analysis of Rule II shows that the expected search time for item in the tree
 is bounded from above by the entropy \(H\) of the query frequency distribution.
@@ -731,19 +751,21 @@ $$
 H = \sum{ p_i \log{1 \over p_i}} + \sum{ q_i \log{1 \over q_i}}
 $$
 
+% FIXME: Look at Mehlhorn's paper again.  There is, I believe an O(1) term
+
 \begin{thm} \emph{(Nearly Optimal Static Biased Binary Search Tree)} 
 A static biased search tree where the search time for an item is bounded by
 the entropy \(H\) of the frequency distribution can be constructed in time
 \(O(n \log n)\) and space \(O(n)\).
 \end{thm}
 
-Biased search trees allowing insertions and deletions based upon 2 - 4 and
+Biased search trees allowing insertions and deletions based upon 2-4 and
 red-black trees were described by Bent, Sleator and Tarjan \cite{bst} in 1984.
-As with 2 - 4 trees, there data structure relies upon maintaing invariants
+As with 2-4 trees, their data structure relies upon maintaing invariants
 on the tree during updates through complicated, multi-case rules for
 re-parenting nodes to maintain balance. In this case, the balance condition
 depends upon the weight of the node. If all of the weights are one, the
-resulting tree is simply a 2 - 4 tree. Somewhat simpler trees are provided
+resulting tree is simply a 2-4 tree. Somewhat simpler trees are provided
 by Feigenbaum and Tarjan \cite{bst2}. Due to the complexity and number of
 sub-cases that must be considered to maintain balance in the search tree, we do
 not provide further implementation details.
@@ -756,14 +778,14 @@ where \(W\) is the total weight of all items in the search tree and \(w\) is
 the weight of the item added or removed \cite{bst2}.
 \end{thm}
 
-\subsection{Splaytrees}
+\subsection{Splay Trees}
 
 An alternative approach to biased search is to use data structures which
 modify themselves in response to queries. In this case, rather than specifying
 the probabilities in advance, the data structure will change itself to match
 the query distribution. 
 
-Splaytrees, which were invented by Sleator and Tarjan \cite{splaytree} are a
+Splay trees, which were invented by Sleator and Tarjan \cite{splaytree} are a
 self-modifying binary search tree which perform well in practice. They operate
 by moving the most recently accessed node to the root of the tree using a
 process called splaying which rotates items in pairs according to three cases
@@ -787,10 +809,10 @@ The total ammortized time required for a sequence of \(m\) accesses to a \(n\)
 node splay tree is \(O(n \log n + m)\) \cite{splaytree}.
 \end{thm}
 
-It is possible to create biased versions of other, more simpler data structures
+It is possible to create biased versions of other, simpler data structures
 such as randomized search trees (treaps) \cite{treap} and skip lists
 \cite{bsl2} but these do not provide better theoretical performance guarantees
-than biased search trees. In practice, splaytrees appear to have better
+than biased search trees. In practice, splay trees appear to have better
 performance and are as easy to implement as treaps and skip lists, and so these
 data structures are not discussed further \cite{minor}.
 
@@ -806,7 +828,10 @@ is a binary search tree.
 
 We discussed this problem above in the section on nearest-neighbour
 search in a Voronoi diagram, and noted that a linear space and \(O(\log n)\)
-search time solution existed for this problem.  As is the case with binary
+search time solution existed for this problem.  
+%% Be more precise here: p_i is the probability that the _answer_ to a query
+%% is the i'th triangle
+FIXME: As is the case with binary
 search trees, if we are given a probability distribution over the query points
 \(p\) such that each point is chosen with probability \(p_i\), then the
 expected number of decisions made during search is bounded by the entropy of
@@ -855,11 +880,23 @@ fractional cascading can reduce the query time to \(O(\log n + k)\)
 
 Kd-Trees and Quadtrees can also be used to solve the range counting problem,
 but with linear worst case query time.
+% Actually, kd-trees can answer orthogonal range counting queries in $O(\sqrt(n))$ time per query.
+
+
+% In this section, it would be good to give an example of the
+% entropy argument.  The answer to any range counting query is an
+% integer in {0,...,n}.  p_i is the probability that the answer is i.
+% Then H=\sum_{i=0}^n{p_i\log(1/p_i) is a lower-bound.
+
+% Then you can show an example like like Figure~1.b in \cite{biasedrange}
+% that shows that H can be big even if the query distribution is such that
+% the answer to a range counting query is always 0.
+
 
 A Biased Range Tree relies upon two data structures. The primary search tree
 is based upon a kd-tree. The nodes of the primary tree are associated with
 regions of space, and the root node covers the plane. Any node in the primary
-search tree that has depth greater than \(O(\log n)\) is called a "bad" node.
+search tree that has depth greater than \(O(\log n)\) is called a ``bad'' node.
 These regions are potentially open on two sides, since the data structure is
 designed to support 2-sided queries \cite{biasedrange}. 
 
@@ -877,7 +914,7 @@ used to speed up search within the catalogues.
 The second data structure is a backup range tree, as described above, which
 uses \(O(n \log n)\) space and can answer range search queries in time
 \(O(\log n)\). This data structure is used to answer queries for which the
-depth of correpsonding node in the primary tree would exceed \(O(\log n)\),
+depth of corresponding node in the primary tree would exceed \(O(\log n)\),
 that is the "bad" nodes.
 
 Search within the biased range tree occurs as follows: the primary tree is
@@ -890,11 +927,16 @@ counting query, and the tree is walked back to the root, locating the query
 point in the catalogues of each node along the way, and adding results to
 the range counting query.
 
+% The definition of H needs to be fixed here.  H is a function of the points
+% and query distribution that lower-bounds the expected number of comparisons
+% done by any comparison-based data structure 
+
 \begin{thm} \emph{(Two-Sided Orthogonal Biased Range Search)} 
 Two sided orthogonal biased range search can be performed using space
-\(O \log n\) and expected time \(O(H)\) where \(H\) is the entropy of the query
+\(O(\log n\)) and expected time \(O(H)\) where \(H\) is the entropy of the query
 set \cite{biasedrange}.
 \end{thm}
+
 
 \subsection{Odds-on Trees}
 
@@ -907,7 +949,10 @@ is capable of answering any query drawn from \(D\) in expected time
 \(O(H^* + 1)\) where \(H^*\) is a lower bound on the expected cost of any
 linear decision tree which solves the search problem. In particular, the
 entropy \(H\) of the query distribution \(D\) is one such bound for many search
-problems. A linear decision tree is a search tree where the decision of which
+problems.
+% Again, it's the entropy of the ouput that matters, not the entropy of the 
+% query distribution (which may not even be well-defined).
+A linear decision tree is a search tree where the decision of which
 child node to follow is based on a linear function.
 
 An Odds-on tree consists of a primary search tree and a backup search tree.
@@ -928,7 +973,7 @@ of points in the search simplex. A partition tree can be constructed in
 
 The points used to create this partition are drawn from the query distribution
 \(D\), and the maximum depth of any node in the tree does not exceed a specified
-constant. For each node in the partition tree the area corresponding ot the node
+constant. For each node in the partition tree the area corresponding to the node
 is searched to see if the answer to the search problem is the same for all points
 associated with the area. Since the simplices created by a partition tree are
 possibly overlapping, it is necessary to determine the polytope associated with
@@ -948,7 +993,7 @@ backup tree is used to answer the query \cite{oddson}. The same data structure
 with a different analysis was presented by Chan et al. \cite{chan}.
 
 \begin{thm} \emph{(Odds-on Tree)}
-For any \(n\) and \(\tau\) an odds-on tree of size \(m = n^\tau\) of maximum
+For any \(n\) and \(\tau>0\) an odds-on tree of size \(m = n^\tau\) of maximum
 depth k = \(\lfloor {1 \over 4} \log_{r \over 3} m \rfloor \), where \(r\) is
 the number of simplices associated with the root node of the odds-on tree, can
 be constructed in time \(O(m \log^{O(1)} n)\) plus the cost of \(O(m)\) samples
@@ -972,9 +1017,9 @@ theoretical performance guarantees, they have the advantage that they are
 simple to implement and perform well in practice.
 
 In general, kd-trees out perform quadtrees, but we chose to implement both data
-structures to see if building a compressed quadtree "bottom up" using z-order
+structures to see if building a compressed quadtree ``bottom up'' using z-order
 sorting would result either in faster construction time or faster query time
-than a traditional "top down" recursive build process.
+than a traditional ``top down'' recursive build process.
 
 \section{Kd-tree Odds-on Tree Implementation}
 
