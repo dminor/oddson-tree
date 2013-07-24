@@ -26,9 +26,6 @@ THE SOFTWARE.
 /*
 Odds-on Tree implementation based upon descriptions in: 
     Bose, P. et al (2010) Odds-on Trees retrieved from: http://arxiv.org/abs/1002.1092 
-and 
-    P. Afshani, J. Barbay, and T. M. Chan (2009) Instance-optimal geometric algorithms
-    in Proceedings of FOCS 2009.  
 */ 
 
 #if defined ODDSON_TREE_KDTREE_IMPLEMENTATION
@@ -70,7 +67,7 @@ public:
 
             //run interference query (need to make sure all "corners" have same nearest-neighbour)
             pt->nn = 0;
-            for (size_t i = 0; i < 2*dim; ++i) {
+            for (size_t i = 0; i < 1<<dim; ++i) {
                 Point qp;
                 for (size_t d = 0; d < dim; ++d) {
                     if (i & (1 << d)) qp[d] = range[d*2];
@@ -300,7 +297,7 @@ public:
 
             //run interference query (need to make sure all "corners" have same nearest-neighbour)
             typename KdTree<Point, double>::Node *nn = 0;
-            for (size_t i = 0; i < 2*dim; ++i) {
+            for (size_t i = 0; i < 1<<dim; ++i) {
                 Point qp;
                 for (size_t d = 0; d < dim; ++d) {
                     if (i & (1 << d)) qp[d] = node->mid[d] - node->radius;
@@ -401,20 +398,10 @@ public:
 
         CachedPoint *cp = locate(pt);
 
-        if (cp) {
-            Point *nn = cp->nn->pt;
-
-            double dist = (pt[0] - (*nn)[0])*(pt[0] - (*nn)[0]) + 
-            (pt[1] - (*nn)[1])*(pt[1] - (*nn)[1]); 
-
-            result.push_back(std::make_pair<Point *, double>(nn, dist));
-            ++hits;
-        } else {
-            result = backup->knn(k, pt, eps); 
-        }
-
+        PriorityQueue<typename KdTree<Point, double>::Node *> pq(k);
+        locate(pq, pt);
+        result = backup->knn(k, pq, pt, eps); 
         ++queries;
-
         return result; 
     }
 
@@ -429,8 +416,7 @@ private:
     int queries;
 
     CachedPoint *locate(const Point &pt) 
-    {
-
+    { 
         typename CompressedQuadtree<CachedPoint>::Node *node = 0;
         CachedPoint *qr = 0; 
 
@@ -463,6 +449,52 @@ private:
 
         return qr; 
     } 
+
+    CachedPoint *locate(PriorityQueue<typename KdTree<Point, double>::Node *> &pq, const Point &pt)
+    {
+        typename CompressedQuadtree<CachedPoint>::Node *node = 0;
+        CachedPoint *qr = 0; 
+
+        //search for node containing the query point 
+        if (cache->root->in_node(pt, cache->dim)) { 
+            node = cache->root; 
+
+            while (node) {
+
+                if (node->nodes) { 
+                    size_t n = 0; 
+                    for (size_t d = 0; d < dim; ++d) { 
+                        if (pt[d] > node->mid[d]) n += 1 << d; 
+                    } 
+
+                    if (node->nodes[n] && node->nodes[n]->in_node(pt, cache->dim)) {
+                        node = node->nodes[n]; 
+
+                        if (node->pt && node->pt->nn) {
+                            double d = 0; 
+                            for (int i = 0; i < dim; ++i) {
+                                d += ((*(node->pt->nn->pt))[i]-pt[i]) * ((*(node->pt->nn->pt))[i]-pt[i]); 
+                            } 
+
+                            pq.push(d, node->pt->nn);
+                        }
+
+                        if (node->pt && node->pt->terminal) {
+                            qr = node->pt; 
+                            break;
+                        }
+                    } else {
+                        break;
+                    } 
+                } else {
+                    break;
+                } 
+            } 
+        } 
+
+        return qr; 
+    }
+
 };
 
 #else
