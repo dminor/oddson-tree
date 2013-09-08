@@ -27,6 +27,8 @@ THE SOFTWARE.
 #include <fstream>
 #include <iostream>
 
+#include <time.h>
+
 #include "kdtree.h"
 
 struct Point {
@@ -128,7 +130,12 @@ int main(int argc, char **argv)
     int pt_count, dim;
     Point *pts = read_points(argv[1], pt_count, dim); 
    
+    struct timespec start, end;
+    clock_gettime(CLOCK_REALTIME, &start); 
     KdTree<Point, double> kt(dim, pts, pt_count);
+    clock_gettime(CLOCK_REALTIME, &end); 
+    double elapsed_msec = (end.tv_sec - start.tv_sec)*1E3 + (end.tv_nsec - start.tv_nsec)*1E-6;
+    fprintf(stderr, "info: tree construction took: %f (msec)\n", elapsed_msec);
 
     if (argc < 3) {
         return 1;
@@ -143,7 +150,7 @@ int main(int argc, char **argv)
     }
 
     //how many nearest neighbours to retrieve
-    int nn = 5;
+    int nn = 1;
     if (argc >= 4) nn = atoi(argv[3]);
 
     //read query epsilon
@@ -151,6 +158,7 @@ int main(int argc, char **argv)
     if (argc == 5) epsilon = atof(argv[4]);
 
     //run queries
+    clock_gettime(CLOCK_REALTIME, &start); 
     for (int i = 0; i < q_count; ++i) { 
 
         std::list<std::pair<Point *, double> > qr = kt.knn(nn, queries[i], epsilon);  
@@ -171,6 +179,9 @@ int main(int argc, char **argv)
             std::cout << ") " << itor->second << "\n"; 
         } 
     }
+    clock_gettime(CLOCK_REALTIME, &end); 
+    elapsed_msec = (end.tv_sec - start.tv_sec)*1E3 + (end.tv_nsec - start.tv_nsec)*1E-6;
+    fprintf(stderr, "info: running queries took: %f (msec)\n", elapsed_msec);
 
     std::cout << "done." << std::endl;
 

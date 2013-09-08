@@ -1,13 +1,13 @@
 
 INCS = -I../../include 
-LIBS = 
+LIBS = -lrt
 CFLAGS = -g -O2
 LDFLAGS = -L../../bin 
 OBJS = main.o
 TARGET = ../../bin/kdtree-knn-query
 
 all: $(OBJS)
-	g++ $(LDFLAGS) $(LIBS) $(OBJS) -o $(TARGET) 
+	g++ $(LDFLAGS) $(OBJS) -o $(TARGET) $(LIBS)
 
 .cpp.o:
 	g++ $(INCS) $(CFLAGS) -c $< -o $@
