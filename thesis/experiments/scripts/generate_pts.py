@@ -29,8 +29,10 @@ import random
 #
 DIMS = [2, 3, 4, 8, 16]
 PT_COUNT = [1000, 10000, 100000, 1000000]
-SEARCH_PT_COUNT = [1000000]
+SEARCH_PT_COUNT = [500000]
 SEARCH_SIGMA = [0.5, 0.1, 0.05, 0.01]
+SAMPLE_PT_COUNT = [0.05, 0.1, 0.25, 0.5]
+NUMBER_OF_RUNS = 10
 ###############################################################################
 
 
@@ -61,7 +63,7 @@ if __name__ == '__main__':
 
     # parse arguments
     parser = argparse.ArgumentParser(description='Update ouija database.')
-    parser.add_argument('--output-dir', dest='output_dir',
+    parser.add_argument('--output-dir', dest='output_dir', default='../data',
                         help='Directory in which to write output.')
     parser.add_argument('--random-seed', dest='random_seed',
                         help='Random seed.')
@@ -84,13 +86,19 @@ if __name__ == '__main__':
             with gzip.open(name, 'wb') as f:
                 write_pts(f, pts)
 
-    # search sets
+    # sample and earch sets
     for dim in DIMS:
-        for count in SEARCH_PT_COUNT:
+        for search_pt_count in SEARCH_PT_COUNT:
             for sigma in SEARCH_SIGMA:
-                pts = gaussian_pts(dim, count, sigma=sigma)
-                name = 'search_dim_%02d_count_%d_sigma_%.3f.txt.gz' % (dim,
-                                                                       count,
-                                                                       sigma)
+                pts = gaussian_pts(dim, search_pt_count, sigma=sigma)
+                name = 'search_dim_%02d_count_%d_sigma_%.3f.txt.gz' % (dim, search_pt_count, sigma)
                 with gzip.open(name, 'wb') as f:
                     write_pts(f, pts)
+
+            for sample_pt_count in SAMPLE_PT_COUNT:
+                actual_pt_count = int(sample_pt_count*search_pt_count)
+                for i in xrange(0, NUMBER_OF_RUNS):
+                    pts = gaussian_pts(dim, actual_pt_count, sigma=sigma)
+                    name = 'sample_dim_%02d_count_%d_sigma_%.3f_sample_%d_num_%d.txt.gz' % (dim, search_pt_count, sigma, actual_pt_count, i)
+                    with gzip.open(name, 'wb') as f:
+                        write_pts(f, pts)
