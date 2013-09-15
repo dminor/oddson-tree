@@ -130,9 +130,9 @@ public:
 
     virtual ~OddsonTree()
     {
-        fprintf(stderr, "hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
+        fprintf(stderr, "info: hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
 
-        fprintf(stderr, "average backup nodes visited / query: %0.2f\n", (double)backup->knn_nodes_visited / (double)queries);
+        fprintf(stderr, "info: backup nodes visited: %d\n", backup->knn_nodes_visited);
 
         delete[] range;
         delete backup;
@@ -358,7 +358,7 @@ public:
 
     virtual ~OddsonTree()
     {
-        fprintf(stderr, "hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
+        fprintf(stderr, "info: hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
 
         //FIXME: double delete in compressed quadtree
         //delete cache;
