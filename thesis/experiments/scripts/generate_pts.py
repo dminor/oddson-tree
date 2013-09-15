@@ -62,7 +62,7 @@ def write_pts(f, pts):
 if __name__ == '__main__':
 
     # parse arguments
-    parser = argparse.ArgumentParser(description='Update ouija database.')
+    parser = argparse.ArgumentParser(description='Create experimental data.')
     parser.add_argument('--output-dir', dest='output_dir', default='../data',
                         help='Directory in which to write output.')
     parser.add_argument('--random-seed', dest='random_seed',

@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 import argparse
+import datetime
 import glob
 import gzip
 import math
@@ -46,23 +47,35 @@ def do_single_run(pts, searches, samples, args):
 
     #uncompress files
     gunzip(pts, 'pts.txt')
-    gunzip(searches, 'samples.txt')
-    gunzip(samples, 'searches.txt')
+    gunzip(samples, 'samples.txt')
+    gunzip(searches, 'searches.txt')
 
     log = open('log.txt', 'ab')
     null = open('/dev/null', 'ab')
 
-    log.write(pts + '\n')
-    log.write(searches + '\n')
-    log.write(samples + '\n')
+    #pull parameters out of filename
+    dim = int(re.search('dim_(\d+)', pts).groups()[0])
+    npoints = int(re.search('count_(\d+)', pts).groups()[0])
+    sigma = float(re.search('sigma_(\d.\d+)', searches).groups()[0])
+    sample = int(re.search('sample_(\d+)', samples).groups()[0])
+    search = int(re.search('count_(\d+)', searches).groups()[0])
+    run = int(re.search('num_(\d+)', samples).groups()[0])
+
+    log.write('====================\n')
+    log.write('%s|%s|%s\n' % (pts, searches, samples))
+    log.write('dim: %d\n' % dim)
+    log.write('pts: %d\n' % npoints)
+    log.write('search size: %d\n' % search)
+    log.write('sigma: %f\n' % sigma)
+    log.write('sample size: %d\n' % sample)
+    log.write('run: %d\n' % run)
     log.write('kdtree: %s\n' % args.kdtree)
     log.write('odds-on tree: %s\n' % args.oddson_tree)
     log.write('k: %d\n' % args.k)
 
-    npoints = float(re.search('count_(\d+)', pts).groups()[0])
-
     for depth in MAXIMUM_BUILD_DEPTH: 
-        actual_depth = int(depth*math.log(npoints))
+        actual_depth = int(depth*math.log(float(npoints)))
+        log.write('--------------------\n')
         log.write('build depth: %d\n' % actual_depth)
 
         # run kdtree
@@ -70,12 +83,16 @@ def do_single_run(pts, searches, samples, args):
         log.flush()
         cmd = [args.kdtree, 'pts.txt', 'searches.txt', str(args.k)]
         result = subprocess.call(cmd, stdout=null, stderr=log)
+        log.write('done: %d\n' % result)
         
         # run odds-on tree
         log.write('running odds-on tree\n')
         log.flush()
         cmd = [args.oddson_tree, 'pts.txt', 'samples.txt', str(actual_depth), 'searches.txt', str(args.k)]
         result = subprocess.call(cmd, stdout=null, stderr=log)
+        log.write('done: %d\n' % result)
+
+    log.write('\n\n')
 
     # clean up
     os.remove('pts.txt')
@@ -124,8 +141,9 @@ if __name__ == '__main__':
     searches = glob.iglob('search_dim_%02d*' % args.dim)
     pts = glob.iglob('pts_dim_%02d*' % args.dim)
 
-    log = open('log.txt', 'wb')
-    log.write('start.\n')
+    with open('log.txt', 'wb') as log:
+        log.write('started: %s\n' % str(datetime.datetime.now()))
+
     for pt in pts:
         for search in searches:
             # find samples corresponding to search
@@ -135,5 +153,6 @@ if __name__ == '__main__':
                 do_single_run(pt, search, sample, args)
 
             break
-    log.write('done.\n')
-    log.close()
+
+    with open('log.txt', 'ab') as log:
+        log.write('finished: %s\n' % str(datetime.datetime.now()))
