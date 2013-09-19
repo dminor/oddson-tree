@@ -152,7 +152,5 @@ if __name__ == '__main__':
             for sample in samples:
                 do_single_run(pt, search, sample, args)
 
-            break
-
     with open('log.txt', 'ab') as log:
         log.write('finished: %s\n' % str(datetime.datetime.now()))
