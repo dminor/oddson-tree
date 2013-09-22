@@ -95,9 +95,9 @@ if __name__ == '__main__':
                 with gzip.open(name, 'wb') as f:
                     write_pts(f, pts)
 
-            for sample_pt_count in SAMPLE_PT_COUNT:
-                for i in xrange(0, NUMBER_OF_RUNS):
-                    pts = gaussian_pts(dim, sample_pt_count, sigma=sigma)
-                    name = 'sample_dim_%02d_count_%d_sigma_%.3f_sample_%d_num_%d.txt.gz' % (dim, search_pt_count, sigma, sample_pt_count, i)
-                    with gzip.open(name, 'wb') as f:
-                        write_pts(f, pts)
+                for sample_pt_count in SAMPLE_PT_COUNT:
+                    for i in xrange(0, NUMBER_OF_RUNS):
+                        pts = gaussian_pts(dim, sample_pt_count, sigma=sigma)
+                        name = 'sample_dim_%02d_count_%d_sigma_%.3f_sample_%d_num_%d.txt.gz' % (dim, search_pt_count, sigma, sample_pt_count, i)
+                        with gzip.open(name, 'wb') as f:
+                            write_pts(f, pts)
