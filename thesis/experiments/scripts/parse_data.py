@@ -21,6 +21,8 @@
 import argparse
 import os
 import re
+import sqlite3
+import sys
 
 def parse_rows(filename):
 
@@ -63,8 +65,6 @@ def parse_rows(filename):
             backup = 0
         elif line.startswith('running odds-on tree'):
             kdtree = False 
-            hits = 0
-            backup = 0
         elif line.startswith('info:'):
             m = re.match('info: tree construction took: (\d+.\d+)', line)
             if m:
@@ -89,27 +89,59 @@ def parse_rows(filename):
 
     return rows
 
-def write_to_csv(filename, rows):
-    csv = open(filename, 'wb')
-    csv.write('dim,pts,sigma,search,sample,build_depth,run,kdtree,ctime,qtime,hits,backup\n')
-    rows = sorted(rows)
+def write_to_csv(rows):
     for row in rows:
-        csv.write(','.join(map(str,row)))
-        csv.write('\n')
+        print(','.join(map(str,row)))
 
-    csv.close()
+def query_db(conn, filter):
+    c = conn.cursor()
+    c.execute(filter)
+    result = [[descriptor[0] for descriptor in c.description]]
+    for row in c.fetchall():
+        result.append(row)
+    c.close()
+    return result
+
+def write_to_db(conn, rows):
+    try:
+        conn.execute('''drop table data''')
+    except sqlite3.OperationalError:
+        pass
+
+    conn.execute('''create table data
+                 (dim int, pts int, sigma real, search int,
+                  sample int, build_depth int, run int, 
+                  kdtree int, ctime real, qtime real,
+                  hits int, backup int)''')
+
+    conn.executemany('''insert into data values(?,?,?,?,?,?,?,?,?,?,?,?)''', rows)
+    conn.commit()
 
 if __name__ == '__main__':
 
     # parse arguments
     parser = argparse.ArgumentParser(description='Parse experiment data.') 
-    parser.add_argument('file', help='Log file to parse.')
+    parser.add_argument('--database', dest='database', default=':memory:',
+                        help='Database file to use.')
+    parser.add_argument('--filter', dest='filter',
+                        default='select * from data order by pts, sigma, sample, build_depth, run;',
+                        help='SQL query used to select data.')
+    parser.add_argument('--logfile', dest='logfile',
+                        help='Log file to use.')
     args = parser.parse_args()
 
-    if not os.path.isfile(args.file):
-        print('error: could not find log file: ' + args.file)
-        exit(1)
+    if args.database == ':memory:' and not args.logfile:
+        print('error: one of --logfile or --database must be specified.')
+        sys.exit(1)
 
-    rows = parse_rows(args.file)
-    write_to_csv(args.file + '.csv', rows)
+    with sqlite3.connect(args.database) as conn:
+        if args.logfile:
+            if not os.path.isfile(args.logfile):
+                print('error: could not find log file: ' + args.logfile)
+                sys.exit(1)
 
+            rows = parse_rows(args.logfile)
+            write_to_db(conn, rows)
+
+        rows = query_db(conn, args.filter)
+        write_to_csv(rows)
