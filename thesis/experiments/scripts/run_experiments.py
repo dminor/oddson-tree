@@ -27,6 +27,7 @@ import os
 import random
 import re
 import subprocess
+import sys
 
 ###############################################################################
 #
@@ -50,9 +51,6 @@ def do_single_run(pts, searches, samples, args):
     gunzip(samples, 'samples.txt')
     gunzip(searches, 'searches.txt')
 
-    log = open('log.txt', 'ab')
-    null = open('/dev/null', 'ab')
-
     #pull parameters out of filename
     dim = int(re.search('dim_(\d+)', pts).groups()[0])
     npoints = int(re.search('count_(\d+)', pts).groups()[0])
@@ -61,6 +59,7 @@ def do_single_run(pts, searches, samples, args):
     search = int(re.search('count_(\d+)', searches).groups()[0])
     run = int(re.search('num_(\d+)', samples).groups()[0])
 
+    log = open('log.txt', 'ab')
     log.write('====================\n')
     log.write('%s|%s|%s\n' % (pts, searches, samples))
     log.write('dim: %d\n' % dim)
@@ -82,15 +81,28 @@ def do_single_run(pts, searches, samples, args):
         log.write('running kdtree\n')
         log.flush()
         cmd = [args.kdtree, 'pts.txt', 'searches.txt', str(args.k)]
-        result = subprocess.call(cmd, stdout=null, stderr=log)
+        with open('kdtree.txt', 'wb') as kdtree_out:
+            result = subprocess.call(cmd, stdout=kdtree_out, stderr=log)
         log.write('done: %d\n' % result)
         
         # run odds-on tree
         log.write('running odds-on tree\n')
         log.flush()
         cmd = [args.oddson_tree, 'pts.txt', 'samples.txt', str(actual_depth), 'searches.txt', str(args.k)]
-        result = subprocess.call(cmd, stdout=null, stderr=log)
+        with open('oddson.txt', 'wb') as oddson_out:
+            result = subprocess.call(cmd, stdout=oddson_out, stderr=log)
         log.write('done: %d\n' % result)
+
+        # ensure output matches
+        if args.validate:
+            cmd = ['diff', 'kdtree.txt', 'oddson.txt']
+            result = subprocess.call(cmd)
+            if result != 0:
+                log.write('validation error: differences found between kdtree and odds-on tree results\n')
+                log.write('aborting...\n')
+                log.close()
+                print('aborting after validation error.')
+                sys.exit(1)
 
     log.write('\n\n')
 
@@ -116,6 +128,8 @@ if __name__ == '__main__':
                         help='Path to odds-on tree implementation.')
     parser.add_argument('--random-seed', dest='random_seed',
                         help='Random seed.')
+    parser.add_argument('--validate', dest='validate', action='store_true',
+                        help='Validate results.')
     parser.add_argument('--working-dir', dest='working_dir', default='../data',
                         help='Working directory.')
     args = parser.parse_args()
