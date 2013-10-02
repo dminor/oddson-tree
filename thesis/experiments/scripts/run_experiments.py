@@ -72,20 +72,20 @@ def do_single_run(pts, searches, samples, args):
     log.write('odds-on tree: %s\n' % args.oddson_tree)
     log.write('k: %d\n' % args.k)
 
+    # run kdtree
+    log.write('running kdtree\n')
+    log.flush()
+    cmd = [args.kdtree, 'pts.txt', 'searches.txt', str(args.k)]
+    with open('kdtree.txt', 'wb') as kdtree_out:
+        result = subprocess.call(cmd, stdout=kdtree_out, stderr=log)
+    log.write('done: %d\n' % result)
+
+    # run odds-on tree for each build depth
     for depth in MAXIMUM_BUILD_DEPTH: 
         actual_depth = int(depth*math.log(float(npoints)))
         log.write('--------------------\n')
         log.write('build depth: %d\n' % actual_depth)
-
-        # run kdtree
-        log.write('running kdtree\n')
-        log.flush()
-        cmd = [args.kdtree, 'pts.txt', 'searches.txt', str(args.k)]
-        with open('kdtree.txt', 'wb') as kdtree_out:
-            result = subprocess.call(cmd, stdout=kdtree_out, stderr=log)
-        log.write('done: %d\n' % result)
-        
-        # run odds-on tree
+       
         log.write('running odds-on tree\n')
         log.flush()
         cmd = [args.oddson_tree, 'pts.txt', 'samples.txt', str(actual_depth), 'searches.txt', str(args.k)]
@@ -93,7 +93,7 @@ def do_single_run(pts, searches, samples, args):
             result = subprocess.call(cmd, stdout=oddson_out, stderr=log)
         log.write('done: %d\n' % result)
 
-        # ensure output matches
+        # ensure output matches if we are validating
         if args.validate:
             cmd = ['diff', 'kdtree.txt', 'oddson.txt']
             result = subprocess.call(cmd)
@@ -112,7 +112,6 @@ def do_single_run(pts, searches, samples, args):
     os.remove('searches.txt')
 
     log.close()
-    null.close()
 
 if __name__ == '__main__':
 
@@ -152,8 +151,8 @@ if __name__ == '__main__':
         print('error: oddson tree path is not valid: ' + args.oddson_tree)
         sys.exit(1)
 
-    searches = glob.iglob('search_dim_%02d*' % args.dim)
-    pts = glob.iglob('pts_dim_%02d*' % args.dim)
+    searches = glob.glob('search_dim_%02d*' % args.dim)
+    pts = glob.glob('pts_dim_%02d*' % args.dim)
 
     with open('log.txt', 'wb') as log:
         log.write('started: %s\n' % str(datetime.datetime.now()))
