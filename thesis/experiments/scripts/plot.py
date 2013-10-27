@@ -23,13 +23,9 @@ import numpy
 import scipy.stats
 import sqlite3
 
-
 import numpy as np
 import matplotlib.pyplot as plt
 
-"""
-python parse_data.py --database dim2.db --filter "select pts, sample, kdtree, build_depth, sigma, avg(qtime), max(qtime), min(qtime) from data where pts=1000 and sample=2000 group by pts, sample, kdtree, build_depth, sigma" > pts1000_sample2000.csv
-"""
 def mean_confidence_interval(data, confidence=0.95):
     a = numpy.array(data)
     n = len(a)
@@ -43,10 +39,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot experiment data.')
     parser.add_argument('--database', dest='database',
                         help='Database file to use.')
+    parser.add_argument('--measure', dest='measure',
+                        choices=['ctime', 'qtime', 'total'], default='total',
+                        help='Sample size to use.')
     parser.add_argument('--pts', dest='pts', type=int,
                         help='Point size to use.')
     parser.add_argument('--sample', dest='sample', type=int,
                         help='Sample size to use.')
+    parser.add_argument('--show', dest='show', action='store_true',
+                        help='Show the resulting plot.')
     args = parser.parse_args()
 
 
@@ -62,17 +63,21 @@ if __name__ == '__main__':
 
     # get distinct build depths
     build_depths = []
-    c.execute("select distinct(build_depth) from data where pts=%d and sample=%d order by build_depth" % (args.pts, args.sample))
+    c.execute("select distinct(build_depth) from data where pts=%d and sample=%d and kdtree=0 order by build_depth" % (args.pts, args.sample))
 
     for row in c.fetchall():
         build_depths.append(row[0])
 
     results = {} 
 
+    measure = args.measure
+    if args.measure == 'total':
+        measure = 'sum(ctime+qtime)'
+
     # get kdtree data
     results['kdtree'] = {}
     for sigma in sigmas:
-        c.execute("select qtime from data where pts=%d and sample=%d and kdtree=1 and sigma=%s order by build_depth" % (args.pts, args.sample, sigma))
+        c.execute("select %s from data where pts=%d and sample=%d and kdtree=1 and sigma=%s order by build_depth" % (measure, args.pts, args.sample, sigma))
 
         run_data = []
         for row in c.fetchall():
@@ -85,7 +90,7 @@ if __name__ == '__main__':
     for depth in build_depths:
         results[depth] = {}
         for sigma in sigmas:
-            c.execute('select qtime from data where pts=%d and sample=%d and build_depth=%s and sigma=%s order by build_depth' % (args.pts, args.sample, depth, sigma))
+            c.execute('select %s from data where pts=%d and sample=%d and build_depth=%s and sigma=%s order by build_depth' % (measure, args.pts, args.sample, depth, sigma))
 
             run_data = []
             for row in c.fetchall():
@@ -119,8 +124,15 @@ if __name__ == '__main__':
     ax.set_xlabel('sigma')
     ax.set_xticks(ind+width)
     ax.set_xticklabels(tuple(sigmas))
-    ax.set_ylabel('query time (msec)')
+
+    if args.measure == 'ctime':
+        ax.set_ylabel('construction time (msec)')
+    elif args.measure == 'qtime':
+        ax.set_ylabel('query time (msec)')
+    else:
+        ax.set_ylabel('total time (msec)')
 
     ax.legend(tuple(rects), tuple(labels))
-
-    plt.show()
+    plt.savefig('pts%s_sample%s_%s.png' % (args.pts, args.sample, args.measure))
+    if args.show:
+        plt.show()
