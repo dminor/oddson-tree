@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     measure = args.measure
     if args.measure == 'total':
-        measure = 'sum(ctime+qtime)'
+        measure = 'ctime+qtime'
 
     # get kdtree data
     results['kdtree'] = {}
