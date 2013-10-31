@@ -34,7 +34,7 @@ import sys
 # Experimental Design Parameters
 #
 ###############################################################################
-MAXIMUM_BUILD_DEPTH = [0.5, 1.0, 2.0]
+MAXIMUM_BUILD_DEPTH = [1.0, 1.5, 2.0]
 
 ###############################################################################
 def gunzip(i_name, o_name):
@@ -159,8 +159,9 @@ if __name__ == '__main__':
 
     for pt in pts:
         for search in searches:
-            # find samples corresponding to search
-            sample_glob = 'sample' + search[6:search.find('.txt.gz')] + '_sample*'
+            # find samples corresponding to pt count and search sigma
+            sigma = re.search('sigma_(\d.\d+)', search).groups()[0]
+            sample_glob = 'sample' + pt[3:search.find('.txt.gz')] + '_sigma_' + sigma + '_sample_'
             samples = glob.glob(sample_glob)
             for sample in samples:
                 do_single_run(pt, search, sample, args)

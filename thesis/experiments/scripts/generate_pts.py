@@ -28,11 +28,11 @@ import random
 # Experimental Design Parameters
 #
 DIMS = [2, 3, 4, 8, 16]
-PT_COUNT = [1000, 10000, 100000, 1000000]
-SEARCH_PT_COUNT = [500000]
-SEARCH_SIGMA = [0.5, 0.1, 0.05, 0.01]
-SAMPLE_PT_COUNT = [2000, 20000, 200000]
-NUMBER_OF_RUNS = 10
+PT_COUNT = [1000, 10000, 100000]
+SEARCH_PT_COUNT = [200000]
+SEARCH_SIGMA = [0.5, 0.25, 0.1, 0.05, 0.01]
+SAMPLE_PT_COUNT = [0.5, 1.0, 2.0]
+NUMBER_OF_RUNS = 20
 ###############################################################################
 
 
@@ -88,16 +88,18 @@ if __name__ == '__main__':
 
     # sample and earch sets
     for dim in DIMS:
-        for search_pt_count in SEARCH_PT_COUNT:
-            for sigma in SEARCH_SIGMA:
+        for sigma in SEARCH_SIGMA:
+            for search_pt_count in SEARCH_PT_COUNT:
                 pts = gaussian_pts(dim, search_pt_count, sigma=sigma)
                 name = 'search_dim_%02d_count_%d_sigma_%.3f.txt.gz' % (dim, search_pt_count, sigma)
                 with gzip.open(name, 'wb') as f:
                     write_pts(f, pts)
 
+            for pt_count in PT_COUNT:
                 for sample_pt_count in SAMPLE_PT_COUNT:
+                    actual_pt_count = int(sample_pt_count*pt_count)
                     for i in xrange(0, NUMBER_OF_RUNS):
-                        pts = gaussian_pts(dim, sample_pt_count, sigma=sigma)
-                        name = 'sample_dim_%02d_count_%d_sigma_%.3f_sample_%d_num_%d.txt.gz' % (dim, search_pt_count, sigma, sample_pt_count, i)
+                        pts = gaussian_pts(dim, actual_pt_count, sigma=sigma)
+                        name = 'sample_dim_%02d_count_%d_sigma_%.3f_sample_%d_num_%d.txt.gz' % (dim, pt_count, sigma, actual_pt_count, i)
                         with gzip.open(name, 'wb') as f:
                             write_pts(f, pts)
