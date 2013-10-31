@@ -161,7 +161,8 @@ if __name__ == '__main__':
         for search in searches:
             # find samples corresponding to pt count and search sigma
             sigma = re.search('sigma_(\d.\d+)', search).groups()[0]
-            sample_glob = 'sample' + pt[3:search.find('.txt.gz')] + '_sigma_' + sigma + '_sample_'
+            sample_glob = 'sample' + pt[3:pt.find('.txt.gz')] + '_sigma_' + sigma + '_sample_*'
+            print('>>>> ', sample_glob)
             samples = glob.glob(sample_glob)
             for sample in samples:
                 do_single_run(pt, search, sample, args)
