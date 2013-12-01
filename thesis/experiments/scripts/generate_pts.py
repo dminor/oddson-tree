@@ -27,7 +27,6 @@ import random
 #
 # Experimental Design Parameters
 #
-DIMS = [2, 3, 4, 8, 16]
 PT_COUNT = [1000, 10000, 100000]
 SEARCH_PT_COUNT = [200000]
 SEARCH_SIGMA = [0.5, 0.25, 0.1, 0.05, 0.01]
@@ -63,6 +62,8 @@ if __name__ == '__main__':
 
     # parse arguments
     parser = argparse.ArgumentParser(description='Create experimental data.')
+    parser.add_argument('--dim', dest='dim', type=int, default=2,
+                        help='Dimension for which to generate pts.')
     parser.add_argument('--output-dir', dest='output_dir', default='../data',
                         help='Directory in which to write output.')
     parser.add_argument('--random-seed', dest='random_seed',
@@ -79,27 +80,25 @@ if __name__ == '__main__':
         random.seed(float(args.random_seed))
 
     # point sets
-    for dim in DIMS:
-        for count in PT_COUNT:
-            pts = uniform_pts(dim, count)
-            name = 'pts_dim_%02d_count_%d.txt.gz' % (dim, count)
+    for count in PT_COUNT:
+        pts = uniform_pts(args.dim, count)
+        name = 'pts_dim_%02d_count_%d.txt.gz' % (args.dim, count)
+        with gzip.open(name, 'wb') as f:
+            write_pts(f, pts)
+
+    # sample and earch sets
+    for sigma in SEARCH_SIGMA:
+        for search_pt_count in SEARCH_PT_COUNT:
+            pts = gaussian_pts(args.dim, search_pt_count, sigma=sigma)
+            name = 'search_dim_%02d_count_%d_sigma_%.3f.txt.gz' % (args.dim, search_pt_count, sigma)
             with gzip.open(name, 'wb') as f:
                 write_pts(f, pts)
 
-    # sample and earch sets
-    for dim in DIMS:
-        for sigma in SEARCH_SIGMA:
-            for search_pt_count in SEARCH_PT_COUNT:
-                pts = gaussian_pts(dim, search_pt_count, sigma=sigma)
-                name = 'search_dim_%02d_count_%d_sigma_%.3f.txt.gz' % (dim, search_pt_count, sigma)
-                with gzip.open(name, 'wb') as f:
-                    write_pts(f, pts)
-
-            for pt_count in PT_COUNT:
-                for sample_pt_count in SAMPLE_PT_COUNT:
-                    actual_pt_count = int(sample_pt_count*pt_count)
-                    for i in xrange(0, NUMBER_OF_RUNS):
-                        pts = gaussian_pts(dim, actual_pt_count, sigma=sigma)
-                        name = 'sample_dim_%02d_count_%d_sigma_%.3f_sample_%d_num_%d.txt.gz' % (dim, pt_count, sigma, actual_pt_count, i)
-                        with gzip.open(name, 'wb') as f:
-                            write_pts(f, pts)
+        for pt_count in PT_COUNT:
+            for sample_pt_count in SAMPLE_PT_COUNT:
+                actual_pt_count = int(sample_pt_count*pt_count)
+                for i in xrange(0, NUMBER_OF_RUNS):
+                    pts = gaussian_pts(args.dim, actual_pt_count, sigma=sigma)
+                    name = 'sample_dim_%02d_count_%d_sigma_%.3f_sample_%d_num_%d.txt.gz' % (args.dim, pt_count, sigma, actual_pt_count, i)
+                    with gzip.open(name, 'wb') as f:
+                        write_pts(f, pts)
