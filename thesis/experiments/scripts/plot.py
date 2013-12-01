@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # get kdtree data
     results['kdtree'] = {}
     for sigma in sigmas:
-        c.execute("select %s from data where pts=%d and sample=%d and kdtree=1 and sigma=%s order by build_depth" % (measure, args.pts, args.sample, sigma))
+        c.execute("select %s from data where pts=%d and sample=%d and kdtree=1 and sigma=%s" % (measure, args.pts, args.sample, sigma))
 
         run_data = []
         for row in c.fetchall():
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     for depth in build_depths:
         results[depth] = {}
         for sigma in sigmas:
-            c.execute('select %s from data where pts=%d and sample=%d and build_depth=%s and sigma=%s order by build_depth' % (measure, args.pts, args.sample, depth, sigma))
+            c.execute('select %s from data where pts=%d and sample=%d and kdtree=0 and build_depth=%s and sigma=%s order by build_depth' % (measure, args.pts, args.sample, depth, sigma))
 
             run_data = []
             for row in c.fetchall():

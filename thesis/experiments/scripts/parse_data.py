@@ -63,6 +63,7 @@ def parse_rows(filename):
             kdtree = True
             hits = 0
             backup = 0
+            build_depth = 0
         elif line.startswith('running odds-on tree'):
             kdtree = False 
         elif line.startswith('info:'):
