@@ -117,19 +117,22 @@ if __name__ == '__main__':
 
     # parse arguments
     parser = argparse.ArgumentParser(description='Run experiments.')
-    parser.add_argument('--dim', dest='dim', type=int, default=2,
+    parser.add_argument('--dim', type=int, default=2,
                         help='Dimension for which to run experiments.')
-    parser.add_argument('--k', dest='k', type=int, default=1,
-                        help='Number of nearest neighbours for which to search.')
-    parser.add_argument('--kdtree', dest='kdtree', required=True,
+    parser.add_argument('--limit-runs', type=int, default=None,
+                        help='Dimension for which to run experiments.')
+    parser.add_argument('--k', type=int, default=1,
+                        help='Number of nearest neighbours to retrieve.')
+    parser.add_argument('--kdtree', required=True,
                         help='Path to kdtree implementation.')
-    parser.add_argument('--oddson-tree', dest='oddson_tree', required=True,
+    parser.add_argument('--oddson-tree', required=True,
                         help='Path to odds-on tree implementation.')
-    parser.add_argument('--random-seed', dest='random_seed',
-                        help='Random seed.')
-    parser.add_argument('--validate', dest='validate', action='store_true',
+    parser.add_argument('--randomize', action='store_true',
+                        help='Randomize order of runs.')
+    parser.add_argument('--random-seed', type=float, help='Random seed.')
+    parser.add_argument('--validate', action='store_true',
                         help='Validate results.')
-    parser.add_argument('--working-dir', dest='working_dir', default='../data',
+    parser.add_argument('--working-dir', default='../data',
                         help='Working directory.')
     args = parser.parse_args()
 
@@ -141,7 +144,7 @@ if __name__ == '__main__':
         os.chdir(working_dir)
 
     if args.random_seed:
-        random.seed(float(args.random_seed))
+        random.seed(args.random_seed)
 
     if not os.path.exists(args.kdtree):
         print('error: kd-tree path is not valid: ' + args.kdtree)
@@ -157,15 +160,27 @@ if __name__ == '__main__':
     with open('log.txt', 'wb') as log:
         log.write('started: %s\n' % str(datetime.datetime.now()))
 
+    runs = []
     for pt in pts:
         for search in searches:
             # find samples corresponding to pt count and search sigma
             sigma = re.search('sigma_(\d.\d+)', search).groups()[0]
             sample_glob = 'sample' + pt[3:pt.find('.txt.gz')] + '_sigma_' + sigma + '_sample_*'
-            print('>>>> ', sample_glob)
             samples = glob.glob(sample_glob)
             for sample in samples:
-                do_single_run(pt, search, sample, args)
+                runs.append((pt, search, sample, args))
+
+    if args.randomize:
+        random.shuffle(runs)
+
+    num_runs = 0
+    for run in runs:
+        do_single_run(*run)
+        num_runs += 1
+        if args.limit_runs and num_runs > args.limit_runs:
+            break 
 
     with open('log.txt', 'ab') as log:
+        if args.limit_runs:
+            log.write('stopped after %d runs' % args.limit_runs)
         log.write('finished: %s\n' % str(datetime.datetime.now()))
