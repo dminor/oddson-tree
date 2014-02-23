@@ -1,7 +1,7 @@
 
-INCS = -I ../inc
-LIBS = -lCGAL -lgmp
-CFLAGS = -g -O2 -frounding-math
+INCS =
+LIBS = 
+CFLAGS = -g -O2
 OBJS = voronoi.o
 TARGET = ../../bin/voronoi
 
