@@ -27,11 +27,11 @@ import random
 #
 # Experimental Design Parameters
 #
-PT_COUNT = [1000, 10000, 100000]
-SEARCH_PT_COUNT = [200000]
+PT_COUNT = [1000, 5000, 10000, 50000]
+SEARCH_PT_COUNT = [100000]
 SEARCH_SIGMA = [0.5, 0.25, 0.1, 0.05, 0.01]
 SAMPLE_PT_COUNT = [0.5, 1.0, 2.0]
-NUMBER_OF_RUNS = 20
+NUMBER_OF_RUNS = 10
 ###############################################################################
 
 
