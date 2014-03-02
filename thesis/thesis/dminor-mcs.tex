@@ -82,14 +82,16 @@ points for which nearest neighbour searches will be performed as sites. Each
 site defines an area, called a cell, which for all points inside the cell, the
 associated site is the nearest neighbour for a given metric.
 
-%TODO: Define nearest-neighbour and $k$-nearest neighbour.
+Given a point \(p\) its nearest neighbour is the site which is closest to it
+for a given metric. Its $k$-nearest neighbours are the $k$ sites which are
+closest to it under a given a metric for a given $k$.  A nearest neighbour
+search is given a query point \(p\) determine its nearest neigbhour.
+A \(k\)-nearest neighbour search is given a query point \(p\) return the
+$k$-nearest neighbours.
 
-A nearest neighbour search is given a point \(p\) determine which site is
-closest to it for a given metric. A \(k\)-nearest neighbour search is given a
-point \(p\) and an integer \(k\) return the \(k\) sites which are closest to it. 
 A \(1 + \epsilon\) approximate nearest neighbour search is given a point \(p\),
-return a site which is no more than \(1 + \epsilon\) times further away from $p$ than
-the true nearest neigbhour.
+return a site which is no more than \(1 + \epsilon\) times further away from $p$
+than the true nearest neigbhour.
 
 A \(1 + \epsilon\) approximate \(k\)-nearest neighbour search is given a point
 \(p\), return \(k\) points such than none are further away than \(1 + \epsilon\)
@@ -186,7 +188,12 @@ in time \(O(n \log n)\). In higher dimensions, the time becomes
 space \cite{dutch}.
 \end{thm}
 
-%TODO: insert voronoi diagram
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/voronoi.eps}
+\caption{Voronoi Diagram}
+\end{center}
+\end{figure}
 
 \subsubsection{Nearest Neighbour Search in a Voronoi Diagram}
 
@@ -344,7 +351,7 @@ that the first bit of the first coordinate is followed by the first bit of the
 second coordinate and so on until one bit has been used from each coordinate.
 This is then followed by the second bit of the first coordinate \cite{morton}.
 When performed in two dimensions, this results in a z-shaped curve. This
-interleaving of bits is called the "shuffle" of a point in \cite{bern}.
+interleaving of bits is called the ``shuffle'' of a point in \cite{bern}.
 
 \begin{figure}
 \begin{center}
@@ -472,9 +479,8 @@ Kd-trees are constructed by choosing an axis, determining the median value in
 the point set for the corresponding coordinate, and dividing the points in two
 halves using the median value. The two child nodes are then built by
 recursively building kd-trees for each half. In the original paper, Bentley
-specifies that the axis to split upon is chosen round robin, level by level.
-In some implementations, heuristics are instead used to choose the axis to use
-to divide the points, for instance to %TODO
+specifies that the axis to split upon is chosen round robin, level by level,
+but some application specific implementations choose different heuristics.
 
 \begin{thm} \emph{(Height of a Kd-Tree)}
 The height of a kd-tree with $n$ points is \(O(\log n)\).
@@ -622,11 +628,14 @@ searches in time \(O(\log {n \over \epsilon})\) \cite{arya-avd}.
 
 \section{Biased Search}
 
-In this section we examine biased search problem in a comparison tree model.
-The comparison tree model is suitable for geometric problems as it avoids
-numerical and geometrical robustness problems that can arise from computations
-using coordinates.  We begin with some classical results for biased search trees
-in a single dimension, before considering the problem in higher dimensional spaces.
+Biased search is a generalization of search where rather than assuming each
+search key is equally likely, a probability distribution over the keys is
+available.
+
+We begin by describing some results from information theory which provide a
+bound on how well a biased data structure can perform. We then describe some
+classical results for biased search in a single dimension, and then proceed
+to some more recent results for higher dimensional search.
 
 \subsection{Information Theory}
 
@@ -650,34 +659,38 @@ Shannon also proved that the efficiency of any communication system is limited
 by the entropy of the set of messages to be transmitted.
 
 \begin{thm} \emph{(Fundamental Theorem for a Noiseless Channel)} 
-Given a source with entropy H (in bits) and a channel with capacity C (in bits
-per second), then it is possible to encode a source in such a way as to
+Given a source with entropy \(H\) (in bits) and a channel with capacity \(C\)
+(in bits per second), then it is possible to encode a source in such a way as to
 transmit at an average rate of \({C \over H} - \epsilon\) symbols per second
 where \(\epsilon\) is arbitrarily small, and it is not possible to transmit
 at an average rate greater than \(C \over H\) \cite{claudeshannonwasagod}.
 \end{thm}
 
-Any data structure for search can not have an expected average search time which
-exceeds this entropy bound, that is \(\Omega(H)\) is a lower bound on the search time
-for any data structure.
+A data structure can be viewed as a communication system, which communicates
+through time by allowing information to be retrieved rather than through space.
+For instance, take querying a binary search tree for a set of keys. If at each
+node, a ``0'' or ``1'' is generated depending upon whether the left or right
+subtree is taken, then the generated sequence is a code for the key, and we can
+apply Shannon's theorem to give a bound on the expected number of comparisons
+required.
 
-% TODO: Emphasize somewhere, early on, that "search time" = "# comparisons"
+For random queries for which the data structure has no information other than
+the distribution of outcomes, so that \(p_i\) is the probability of searching for
+the \(i\)-th key, then any data structure for search can not have an expected
+number of comparisons less than \(H\).
 
-% This is critical, and needs to be elaborated on.
-% You say that Omega(H) is a lower-bound, but H is defined in terms of p_i's,
-% so you also have to say what those are.  Also specify that this is for a
-% random query where the data structure has no information about this query
-% other than the distribution of its outcomes
+Since search time depends upon the expected number of comparisons, the expected
+search time is bounded by the entropy, that is \(\Omega(H)\) is a lower bound on
+the search time for any data structure.
+
+These results provide bound on how well a biased data structure can perform. The
+following sections describe data structures which can meet this bound.
 
 \subsection{Biased Search Trees}
 
-Biased search trees are a natural generalization of balancing a binary search
-tree where rather than assuming each result is equally likely, a probability
-distribution (or set of weights) is given for the results, allowing the tree to
-be balanced such that at each node the probability of choosing the right child
-is as close as possible to the probability of choosing the left child, or
-alternately, the weight of the right child is approximately equal to the weight
-of the left child.
+A biased search tree is a generalization of binary search trees which make use
+of knowledge of the probability distribution of the search keys to balance the
+tree.
 
 The initial work on biased search trees focused on the static case, where
 the query frequencies are known in advance and no deletions and insertions
@@ -804,9 +817,7 @@ node splay tree is \(O(n \log n + m)\) \cite{splaytree}.
 It is possible to create biased versions of other, simpler data structures
 such as randomized search trees (treaps) \cite{treap} and skip lists
 \cite{bsl2} but these do not provide better theoretical performance guarantees
-than biased search trees. In practice, splay trees appear to have better
-performance and are as easy to implement as treaps and skip lists, and so these
-data structures are not discussed further \cite{minor}.
+than biased search trees.
 
 \subsection{Planar Point Location}
 
@@ -820,14 +831,13 @@ is a binary search tree.
 
 We discussed this problem above in the section on nearest-neighbour
 search in a Voronoi diagram, and noted that a linear space and \(O(\log n)\)
-search time solution existed for this problem.  
-%% TODO: Be more precise here: p_i is the probability that the _answer_ to a query
-%% is the i'th triangle
-% FIXME: As is the case with binary
-% search trees, if we are given a probability distribution over the query points
-% \(p\) such that each point is chosen with probability \(p_i\), then the
-% expected number of decisions made during search is bounded by the entropy of
-% the query set.
+search time solution existed for this problem.
+
+In the biased case, as with binary search trees, if \(p_i\) is the probability
+that the answer to a query is in the \(i\)th subdivision and we are given a
+probability distribution over the query points \(p\) such that each is chosen
+with \(p_i\) then the expected number of comparisons required to locate the
+query point \(p\) is bounded by the entropy of the query set.
 
 A data structure for biased point location in a triangulation was described
 by Iacono \cite{iacono}. It is based on a variation of Kirkpatrick's data
@@ -906,12 +916,12 @@ The second data structure is a backup range tree, as described above, which
 uses \(O(n \log n)\) space and can answer range search queries in time
 \(O(\log n)\). This data structure is used to answer queries for which the
 depth of corresponding node in the primary tree would exceed \(O(\log n)\),
-that is the "bad" nodes.
+that is the ``bad'' nodes.
 
 Search within the biased range tree occurs as follows: the primary tree is
 first searched to find a node such that the query region defined by \(q_x\) and
 \(q_y\) is contained within the region corresponding to the node. If this node
-is a "bad" node, then the backup range tree is used to answer the query.
+is a ``bad'' node, then the backup range tree is used to answer the query.
 Otherwise, the indices are used to locate the node are used to locate \(q_x\)
 and \(q_y\) in the catalogues for the node determine the result of the range
 counting query, and the tree is walked back to the root, locating the query
@@ -939,11 +949,8 @@ Given a probability distribution \(D\) over a set of queries, the odds-on tree
 is capable of answering any query drawn from \(D\) in expected time
 \(O(H^* + 1)\) where \(H^*\) is a lower bound on the expected cost of any
 linear decision tree which solves the search problem. In particular, the
-entropy \(H\) of the query distribution \(D\) is one such bound for many search
-problems.
-% TODO: Again, it's the entropy of the ouput that matters, not the entropy of the 
-% query distribution (which may not even be well-defined).
-A linear decision tree is a search tree where the decision of which
+entropy \(H\) of the output \(D\) is one such bound for many search
+problems. A linear decision tree is a search tree where the decision of which
 child node to follow is based on a linear function.
 
 An Odds-on tree consists of a primary search tree and a backup search tree.
@@ -1011,6 +1018,7 @@ In general, kd-trees out perform quadtrees, but we chose to implement both data
 structures to see if building a compressed quadtree ``bottom up'' using z-order
 sorting would result either in faster construction time or faster query time
 than a traditional ``top down'' recursive build process.
+
 
 % TODO: give further justification for not considering AVD more seriously
 % (too complicated? unimplementable? ...)
@@ -1084,7 +1092,7 @@ describing query frequencies, and is also used to build a kd-tree. This build
 process takes advantage of the callback functionality to stop building the
 kd-tree if it can be determined that the answer to a nearest-neighbour query
 would be the same for all points covered by the node, which is done by
-running a nearest neighbour query for each of the "corner" points of the node.
+running a nearest neighbour query for each of the ``corner'' points of the node.
 If each query returns the same nearest neighbour point, the node is marked
 as terminal and the nearest neighbour is stored with the node.
 
@@ -1112,7 +1120,7 @@ visited during a depth first traversal of a compressed quadtree.
 
 The sorted points were then visited in order to find sequences of points with
 a common nearest neigbhour. Once a sequence was discovered, the end points
-were used to construct a bounding box, and the "corners" of the bounding box
+were used to construct a bounding box, and the ``corners'' of the bounding box
 were tested using a backup kd-tree structure. If all of the corners shared a
 common nearest-neigbhour, the bounding box is marked as terminal and added to
 a list of cache nodes.
@@ -1185,47 +1193,41 @@ query set is sufficiently low.
 
 Since preliminary investigation with the kd-tree and quadtree based
 implementations did not show one to out perform the other consistently, 
-experimentation was repeated using each implementation. 
+experimentation is repeated using each implementation. 
 
 \subsection{Dimension}
 
-The dimension of the point sets is varied across 2, 3, 4, 8 and 16 dimensions.
-The upper bound of 16 is mentioned consistently in previous work (TODO refs) as
-a practical upper limit beyond which data structures such as the kd-tree do
+The dimension of the point sets is varied across 2, 3, 4, and 8 and 16
+dimensions. Dimension above 8 typically requires the use of approximate nearest
+neighbour search for good performance \cite{app-ann} and the upper bound of 16
+is mentioned consistently in previous work \cite{fastvector} as a practical
+upper limit beyond which comparison based data structures such as the kd-tree do
 not provide any performance advantage beyond a simple search of all of the
-points.
+points, and alternative approaches need be considered.
 
 \subsection{Point Set}
 
 The point sets are the sites which are searched for during the nearest neighbour
-search. The point sets will be generated by sampling a multi-variate uniform
-distribution. The number of points in the point set will be varied across
-1000, 10000, 100000, and 1000000 points. The multivariate uniform distribution
-will be sampled on the range \([-1, 1)\) on each dimension.
+search. The point sets are generated by sampling a multi-variate uniform
+distribution on the range \([-1, 1)\) for each dimension.
 
-%TODO: could try generating the points from a gaussian distribution to see
-% and searching with a uniform distribution to see if that has any impact on
-% results.
+The number of points in the point set is varied across 1000, 500, 10000, and
+100000 points. More points were tested but required considerably amounts of time
+without giving substantially different results during pilot experimentation.
 
 \subsection{Search Set}
 
 The search set is the set of query points which are used to test the odds-on
-tree and kd-tree implementations. The search set will be drawn from three
-different distributions.
+tree and kd-tree implementations.
 
-The first is a uniform distribution with the same parameters as the point
-set. 
+A multi-variate Gaussian distribution is used to generate the search set. The
+mean for each dimension is 0, so the search set is distributed around the
+origin. The standard deviations used are 0.5, 0.25, 0.1, 0.05, and 0.01.
 
-The second is a multi-variate Gaussian distribution. The mean for each
-dimension is 0, and sigma is varied from 0.5, 0.1, 0.05, 0.01.
-
-The third is a mixture of multi-variate Gaussian distributions. TODO:
-determine parameters for this. I think some sort of grid pattern would be
-most interesting.
-
-In each case, the search set will consist of 1000000 points. This number ensures
-sufficiently long running times to allow for meaningful comparisons between
-conditions.
+For each case the search set consists of 100000 points. In pilot experiments
+this size ensured long enough running times to make meaningful comparisons
+between experimental cases without requring ane excessive amount of time to
+perform all of the experiments.
 
 \subsection{Sample Set}
 
@@ -1234,7 +1236,7 @@ sample set will be chosen by partitioning the search set into a sample set
 and the search set to be used for experimentation. This partitioning will be
 will be performed randomly for each experimental run.
 
-The sample set set size chosen will be $0.1n$, $0.25n$, $0.5n$ and $n$, where
+The sample set set size chosen will be $0.5n$, $n$, and $2n$, where
 $n$ is the cardinality of the point set.
 
 \subsection{Maximum Build Depth}
@@ -1246,21 +1248,37 @@ $\log(n)$ where $n$ is the cardinality of the sample set.
 %TODO: before doing a lot of experimentation, do some preliminary work to
 %ensure that there isn't an optimal setting for this parameter.
 
+%TODO:
+% K - 1, 5, 10, 50? -- seemed to be limited benefit beyond doing 1 or 2
+% epsilon -- any useful way to do approximate queries?
+
+\subsection{Number of Runs}
+
+Each experimental configuration is repated ten times with a different sample set 
+in each case. Ten runs is sufficient to give a statistically significant
+difference between configurations for all cases (t-test, p < 0.0001).
+
 \section{Measuring Performance}
 
 \subsection{Benchmark Platform}
 
-The benchmark platform is an Amazon Web Services EC2 Medium Compute
-Optimized instance, with two 64-bit processors and 1.7GB of RAM. Using an EC2
-instance increases the repeatability of the experimentation, allows for easy
-duplication of hardware to run experiments in parallel, and provides a platform
-that is of practical interest. 
+The benchmark platform is a Digital Ocean droplet with a 2.4GHz processor, 1 GB
+of RAM, and 30 GB SSD secondary storage.
+
+Pilot experimention on an Amazon Web Services EC2 Medium Compute
+Optimized instance, with two 64-bit processors and 1.7GB of RAM proved to be
+too slow and expensive. That instance type did not provide SSD backed storage
+and was likely I/O bound reading queries and writing results to disk.
+
+Using cloud computing instance increases the repeatability of the
+experimentation, allows for easy duplication of hardware to run experiments in
+parallel, and provides a test platform that is of practical interest. 
 
 \subsection{Performance Metrics}
 
-The primary performance metric is running time. The running time required for
-initialization and building the data structure will be measured, as well as
-the total running time.
+The chosen performance metric is running time. The time required to build the
+tree and the time required to run the queries are measured separately, allowing
+these times to be compared as well as the overall running time.
 
 A secondary measure for the odds-on tree will be the cache ``hit rate'', that
 is the number of queries answered by the odds-on tree as opposed to the back
@@ -1274,19 +1292,6 @@ implementations and parameters.
 %performance of the implementation, and data is collected on L1 and L2 cache
 %miss rates.
 
-\subsection{Statistical Test}
-
-Each experimental configuration is run ten times, and a Student t-test
-is used to test the hypothesis that the odds-on tree provides better
-statistically significant better performance than the kd-tree.
-
-The significance criterion for the t-test is $P=0.01$.
-
-For the odds-on tree, the partitioning used to create the sample set will be
-determined at random for each experimental run.
-
-%TODO: determine if 10 runs is actually a good number for statistically
-% significant results.
 
 \section{Results}
 
@@ -1422,7 +1427,7 @@ TODO
 
 \bibitem{avd}
 Har-Peled, S. (2001) A Replacement for Voronoi Diagrams of Near Linear Size, 
-FOCS '01: Proceedings of the TODO Symposium on Foundations of Computer Science, 
+FOCS '01: Proceedings of the Symposium on Foundations of Computer Science, 
 pp. TODO
 
 \bibitem{iacono}
@@ -1442,9 +1447,6 @@ Siam Journal of Computing, Vol. 12, No. 1, pp. 28 -- 34.
 \bibitem{knuth}
 Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
 Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
-
-\bibitem{minor}
-Minor, D. (2011) Entropy and Biased Search in Practice, Unpublished report.
 
 \bibitem{valgrind}
 Nethercote, N., Seward, J. (2007) Valgrind: A Framework for Heavyweight Dynamic
