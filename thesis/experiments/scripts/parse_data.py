@@ -64,6 +64,9 @@ def parse_rows(filename):
             hits = 0
             backup = 0
             build_depth = 0
+            total = 0
+            terminal = 0
+            build_nn_queries = 0
         elif line.startswith('running odds-on tree'):
             kdtree = False 
         elif line.startswith('info:'):
@@ -83,8 +86,20 @@ def parse_rows(filename):
             if m:
                 backup = int(m.groups()[0])
                 continue
+            m = re.match('info: total nodes: (\d+)', line)
+            if m:
+                total = int(m.groups()[0])
+                continue
+            m = re.match('info: terminal nodes: (\d+)', line)
+            if m:
+                terminal = int(m.groups()[0])
+                continue
+            m = re.match('info: build nn queries: (\d+)', line)
+            if m:
+                build_nn_queries = int(m.groups()[0])
+                continue
         elif line.startswith('done:'):
-            rows.append([dim,pts,sigma,search,sample,build_depth,run,kdtree,ctime,qtime,hits,backup])
+            rows.append([dim,pts,sigma,search,sample,build_depth,run,kdtree,ctime,qtime,hits,backup,total,terminal,build_nn_queries])
 
     log.close()
 
@@ -113,9 +128,9 @@ def write_to_db(conn, rows):
                  (dim int, pts int, sigma real, search int,
                   sample int, build_depth int, run int, 
                   kdtree int, ctime real, qtime real,
-                  hits int, backup int)''')
+                  hits int, backup int, total int, terminal int, build_nn_queries int)''')
 
-    conn.executemany('''insert into data values(?,?,?,?,?,?,?,?,?,?,?,?)''', rows)
+    conn.executemany('''insert into data values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', rows)
     conn.commit()
 
 if __name__ == '__main__':
