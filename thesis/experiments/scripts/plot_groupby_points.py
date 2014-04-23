@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Daniel Minor
+# Copyright (c) 2014 Daniel Minor
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,8 @@ import sqlite3
 import numpy as np
 import matplotlib.pyplot as plt
 
+from generate_pts import SAMPLE_PT_COUNT
+
 def mean_confidence_interval(data, confidence=0.95):
     a = numpy.array(data)
     n = len(a)
@@ -42,10 +44,8 @@ if __name__ == '__main__':
     parser.add_argument('--measure', dest='measure',
                         choices=['ctime', 'qtime', 'total'], default='total',
                         help='Sample size to use.')
-    parser.add_argument('--pts', dest='pts', type=int,
-                        help='Point size to use.')
-    parser.add_argument('--sample', dest='sample', type=int,
-                        help='Sample size to use.')
+    parser.add_argument('--sigma', dest='sigma', type=float,
+                        help='Sigma value to use.')
     parser.add_argument('--show', dest='show', action='store_true',
                         help='Show the resulting plot.')
     args = parser.parse_args()
@@ -54,19 +54,14 @@ if __name__ == '__main__':
     conn = sqlite3.connect(args.database)
     c = conn.cursor()
 
-    # get distinct sigmas
-    sigmas = []
-    c.execute("select distinct(sigma) from data where pts=%d and sample=%d order by sigma" % (args.pts, args.sample))
+    # get distinct pts 
+    pts = []
+    c.execute("select distinct(pts) from data where sigma=%f order by pts" % args.sigma)
 
     for row in c.fetchall():
-        sigmas.append(row[0])
+        pts.append(row[0])
 
-    # get distinct build depths
-    build_depths = []
-    c.execute("select distinct(build_depth) from data where pts=%d and sample=%d and kdtree=0 order by build_depth" % (args.pts, args.sample))
-
-    for row in c.fetchall():
-        build_depths.append(row[0])
+    print(pts)
 
     results = {} 
 
@@ -76,8 +71,8 @@ if __name__ == '__main__':
 
     # get kdtree data
     results['kdtree'] = {}
-    for sigma in sigmas:
-        c.execute("select %s from data where pts=%d and sample=%d and kdtree=1 and sigma=%s" % (measure, args.pts, args.sample, sigma))
+    for pt in pts:
+        c.execute("select %s from data where pts=%d and sample=%d and kdtree=1 and sigma=%s" % (measure, pt, pt, args.sigma))
 
         run_data = []
         for row in c.fetchall():
@@ -87,22 +82,32 @@ if __name__ == '__main__':
         results['kdtree'].setdefault('errs', []).append(cf)
 
     # get odds-on tree data by build depth
-    for depth in build_depths:
-        results[depth] = {}
-        for sigma in sigmas:
-            c.execute('select %s from data where pts=%d and sample=%d and kdtree=0 and build_depth=%s and sigma=%s order by build_depth' % (measure, args.pts, args.sample, depth, sigma))
+    for sample in SAMPLE_PT_COUNT:
+        results[sample] = {}
+        for pt in pts:
+            # get distinct build depths for this pt count
+            build_depths = []
+            c.execute("select distinct(build_depth) from data where pts=%d and kdtree=0 order by build_depth" % pt)
+
+            for row in c.fetchall():
+                build_depths.append(row[0])
+
+            # we just use the median
+            build_depth = build_depths[len(build_depths)/2]
+
+            c.execute('select %s from data where pts=%d and sample=%d and kdtree=0 and build_depth=%s and sigma=%s order by build_depth' % (measure, pt, pt*sample, build_depth, args.sigma))
 
             run_data = []
             for row in c.fetchall():
                 run_data.append(float(row[0]))
             mn, cf = mean_confidence_interval(run_data)
-            results[depth].setdefault('means', []).append(mn)
-            results[depth].setdefault('errs', []).append(cf)
+            results[sample].setdefault('means', []).append(mn)
+            results[sample].setdefault('errs', []).append(cf)
 
     c.close()
     conn.close()
 
-    ind = np.arange(len(sigmas))
+    ind = np.arange(len(pts))
     width = 0.1
 
     fix, ax = plt.subplots()
@@ -116,14 +121,11 @@ if __name__ == '__main__':
     for i, result in enumerate(keys):
         rect = ax.bar(ind+i*width, results[result]['means'], width, color=colors[i], yerr=results[result]['errs'], ecolor='k')
         rects.append(rect)
-        if result != 'kdtree':
-            labels.append('depth %s ' % result) 
-        else:
-            labels.append(result)
+        labels.append(result)
 
-    ax.set_xlabel('sigma')
+    ax.set_xlabel('pts')
     ax.set_xticks(ind+width)
-    ax.set_xticklabels(tuple(sigmas))
+    ax.set_xticklabels(tuple(pts))
 
     if args.measure == 'ctime':
         ax.set_ylabel('construction time (msec)')
@@ -132,7 +134,7 @@ if __name__ == '__main__':
     else:
         ax.set_ylabel('total time (msec)')
 
-    ax.legend(tuple(rects), tuple(labels), loc=4)
-    plt.savefig('pts%s_sample%s_%s.eps' % (args.pts, args.sample, args.measure))
+    ax.legend(tuple(rects), tuple(labels), loc=2)
+    plt.savefig('group_bypts_sigma%s_%s.eps' % (args.sigma, args.measure))
     if args.show:
         plt.show()
