@@ -28,6 +28,10 @@ Odds-on Tree implementation based upon descriptions in:
     Bose, P. et al (2010) Odds-on Trees retrieved from: http://arxiv.org/abs/1002.1092 
 */ 
 
+int total_nodes = 0;
+int terminal_nodes = 0;
+int build_nn_queries = 0;
+
 #if defined ODDSON_TREE_KDTREE_IMPLEMENTATION
 
 #define KDTREE_COLLECT_KNN_STATS
@@ -60,6 +64,7 @@ public:
         virtual bool operator()(typename KdTree<CachedPoint, double>::Node *node, double *range, size_t depth)
         {
             CachedPoint *pt = node->pt;
+            ++total_nodes;
 
             if (depth > max_depth) {
                 return true;
@@ -75,6 +80,7 @@ public:
                 }
 
                 typename KdTree<Point, double>::Node *qr = backup->nn(qp);
+                ++build_nn_queries;
 
                 if (pt->nn == 0) {
                     pt->nn = qr;
@@ -86,6 +92,7 @@ public:
             } 
 
             pt->terminal = true;
+            ++terminal_nodes;
             return true;
         } 
     };
@@ -123,9 +130,16 @@ public:
         fn.max_depth = max_depth;
         cache = new KdTree<CachedPoint, double>(dim, sample, m, range, fn); 
 
+        fprintf(stderr, "info: total nodes: %d\n", total_nodes);
+        fprintf(stderr, "info: terminal nodes: %d\n", terminal_nodes);
+        fprintf(stderr, "info: build nn queries: %d\n", build_nn_queries);
+
         hits = 0;
         queries = 0;
         backup->knn_nodes_visited = 0;
+        total_nodes = 0;
+        terminal_nodes = 0;
+        build_nn_queries = 0;
     }
 
     virtual ~OddsonTree()
