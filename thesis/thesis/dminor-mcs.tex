@@ -1339,7 +1339,15 @@ all queries are being handled by the backup kd-tree rather than the odds-on
 tree itself.
 
 As sigma increases, the performance of the kd-tree itself also improves.
-%TODO: explain why this is the case!
+This is due to the kd-tree doing less backtracking to determine if the
+candidate nearest-neighbour is in fact the actual nearest-neighbour at
+larer sigma values. For sigma = 0.25, the kd-tree does 17 percent less
+backtracking, and for sigma = 0.5 the kd-tree does 35 percent less
+backtracking. This is in turn a side effect of the searches being centered
+around the origin. As sigma increases, the searches are more likely to
+fall on the periphery of the kd-tree, meaning less nodes inside the
+kd-tree need to be visited while backtracking to find the nearest
+neighbour. 
 
 \begin{figure}
 \begin{center}
@@ -1349,7 +1357,6 @@ As sigma increases, the performance of the kd-tree itself also improves.
 \end{figure}
 
 %The construction time gets worse with increasing sigma.
-%TODO: explain. is it because we end up with a deeper odds-on tree?
 
 The construction time for the kd-tree based odds-on tree implementation worsens
 as sigma increases until it reachs a maximum at a sigma of 0.1. At this point,
@@ -1366,6 +1373,18 @@ for the odds-on tree.
 \end{center}
 \end{figure}
 
+The decrease in performance observed with increasing sigma values is due to
+a larger odds-on tree being built. The number of terminal nodes remains
+relatively small while the overall size of the odds-on tree and the number of
+nearest neigbhour queries required increases substantially. Typical results are
+shown in the below figure. 
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/2d_pts10000_sample10000_builddata.eps}
+\caption{Odds-on Tree Node Counts (2d, pts=10000, sample=10000, build depth=13)}
+\end{center}
+\end{figure}
 
 
 
