@@ -183,6 +183,7 @@ int main(int argc, char **argv)
     elapsed_msec = (end.tv_sec - start.tv_sec)*1E3 + (end.tv_nsec - start.tv_nsec)*1E-6;
     fprintf(stderr, "info: running queries took: %f (msec)\n", elapsed_msec);
 
+    kt.dump_stats();
     std::cout << "done." << std::endl;
 
     delete[] pts;

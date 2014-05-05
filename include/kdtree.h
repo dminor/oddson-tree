@@ -87,6 +87,9 @@ public:
         arena_offset = 0;
 
         root = build_kdtree(pts, n, 0, range, fn);
+        total_searches = 0;
+        knn_nodes_visited = 0;
+        knn_nodes_visited_backtrack = 0;
 
         this->n = n;
     }
@@ -95,8 +98,16 @@ public:
     virtual ~KdTree()
     {
         if (arena) munmap(arena, n*sizeof(Node));
+
     }
 
+    void dump_stats()
+    {
+        fprintf(stderr, "info: kdtree total searches: %ld\n", total_searches); 
+        fprintf(stderr, "info: kdtree nodes visited: %ld\n", knn_nodes_visited); 
+        fprintf(stderr, "info: kdtree backtrack nodes visited: %ld\n", knn_nodes_visited_backtrack);
+    }
+ 
     std::vector<Point *> range_search(Number *range)
     {
         //set up region
@@ -235,9 +246,9 @@ public:
     
     Node *root;
 
-    #ifdef KDTREE_COLLECT_KNN_STATS
-    int knn_nodes_visited; 
-    #endif
+    long int total_searches;
+    long int knn_nodes_visited;
+    long int knn_nodes_visited_backtrack;
 
 private:
 
@@ -580,10 +591,14 @@ private:
         const Point &pt, Number eps)
     {
         searchpq.push(0, root);
+        int number_popped = 0;
+
+        ++total_searches;
 
         while (searchpq.length) {
 
             typename PriorityQueue<Node *>::Entry entry = searchpq.pop();
+            ++number_popped;
 
             Node *node = entry.data;
 
@@ -594,9 +609,12 @@ private:
 
                 while (node) {
 
-                    #ifdef KDTREE_COLLECT_KNN_STATS
-                    ++knn_nodes_visited; 
-                    #endif 
+                    //we only want to count nodes while backtracking
+                    if (number_popped >= 2) {
+                        ++knn_nodes_visited_backtrack;
+                    } else {
+                        ++knn_nodes_visited;
+                    }
 
                     //calculate distance from query point to this point
                     Number distance = 0; 
