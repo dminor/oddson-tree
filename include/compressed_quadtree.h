@@ -33,11 +33,15 @@ THE SOFTWARE.
 */
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <list>
 #include <vector>
 #include <iostream>
 #include <cstring>
+
+#include "fixed_size_priority_queue.h"
+#include "priority_queue.h"
 
 template<class Point> class CompressedQuadtree {
 
@@ -59,7 +63,9 @@ template<class Point> class CompressedQuadtree {
             bool in_node(const Point &pt, size_t dim)
             {
 
-                const double locate_eps = 0.001;
+                //Be careful here, this value was too small before and was
+                //causing errors
+                const double locate_eps = 0.000001;
 
                 bool in = true;
 
@@ -75,21 +81,6 @@ template<class Point> class CompressedQuadtree {
             } 
         };
 
-        //Keep track of point and priority for nearest neighbour search
-        struct NodeDistance {
-
-            Node *node;
-            double distance;
-
-            NodeDistance(Node *node, double distance) : node(node), distance(distance) {};
-
-            //min-heap
-            bool operator<(const NodeDistance &other) const
-            {
-                return distance > other.distance;
-            }
-        }; 
-
         struct EndBuildFn {
             virtual bool operator()(Node *, size_t depth)
             {
@@ -100,6 +91,7 @@ template<class Point> class CompressedQuadtree {
         CompressedQuadtree(size_t dim, Point *pts, size_t n, double *range, EndBuildFn &fn)
             : dim(dim)
             , nnodes(1 << dim)
+            , searchpq(std::max(32, (int)log(n)))
         { 
 
             //calculate mid point and half side length
@@ -129,17 +121,18 @@ template<class Point> class CompressedQuadtree {
         {
             //setup query result vector
             std::list<std::pair<Point *, double> > qr; 
+
+            FixedSizePriorityQueue<Node *> resultpq(k);
  
-            //initialize priority queue for search
-            std::vector<NodeDistance > pq; 
-            pq.push_back(NodeDistance(root, 0.0));
+            //initialize priority queue for search 
+            searchpq.clear();
+            searchpq.push(0.0, root);
 
-            while (!pq.empty()) {
+            while (searchpq.length) {
 
-                std::pop_heap(pq.begin(), pq.end());
-                Node *node = pq.back().node;
-                double node_dist = pq.back().distance; 
-                pq.pop_back();
+                typename PriorityQueue<Node *>::Entry entry = searchpq.pop(); 
+                Node *node = entry.data;
+                double node_dist = entry.priority*entry.priority;
 
                 if (node->nodes == 0) { 
                     //calculate distance from query point to this point
@@ -148,20 +141,15 @@ template<class Point> class CompressedQuadtree {
                         dist += ((*node->pt)[d]-pt[d]) * ((*node->pt)[d]-pt[d]); 
                     }
 
-                    //insert point in result
-                    typename std::list<std::pair<Point *, double> >::iterator itor = qr.begin();
-                    while (itor != qr.end() && itor->second < dist) {
-                        ++itor;
-                    }
-
-                    qr.insert(itor, std::make_pair<Point *, double>(node->pt, dist)); 
-
-                    if (qr.size() > k) qr.pop_back();
+                    //insert point in result 
+                    if (!resultpq.full() || dist < resultpq.peek().priority) {
+                        resultpq.push(dist, node); 
+                    } 
 
                 } else {
 
                     //find k-th distance
-                    double kth_dist = qr.size() < k? std::numeric_limits<double>::max() : qr.back().second;
+                    double kth_dist = resultpq.full()? resultpq.peek().priority : std::numeric_limits<double>::max();
 
                     //stop searching, all further nodes farther away than k-th value
                     if (kth_dist <= (1.0 + eps)*node_dist) {
@@ -177,12 +165,17 @@ template<class Point> class CompressedQuadtree {
 
                             //if closer than k-th distance, search
                             if (min_dist < kth_dist) { 
-                                pq.push_back(NodeDistance(node->nodes[n], min_dist));
-                                std::push_heap(pq.begin(), pq.end()); 
+                                searchpq.push(min_dist, node->nodes[n]); 
                             }
                         } 
                     }
                 }
+            } 
+
+            while(resultpq.length) {
+                typename FixedSizePriorityQueue<Node *>::Entry e = resultpq.pop();
+                qr.push_front(std::make_pair<Point *, double>(e.data->pt,
+                    e.priority));
             } 
 
             return qr;
@@ -194,6 +187,7 @@ template<class Point> class CompressedQuadtree {
     private:
 
         size_t nnodes;
+        PriorityQueue<Node *> searchpq;
 
         Node *worker(const Point &mid, double radius, std::vector<Point *> &pts, EndBuildFn &fn, size_t depth)
         {

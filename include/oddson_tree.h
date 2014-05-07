@@ -329,7 +329,8 @@ public:
 
         backup = new KdTree<Point, double>(dim, ps, n);
 
-        double *range = new double[2*dim]; 
+        double *range = new double[2*dim];
+        memset(range, 0, 2*dim*sizeof(double));
 
         //generate sample points
         CachedPoint *sample = new CachedPoint[m];
@@ -360,8 +361,7 @@ public:
     {
         fprintf(stderr, "info: hits: %d queries: %d percent: %0.2f\n", hits, queries, (double)hits / (double)queries);
 
-        //FIXME: double delete in compressed quadtree
-        //delete cache;
+        delete cache;
         delete backup; 
     }
 
