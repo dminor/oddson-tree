@@ -855,22 +855,21 @@ Given a triangulation, it is possible to perform point location in time
 making up the triangulation. 
 \end{thm}
 
-\subsection{Biased Range Search}
+\subsection{Biased Range Trees}
 
-We next consider results by Dujmovic et al. \cite{biasedrange} on 2-sided
-planar orthogonal range counting Range counting is the problem of counting the
-number of elements in a set \(S\) contained within a query space. The 2-sided
-orthogonal planar variant restricts this to counting the number of elements
-\((p_x, p_y)\) given a query point \((q_x, q_y)\) where \(p_x \ge q_x\) and
-\(p_y \ge q_y\). Although this is a restricted problem definition, the approach
-taken is similar to that used by Odds-on Trees to solve more general geometric 
-search problems.
+Biased range trees are a data structure invented by Dujmovic et al.
+\cite{biasedrange} to solve two-sided planar orthogonal range counting problems.
+Given a set \(S\) and a query point \(q_x, q_y\), the problem is to count all
+points in \(S\) which are above and to the left of the query point
+\(q_x, q_y\), that is \(p_x \ge q_x\) and \(p_y \ge q_y\).
 
-A data structure invented by Jon Bentley \cite{rangetree} called a Range Tree
-can solve range search problems in linear space and logarithmic time. A one
-dimensional range tree is simply a balanced binary search tree, and in \(d\)
-dimensions, one coordinate is chosen to create a binary search tree, and each
-child node contains a \(d - 1\) range tree. 
+This is a restricted case of the orthogonal range counting problem which allows
+for a rectangular query area in two or higher dimensions. A data structure
+invented by Jon Bentley \cite{rangetree} called a Range Tree can solve range
+search problems in linear space and logarithmic time. A one dimensional range
+tree is simply a balanced binary search tree, and in \(d\) dimensions, one
+coordinate is chosen to create a binary search tree, and each child node
+contains a \(d - 1\) range tree. 
 
 \begin{thm} \emph{(Planar Range Search using Range Trees)} 
 A range tree for a set of points \(S\) of cardinality \(n\) can be built in
@@ -885,15 +884,51 @@ Kd-Trees and Quadtrees can also be used to solve the orthogonal range counting
 problem, but with \(O(\sqrt n)\) time and \(O(n)\) worst case query time
 respectively.
 
-% TODO: In this section, it would be good to give an example of the
-% entropy argument.  The answer to any range counting query is an
-% integer in {0,...,n}.  p_i is the probability that the answer is i.
-% Then H=\sum_{i=0}^n{p_i\log(1/p_i) is a lower-bound.
+Although the biased range tree solves a faily restricted problem, it shares
+many ideas with odds-on trees and is worth considering in detail. Biased range
+trees operate in the comparison tree model of computation, where at each step
+of the search decisions are made by comparing coordinate values. This has
+advantages in practice because comparisons avoid the numerical and geometrical
+robustness problems that can arise by using other operations \cite{biasedrange}. 
 
-% Then you can show an example like like Figure~1.b in \cite{biasedrange}
-% that shows that H can be big even if the query distribution is such that
-% the answer to a range counting query is always 0.
+The answer to any range counting query is an integer in \({0, ..., n}\). Let
+\(p_i\) be the probability that the answer is i. Since we are operating in a
+comparison based model, Shannon's theorem for a noiseless channel applies and
+the entropy \(H=\sum_{i=0}^n{p_i\log(1/p_i)}\) is a lower-bound on the number of
+comparisons required. This is not a strong lower bound, and no comparison (or
+decision) tree is able to meet it in general \cite{biasedrange}.
 
+A stronger lower bound for the range counting problem can be found by creating
+an arrangement \(A\) of \(2n\) rays originating at each point in the set \(S\),
+with one ray facing to the left and one ray facing down. This partitions the
+plane into a set of faces \(F(A)\).
+
+Now consider a comparison tree to solve the range counting problem. Each leaf of
+the comparison tree is a rectangle because it is based upon comparisons to
+coordinates which are axis aligned.  These leaf rectangles do not intersect with
+any of the edges of \(A\) because that implies that the answer to the range
+counting problem would not be consistent for the entire rectangle. This implies
+that we can use \(F(A)\) as a data structure for the range counting problem,
+and that Shannon's theorem once again provides a lower bound of:
+
+$$
+H=\sum_{f \in F(A)}{p_f\log(1/p_f)}
+$$
+
+This lower bound is still not strong enough. To see this consider figure
+~\ref{fig:rangelb}. The query points are evenly distributed in the \(n + 1\)
+red circles. In this case, the query points are always in the same face of
+\(F(A)\), so the entropy above is 0. A comparison tree based data structure
+for this problem uses \(n + 1\) leaves to determine which circle contains
+the query point, so the the lower bound must be greater than \(\log(n + 1)\).
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.6]{diagrams/range_counting.eps}
+\caption{The range counting lower bound is not always achievable}
+\label{fig:rangelb}
+\end{center}
+\end{figure}
 
 A Biased Range Tree relies upon two data structures. The primary search tree
 is based upon a kd-tree. The nodes of the primary tree are associated with
@@ -929,16 +964,15 @@ counting query, and the tree is walked back to the root, locating the query
 point in the catalogues of each node along the way, and adding results to
 the range counting query.
 
-% TODO: The definition of H needs to be fixed here.  H is a function of the points
-% and query distribution that lower-bounds the expected number of comparisons
-% done by any comparison-based data structure 
-
 \begin{thm} \emph{(Two-Sided Orthogonal Biased Range Search)} 
 Two sided orthogonal biased range search can be performed using space
-\(O(\log n\)) and expected time \(O(H)\) where \(H\) is the entropy of the query
-set \cite{biasedrange}.
+\(O(\log n\)) and expected time \(O(H)\) where \(H\) is the entropy of the
+set of possible range counting results (an integer in \({0, ..., n}\)) under
+a given probability distribution \(P\). \(H\) is a lower bound on the expected
+number of comparisons done by any comparison-based data structure, so
+biased range trees are an optimal data structure for two-sided orthogonal
+range search \cite{biasedrange}.
 \end{thm}
-
 
 \subsection{Odds-on Trees}
 
@@ -1187,7 +1221,7 @@ upper limit beyond which comparison based data structures such as the kd-tree do
 not provide any performance advantage beyond a simple search of all of the
 points, and alternative approaches need be considered.
 
-\subsection{Point Set}
+\subsection{Point Set Size}
 
 The point sets are the sites which are searched for during the nearest neighbour
 search. The point sets are generated by sampling a multi-variate uniform
@@ -1197,7 +1231,7 @@ The number of points in the point set is varied across 1000, 5000, 10000, and
 50000 points. More points were tested but required considerably amounts of time
 without giving substantially different results during pilot experimentation.
 
-\subsection{Search Set}
+\subsection{Search Set Entropy}
 
 The search set is the set of query points which are used to test the odds-on
 tree and kd-tree implementations.
@@ -1211,7 +1245,7 @@ this size ensured long enough running times to make meaningful comparisons
 between experimental cases without requring ane excessive amount of time to
 perform all of the experiments.
 
-\subsection{Sample Set}
+\subsection{Sample Set Size}
 
 The sample set is a subset of searches used to build the odds-on tree. Each
 sample set will be chosen by partitioning the search set into a sample set
@@ -1260,10 +1294,10 @@ these times to be compared as well as the overall running time. These are
 presented separately as the effect of build time can be made arbitrarily small
 by increasing the number of queries performed.
 
-A secondary measure for the odds-on tree will be the cache ``hit rate'', that
-is the number of queries answered by the odds-on tree as opposed to the back
-up tree. This allows for comparison between different odds-on tree
-implementations and parameters. 
+% TODO: A secondary measure for the odds-on tree will be the cache ``hit rate'', that
+%is the number of queries answered by the odds-on tree as opposed to the back
+%up tree. This allows for comparison between different odds-on tree
+%implementations and parameters. 
 
 % TODO: is Valgrind data actually meaningful in terms of what we are trying to
 % accmplish? Might be useful in conclusions to explain unexpected results.
@@ -1280,7 +1314,9 @@ structure) and query time (i.e. the time required to run the queries)
 separately in the following sections. This is done because the impact of
 build time can be made arbitrarily small by running sufficiently many queries.
 
-\subsection{Point Set}
+\subsection{Dimension}
+
+\subsection{Point Set Size}
 
 The point sets are the sites which are searched for during the nearest neighbour
 search. The point sets are generated by sampling a multi-variate uniform
@@ -1306,9 +1342,10 @@ sizes tested, in comparison to the oddson-tree implementation.
 \end{center}
 \end{figure}
 
-For the most part the relative query performance of the oddson-tree and kdtree
-did not change with increased point set size. If the oddson-tree outperformed
-the kdtree for small point set sizes, it also did so for large point set sizes.
+For the most part the relative query performance of the kd-tree based odds-on
+tree and kdtree did not change with increased point set size. If the oddson-tree
+outperformed the kdtree for small point set sizes, it also did so for large
+point set sizes.
 
 \begin{figure}
 \begin{center}
@@ -1317,10 +1354,9 @@ the kdtree for small point set sizes, it also did so for large point set sizes.
 \end{center}
 \end{figure}
 
-
 One exception is in the 4d case for the largest sigma value (0.5) where the
-kdtree began to outperform the oddson-tree. In this case, the variance is also
-extremely large.
+kdtree began to outperform the kdtree based oddson-tree. In this case, the
+variance is also extremely large.
 
 \begin{figure}
 \begin{center}
@@ -1329,7 +1365,11 @@ extremely large.
 \end{center}
 \end{figure}
 
-\subsection{Search Set}
+The results for the quadtree based odds-on tree follow the same pattern, with
+increased point set size increasing the overall running time, but not changing
+the relative performance of the odds-on tree and the kd-tree.
+
+\subsection{Search Set Entropy}
 
 Increasing sigma value causes the performance of the odds-on tree to
 At small sigma values, the odds-on tree performs significantly better than
@@ -1355,8 +1395,6 @@ neighbour.
 \caption{Query Time Results (2d, pts=10000, sample=5000)}
 \end{center}
 \end{figure}
-
-%The construction time gets worse with increasing sigma.
 
 The construction time for the kd-tree based odds-on tree implementation worsens
 as sigma increases until it reachs a maximum at a sigma of 0.1. At this point,
@@ -1386,18 +1424,35 @@ shown in the below figure.
 \end{center}
 \end{figure}
 
+\subsection{Sample Set Size}
+%TODO:
 
+\subsection{Maximum Build Depth}
+The maximum build depth parameter limits how deep the odds-on tree the
+resulting odds-on tree will be.
 
-%TODO: one section for each experimental configuration.
+A smaller value of build depth results in faster construction times consistently
+for both kd-tree and quadtree based odds-on trees. Smaller build depth means
+fewer nodes to consider for interferenc queries, which is the primary cost
+in constructing the odds-on tree.
+%TODO: Typical diagram for construction time
 
-%% construction time vs. query time
-%% sample size
-%% build depth
-%% impact of dimension
-%% quadtree vs. kdtree
+For query times the typical result is that a middle value of build depth is
+best. The shallowest trees end up with caches that are too small to be
+effective. The larger value of build depth typically does not result in a
+significant difference in query time.
+%TODO: Typical diagram for query time
 
+Although we typically present results for build time and query time separately,
+build depth is a trade off between build time and query time. A typical result
+for overall running time is presented below:
+%TODO: Typical diagram for total time
+
+%TODO: Difference between sample set size and maximum build depth parameters
+ 
 \subsection{Quadtree vs. Kd-Tree Based Implementation}
 
+%TODO:
 
 
 \chapter{Conclusions}
@@ -1410,7 +1465,11 @@ shown in the below figure.
 
 %TODO:
 % - different partitioning strategies for kd-tree
-% - k-nn
+\subsection{Partition Strategies for kd-tree}
+
+\subsection{k-Nearest Neighbour Search}
+
+\subsection{Approximate Nearest Neighbour Search}
 % - approximate nn, Approximate Voronoi diagrams
 
 \begin{thebibliography}{5}

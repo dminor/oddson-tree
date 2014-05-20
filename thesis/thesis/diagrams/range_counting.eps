@@ -1,0 +1,57 @@
+%!PS-Adobe-2.0 EPSF-2.0 
+%%BoundingBox: 0 0 500 500 
+/draw-point {
+    /r exch def
+    /y exch def
+    /x exch def
+    gsave
+    newpath
+    x y r 0 360 arc
+    closepath
+    fill 
+    grestore
+} def
+/rays {
+    /y1 exch def
+    /x1 exch def
+    gsave
+    newpath
+    x1 y1 moveto
+    0 y1 lineto
+    closepath
+    stroke 
+    0 y1 moveto
+    6 -4 rlineto
+    0 8 rlineto
+    closepath
+    fill
+    x1 y1 moveto
+    x1 0 lineto
+    closepath
+    stroke 
+    x1 0 moveto
+    -4 6 rlineto
+    8 0 rlineto
+    closepath
+    fill
+    grestore
+} def
+
+15 15 translate
+
+1 1 12 { 3 dict begin
+    /i exch def
+    /x 40 30 i mul add def
+    /y 300 20 i mul sub def
+    0.4 setgray
+    x y rays
+    x y 3 draw-point
+end } for
+1 1 13 { 3 dict begin
+    /i exch def
+    /x 40 30 i mul add def
+    /y 300 20 i mul sub def
+    0.9 0.3 0.3 setrgbcolor
+    x 14 sub y 8 add 6 draw-point
+end } for
+
