@@ -61,19 +61,16 @@ applied to a variety of geometrical search problems and which seems as though it
 may be of practical as well as theoretical interest.
 
 In a sense, the odds-on tree data structure provides a theoretical basis for
-the creation of heuristics to accelerate geometrical search problems. Since
+the development of heuristics to accelerate geometrical search problems. Since
 nearest neighbour search is a problem of practical interest with a number of
-existing heuristic solutions with varying degrees of justification in theory,
-it seemed a natural area to which to apply the odds-on tree with a view to
+existing heuristic solutions with varying degrees of theoretical justification,
+it is a natural area to which to apply the odds-on tree with a view to
 determining its effectiveness in practice.
 
 Our goal is to implement a practical data structure based on the theoretical
 results about odds-on trees.  This involves design and implementation work as
-well as extensive experimentation to establish correctness and performance
-characteristics. Since the performance of odds-on trees is dependent upon the
-probability distribution of the queries, it is necessary to do experimentation
-based upon a wide variety of query distributions, including some derived from
-applications of nearest neighbour search.
+well as careful experimentation to establish correctness and performance
+characteristics.
 
 \section{Definitions}
 
@@ -112,9 +109,16 @@ A decision tree model is a model of computation where the progress of the
 algorithm is viewed as decision tree. At each step of an algorithm, a decision
 is made as to what operation to perform next, which can be viewed as a branch
 in a tree. Which child node to be chosen is determined according to a given
-criteria. In a comparison tree, this decision is based upon comparing point
-coordinate values to one another using a suitable ordering. In a linear decision
-tree, a linear function of the point coordinates is used.
+criteria.
+
+A comparison tree model is a decision tree where the child is chosen based
+upon comparing coordinate values to each other using a suitable ordering.
+The comparison tree model is important to geometric search problems as it is
+the basis of most implemented data structures due to the fact comparison
+avoids problems associated with geometric and numerical robustness.
+
+A linear decision tree model is a decision tree where the child is chosen based
+upon a linear function of the point coordinates.
 
 \section{Results Summary}
 
@@ -125,39 +129,41 @@ tree, a linear function of the point coordinates is used.
 The remainder of the thesis is organized as follows: Chapter 2 summarizes
 previous work for biased search, distribution sensitive data structures and
 nearest neighbour search.  Chapter 3 describes the design and implementation of
-the odds-on tree, including a description of alternative designs which were
-explored.  Chapter 4 gives details on the experimentation performed and results
-obtained, and Chapter 5 summarizes the results and discusses potential 
-future work.
+the odds-on tree data structure for nearest neighbour search, including a
+description of alternative designs which were explored. Chapter 4 gives details
+on the experimentation performed and results obtained, and Chapter 5 summarizes
+the results and discusses potential future work.
 
 \chapter{Previous Work}
 
-In this section we examine previous work relevant to odds-on tree. In the first
+In this section we examine previous work relevant to odds-on trees. In the first
 section we examine data structures for nearest-neighbour search. In the second
 section we present results on biased search and describe the odds-on tree data
 structure.
 
 \section{Nearest Neighbour Search}
 
-% See http://grammar.quickanddirtytips.com/which-versus-that.aspx for quick and dirty tips about using 'which' versus 'that'
+% TODO: See http://grammar.quickanddirtytips.com/which-versus-that.aspx for quick and dirty tips about using 'which' versus 'that'
+
 In this section we examine data structures and algorithms for nearest-neighbour
-search. We restrict ourselves to algorithms that operate in a comparison tree
+search. A very large number of data structures exist for this problem, so we
+we restrict ourselves to algorithms that operate in a comparison tree
 model, where data structures make decisions based upon making comparisons
 between point coordinates.
 
-By operating in a comparison tree model, we also restrict ourselves to nearest
-neighbour search in relatively small dimensions. The effective of comparison
-based approaches diminishes as the dimension increases. Evidence suggests in
-cases with 16 dimensions or more, using comparison based approaches performs no
-better than a brute force search of all of the points \cite{fastvector}.
+Comparison based data structures are easy to implement and fast in practice, at
+least for a small number of dimensions, and avoid numerical and geometrical
+robustness problems. Evidence suggests that in problems with 16 dimensions or
+more, using comparison based approaches performs no better on average than a
+brute force search of all of the sites \cite{fastvector}.
 
-Since they are not relevant for the remainder of this thesis, we do not consider
-approaches based upon hashing, such as locality sensitive hashing \cite{lsh}
-or metric trees, where points are sorted based upon distance to a reference
-point rather than based upon their coordinates. Chapter 4 of the book by Samet
-\cite{samet} features a comprehensive treatment of nearest neighbour search in
-higher dimensions. The paper by Liu et al. evaluates some of these techniques
-experimentally \cite{practicalann}. 
+Since we do not use the results in the remainder of the thesis, we do not
+consider non-comparison based approaches such as such as locality sensitive
+hashing \cite{lsh} or metric trees, where points are sorted based upon distance
+to a reference point rather than based upon their coordinates. Chapter 4 of the
+book by Samet \cite{samet} features a comprehensive treatment of nearest
+neighbour search in higher dimensions. The paper by Liu et al. evaluates some of
+these techniques experimentally \cite{practicalann}. 
 
 We also restrict ourselves to an in-memory model, and so do not consider
 external memory based data structures such as R-trees \cite{rtree}. Since an
@@ -411,7 +417,7 @@ Nearest neighbour search in a compressed quadtree with $n$ points requires
 
 \subsection{Skip Quadtrees}
 
-Skip quadtrees extend the idea of skip lists \cite{skiplist} to 2D and higher
+Skip quadtrees extend the idea of skip lists \cite{skiplist} to two and higher
 dimensional spaces. In a skip list, multiple levels of linked lists exist, with
 pointers between the levels.  The bottom level contains all of the nodes, the
 top layer is empty, and (in the randomized version of skip lists,) a node
@@ -471,8 +477,8 @@ quadtree with $n$ points requires
 
 \subsection{Kd-Trees}
 
-Kd-trees were described by Jon Bentley in 1975 as an improvement on quadtrees
-\cite{kdtree}.  Kd-trees are binary search trees for which each non-leaf node
+Kd-trees were created by Jon Bentley in 1975 as an improvement on quadtrees
+\cite{kdtree}. Kd-trees are binary search trees for which each non-leaf node
 divides the point set in half using an axis-aligned line.
 
 Kd-trees are constructed by choosing an axis, determining the median value in
@@ -480,7 +486,8 @@ the point set for the corresponding coordinate, and dividing the points in two
 halves using the median value. The two child nodes are then built by
 recursively building kd-trees for each half. In the original paper, Bentley
 specifies that the axis to split upon is chosen round robin, level by level,
-but some application specific implementations choose different heuristics.
+but it is possible to develop heuristics which potentially give better splits
+for specific problems.
 
 \begin{thm} \emph{(Height of a Kd-Tree)}
 The height of a kd-tree with $n$ points is \(O(\log n)\).
@@ -1245,6 +1252,42 @@ this size ensured long enough running times to make meaningful comparisons
 between experimental cases without requring ane excessive amount of time to
 perform all of the experiments.
 
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/pts_plot_sigma0.01.eps}
+\caption{Points and sample distributions (2d, sigma = 0.01)}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/pts_plot_sigma0.05.eps}
+\caption{Points and sample distributions (2d, sigma = 0.05)}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/pts_plot_sigma0.10.eps}
+\caption{Points and sample distributions (2d, sigma = 0.10)}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/pts_plot_sigma0.25.eps}
+\caption{Points and sample distributions (2d, sigma = 0.25)}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/pts_plot_sigma0.50.eps}
+\caption{Points and sample distributions (2d, sigma = 0.50)}
+\end{center}
+\end{figure}
+
+
 \subsection{Sample Set Size}
 
 The sample set is a subset of searches used to build the odds-on tree. Each
@@ -1274,17 +1317,20 @@ difference between configurations for all cases (t-test, p < 0.0001).
 
 \subsection{Benchmark Platform}
 
-The benchmark platform is a Digital Ocean droplet with a 2.4GHz processor, 1 GB
-of RAM, and 30 GB SSD secondary storage.
-
-Pilot experimention on an Amazon Web Services EC2 Medium Compute
-Optimized instance, with two 64-bit processors and 1.7GB of RAM proved to be
-too slow and expensive. That instance type did not provide SSD backed storage
-and was likely I/O bound reading queries and writing results to disk.
-
-Using cloud computing instance increases the repeatability of the
+The experimentation is done using virtualized instances provided by a third
+party. Using cloud computing instance increases the repeatability of the
 experimentation, allows for easy duplication of hardware to run experiments in
-parallel, and provides a test platform that is of practical interest. 
+parallel, and provides a test platform that is of practical interest. Eventually
+instance types are retired by providers, but likewise physical hardware is only
+available for purchase for a limited period.
+
+The benchmark platform is a Digital Ocean droplet with a 2.4GHz processor, 1 GB
+of RAM, and 30 GB SSD secondary storage \cite{digitalocean}. The digital ocean
+instance was found to considerably faster and so more cost-effective than an
+Amazon Web Services EC2 Medium Compute Optimized instance, with two 64-bit
+processors and 1.7GB of RAM. This is likely due to the Amazon instance type
+not providing SSD backed storage and so becoming I/O bound reading queries and
+writing results to disk.
 
 \subsection{Performance Metrics}
 
@@ -1471,6 +1517,8 @@ for overall running time is presented below:
 
 \subsection{Approximate Nearest Neighbour Search}
 % - approximate nn, Approximate Voronoi diagrams
+
+%% applicable to metric trees, locality sensitive hashing?
 
 \begin{thebibliography}{5}
 

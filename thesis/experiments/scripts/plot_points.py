@@ -63,6 +63,6 @@ if __name__ == '__main__':
 
     plt.scatter(xs, ys, c='r')
 
-    plt.savefig('pts_plot.png')
+    plt.savefig('pts_plot.eps')
     if args.show:
         plt.show()
