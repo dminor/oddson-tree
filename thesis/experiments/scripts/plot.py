@@ -20,6 +20,7 @@
 
 import argparse
 import numpy
+import os
 import scipy.stats
 import sqlite3
 
@@ -39,6 +40,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot experiment data.')
     parser.add_argument('--database', dest='database',
                         help='Database file to use.')
+    parser.add_argument('--legend-loc', dest='legend_loc', type=int, default=4,
+                        help='Set the legend location.')
     parser.add_argument('--measure', dest='measure',
                         choices=['ctime', 'qtime', 'total'], default='total',
                         help='Sample size to use.')
@@ -132,7 +135,9 @@ if __name__ == '__main__':
     else:
         ax.set_ylabel('total time (msec)')
 
-    ax.legend(tuple(rects), tuple(labels), loc=4)
-    plt.savefig('pts%s_sample%s_%s.eps' % (args.pts, args.sample, args.measure))
+    ax.legend(tuple(rects), tuple(labels), loc=args.legend_loc)
+
+    dbname = os.path.splitext(os.path.split(args.database)[1])[0]
+    plt.savefig('%s_pts%s_sample%s_%s.eps' % (dbname, args.pts, args.sample, args.measure))
     if args.show:
         plt.show()
