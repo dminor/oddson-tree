@@ -1401,7 +1401,7 @@ sizes tested, in comparison to the oddson-tree implementation.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/2d_group_bypts_sigma0.01_ctime.eps}
-\caption{Construction Time Results (2d, sigma = 0.01)}
+\caption{Construction Time (kd-tree, 2d, sigma = 0.01)}
 \label{fig:point_set_size_ctime}
 \end{center}
 \end{figure}
@@ -1409,31 +1409,38 @@ sizes tested, in comparison to the oddson-tree implementation.
 For the most part the relative query performance of the kd-tree based odds-on
 tree and kdtree did not change with increased point set size. If the oddson-tree
 outperformed the kdtree for small point set sizes, it also did so for large
-point set sizes.
+point set sizes. There were a few exceptions at larger search set entropies and
+higher dimensions.
 
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/2d_group_bypts_sigma0.01_qtime.eps}
-\caption{Query Time Results (2d, sigma = 0.01)}
+\caption{Query Time (kd-tree, 2d, sigma = 0.01)}
 \label{fig:point_set_size_qtime}
-\end{center}
-\end{figure}
-
-One exception is in the 4d case for the largest sigma value (0.5) where the
-kdtree began to outperform the kdtree based oddson-tree. In this case, the
-variance is also extremely large.
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{diagrams/4d_group_bypts_sigma0.5_qtime.eps}
-\caption{Query Time Results (4d, sigma=0.5)}
-\label{fig:point_set_size_qtime_4d_0_50}
 \end{center}
 \end{figure}
 
 The results for the quadtree based odds-on tree follow the same pattern, with
 increased point set size increasing the overall running time, but not changing
-the relative performance of the odds-on tree and the kd-tree.
+the relative performance of the odds-on tree and the kd-tree. Typical build
+time results are shown in ~\ref{fig:point_set_size_ctime_qt} and construction
+time results in ~\ref{fig:point_set_size_qtime_qt}  
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/2d_group_bypts_sigma0.01_ctime_qt.eps}
+\caption{Construction Time (quadtree, 2d, sigma = 0.01)}
+\label{fig:point_set_size_ctime_qt}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/2d_group_bypts_sigma0.01_qtime_qt.eps}
+\caption{Query Time (quadtree, 2d, sigma = 0.01)}
+\label{fig:point_set_size_qtime_qt}
+\end{center}
+\end{figure}
 
 \subsection{Search Set Entropy}
 
@@ -1459,7 +1466,7 @@ kd-tree based odds-on tree..
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/2d_pts10000_sample5000_qtime.eps}
-\caption{Query Time Results (2d, pts=10000, sample=5000)}
+\caption{Query Time (kd-tree, 2d, pts=10000, sample=5000)}
 \label{fig:sigma_qtime}
 \end{center}
 \end{figure}
@@ -1476,7 +1483,7 @@ results for a 2d kd-tree based odds-on tree..
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/2d_pts10000_sample5000_ctime.eps}
-\caption{Construction Time Results (2d, pts=10000, sample=5000)}
+\caption{Construction Time (kd-tree, 2d, pts=10000, sample=5000)}
 \label{fig:sigma_ctime}
 \end{center}
 \end{figure}
@@ -1490,7 +1497,7 @@ shown in ~\ref{fig:node_counts}.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/2d_pts10000_sample10000_builddata.eps}
-\caption{Odds-on Tree Node Counts (2d, pts=10000, sample=10000, build depth=13)}
+\caption{Node Counts (kd-tree, 2d, pts=10000, sample=10000, build depth=13)}
 \label{fig:node_counts}
 \end{center}
 \end{figure}
@@ -1507,7 +1514,7 @@ and query time results are in ~\ref{fig:sample_set_size_ctime}.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_2d_pts10000_groupbysample_ctime.eps}
-\caption{Odds-on Tree Build Time(2d, pts=10000)}
+\caption{Construction Time(kdtree, 2d, pts=10000)}
 \label{fig:sample_set_size_ctime}
 \end{center}
 \end{figure}
@@ -1515,7 +1522,7 @@ and query time results are in ~\ref{fig:sample_set_size_ctime}.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_2d_pts10000_groupbysample_qtime.eps}
-\caption{Odds-on Tree Query Time(2d, pts=10000)}
+\caption{Query Time(kdtree, 2d, pts=10000)}
 \label{fig:sample_set_size_qtime}
 \end{center}
 \end{figure}
@@ -1532,13 +1539,29 @@ at which point the kd-tree outperforms the odds-on tree.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_2d_pts10000_groupbysample_total.eps}
-\caption{Odds-on Tree Total Time(2d, pts=10000)}
+\caption{Total Time(kd-tree, 2d, pts=10000)}
 \label{fig:sample_set_size_total}
 \end{center}
 \end{figure}
 
-%TODO: more on sample set size - recommendations on how to choose it, maybe?
-%TODO: graph odds-on tree node count, hit rates for different sample sizes?
+Increasing the sample set size increases both the number of terminal nodes and
+the total number of nodes in the odds-on tree as can bee seen in
+~\ref{fig:sample-set_sizenodecounts}. The overall ration of terminal nodes to
+total nodes is highly dependent on the search set entropy. At low entropy,
+increasing the sample set size increases the number of terminal nodes while
+maintaining a small overall odds-on tree size. This means that the odds-on
+tree is quick to search, and searching it is likely to result in finding a
+terminal node. At higher search set entropy values, this is not the case.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/kt_2d_nodecounts_pts10000_groupbysample.eps}
+\caption{Node Counts (kd-tree, 2d, pts=10000)}
+\label{fig:sample_set_size_nodecounts}
+\end{center}
+\end{figure}
+
+
 
 \subsection{Maximum Build Depth}
 
@@ -1554,7 +1577,7 @@ for query time are shown in ~\ref{fig:max_build_depth_qtime}.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_3d_pts10000_sample5000_ctime.eps}
-\caption{Odds-on Tree Build Time(3d, pts=10000, sample=5000)}
+\caption{Construction Time(kd-tree, 3d, pts=10000, sample=5000)}
 \label{fig:max_build_depth_ctime}
 \end{center}
 \end{figure}
@@ -1562,7 +1585,7 @@ for query time are shown in ~\ref{fig:max_build_depth_qtime}.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_3d_pts10000_sample5000_qtime.eps}
-\caption{Odds-on Tree Query Time(3d, pts=10000, sample=5000)}
+\caption{Query Time(kd-tree, 3d, pts=10000, sample=5000)}
 \label{fig:max_build_depth_qtime}
 \end{center}
 \end{figure}
@@ -1576,7 +1599,7 @@ making them slower for the other sigma values.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_3d_pts10000_sample5000_ctime.eps}
-\caption{Odds-on Tree Total Time(3d, pts=10000, sample=5000)}
+\caption{Total Time(kd-tree, 3d, pts=10000, sample=5000)}
 \label{fig:max_build_depth_total}
 \end{center}
 \end{figure}
@@ -1586,7 +1609,30 @@ a much less predictable effect on the performance of the odds-on tree. Based
 upon the results here, it seems best to set it at a moderate value, say between
 $1.25\log(n)$ and $1.5\log(n)$ and use sample set size to make trade offs
 between build time and construction time of the odds-on tree.
- 
+
+For the quadtree based odds-on tree, in general, the build depth parameter had
+does not have a significant impact on either build time or construction time.
+There is a lot of variance in the results here indicating that for the quadtree
+based implementation, the parameter is highly dependent upon the sample set
+distribution.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/qt_3d_pts10000_sample5000_ctime.eps}
+\caption{Construction Time(quadtree, 3d, pts=10000, sample=5000)}
+\label{fig:max_build_depth_ctime_qt}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/qt_3d_pts10000_sample5000_qtime.eps}
+\caption{Query Time(quadtree, 3d, pts=10000, sample=5000)}
+\label{fig:max_build_depth_qtime_qt}
+\end{center}
+\end{figure}
+
+
 \subsection{Quadtree vs. Kd-Tree Based Implementation}
 
 %TODO:
