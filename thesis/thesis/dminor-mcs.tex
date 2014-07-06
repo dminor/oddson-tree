@@ -1635,8 +1635,69 @@ distribution.
 
 \subsection{Quadtree vs. Kd-Tree Based Implementation}
 
-%TODO:
+Initial experimentation did not show either the kd-tree or quadtree based
+implementation to be consistently better than the other. In general, a kd-tree
+based implementation should exhibit better performance than a quadtree based
+implementation, but this is not necessarily case for the experimental
+conditions investigated in this thesis.
 
+In general, the quadtree build times are worse than the kd-tree based build
+times. This is due in part to the fact that building a kd-tree can be done
+with in place sorting of the nodes, whereas building a compressed quadtree
+in a recursive fashion requires pruning nodes after they are built. It is
+possible to build compressed quadtrees based upon sorting (refer to the section
+on z-order above) but initial experiments with building trees this way were
+found to be slower than straightforward top down recursive builds.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/3d_qt_kt_pts10000_ctime.eps}
+\caption{Build Time(3d, pts=10000)}
+\label{fig:3d_kd_qt_ctime}
+\end{center}
+\end{figure}
+
+For query time, it is found that for conditions under which the odds-on tree
+performs well (sigma \(\le 0.1\)), the quadtree based implementation will
+outperform the kd-tree based implementation.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/3d_qt_kt_pts10000_qtime.eps}
+\caption{Query Time(3d, pts=10000)}
+\label{fig:3d_kd_qt_qtime}
+\end{center}
+\end{figure}
+
+Comparing total run times, the quadtree based implementation outperforms the
+kd-tree based implementation for low entropy conditions (sigma \(\le 0.05\))
+~\ref{fig:3d_kd_qt_total}. This is not the case in higher dimensions.
+The quadtree based implementation is substantially worse than the kd-tree
+base implementation for the \(d = 8\) case ~\ref{fig:8d_kd_qt_total}.  Quadtrees
+exhibit best performance in small dimensions. This is in part because
+the number of child nodes of a quadtree node is \(2^d\) for a \(d\)-dimensional
+
+The kd-tree based implementation does not perform well in higher dimensional
+spaces either, so the quadtree remains a viable implementation choice over the
+dimensions for which the odds-on tree exhibits good performance.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/3d_qt_kt_pts10000_total.eps}
+\caption{Total Time (3d, pts=10000)}
+\label{fig:3d_kd_qt_total}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/8d_qt_kt_pts10000_total.eps}
+\caption{Total Time (8d, pts=10000)}
+\label{fig:8d_kd_qt_total}
+\end{center}
+\end{figure}
+
+%TODO: explain why quadtree out performs kd-tree in some cases
 
 \chapter{Conclusions}
 
