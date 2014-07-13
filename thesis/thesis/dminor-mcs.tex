@@ -1364,18 +1364,10 @@ these times to be compared as well as the overall running time. These are
 presented separately as the effect of build time can be made arbitrarily small
 by increasing the number of queries performed.
 
-% TODO: A secondary measure for the odds-on tree will be the cache ``hit rate'', that
-%is the number of queries answered by the odds-on tree as opposed to the back
-%up tree. This allows for comparison between different odds-on tree
-%implementations and parameters. 
-
-% TODO: is Valgrind data actually meaningful in terms of what we are trying to
-% accmplish? Might be useful in conclusions to explain unexpected results.
-%Since CPU cache utilization can have a major impact on running time, the
-%Valgrind \cite{valgrind} cachegrind utility is used to simulate the cache
-%performance of the implementation, and data is collected on L1 and L2 cache
-%miss rates.
-
+A secondary measure for the odds-on tree will be the cache ``hit rate'', that
+is the number of queries answered by the odds-on tree as opposed to the back
+up tree. This allows for comparison between different odds-on tree
+implementations and parameters. 
 
 \section{Results}
 
@@ -1546,7 +1538,7 @@ at which point the kd-tree outperforms the odds-on tree.
 
 Increasing the sample set size increases both the number of terminal nodes and
 the total number of nodes in the odds-on tree as can bee seen in
-~\ref{fig:sample-set_sizenodecounts}. The overall ration of terminal nodes to
+~\ref{fig:sample_set_size_nodecounts}. The overall ration of terminal nodes to
 total nodes is highly dependent on the search set entropy. At low entropy,
 increasing the sample set size increases the number of terminal nodes while
 maintaining a small overall odds-on tree size. This means that the odds-on
@@ -1697,7 +1689,45 @@ dimensions for which the odds-on tree exhibits good performance.
 \end{center}
 \end{figure}
 
-%TODO: explain why quadtree out performs kd-tree in some cases
+Cache hit rate measures the number of times the odds-on tree is able to answer
+a search without making use of the backup kd-tree structure. In general, the
+quadtree has a better hit rate than the kd-tree based odds-on tree. Typical
+results are shown in ~\ref{fig:2d_kd_qt_hits}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/2d_qt_kt_pts10000_hits.eps}
+\caption{Cache Hits (2d, pts=10000)}
+\label{fig:2d_kd_qt_hits}
+\end{center}
+\end{figure}
+
+For a node to be marked terminal the area it covers must have the same nearest
+neighbour. Since the interference queries are run from the corners of the node,
+a certain area outside of the node must also have the same nearest neighbour.
+A square node requires less area outside of the node to have the same nearest
+neighbour and so is more likely to be marked terminal. The area which must have
+the same nearest neighbour for a square and for a rectangular node is
+illustrated in ~\ref{fig:node_coverage}.
+
+A quadtree node always has equal length sides, but a kd-tree node is built
+by sub-dividing points and may have some sides much longer than others. Because
+of this, given a quadtree node and a kd-tree node of the same area the kd-tree
+node is less likely to be marked terminal, which means that a kd-tree based
+odds-on tree implementation is likely to have more, smaller nodes, which will
+cause a lower cache hit rate.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/node_coverage.eps}
+\caption{Square vs Rectangular Nodes}
+\label{fig:node_coverage}
+\end{center}
+\end{figure}
+
+Since the quadtree based implementation has a better hit rate than the kd-tree
+based implementation, it provides better performance in cases where there are
+a lot of cache hits, that when the entropy is low, as is seen above.
 
 \chapter{Conclusions}
 
@@ -1710,6 +1740,8 @@ dimensions for which the odds-on tree exhibits good performance.
 %TODO:
 % - different partitioning strategies for kd-tree
 \subsection{Partition Strategies for kd-tree}
+% quadtree performance due to 'squarer' nodes, different partitioning
+% strategy might help here, or BBD trees?
 
 \subsection{k-Nearest Neighbour Search}
 
@@ -1859,12 +1891,6 @@ Siam Journal of Computing, Vol. 12, No. 1, pp. 28 -- 34.
 Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
 Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
 
-\bibitem{valgrind}
-Nethercote, N., Seward, J. (2007) Valgrind: A Framework for Heavyweight Dynamic
-Binary Instrumentation.  Proceedings of ACM SIGPLAN 2007 Conference on
-Programming Language Design and Implementation (PLDI 2007),
-San Diego, California, USA 
-
 \bibitem{practicalann}
 Liu, T., Moore, A. W., Gray, A., Yang, K. (2004) An Investigation of Practical
 Approximate Nearest-Neighbour Algorithms, Proceedings of Neural Information
@@ -1873,6 +1899,9 @@ Processing Systems(NIPS 2004), pp. TODO
 \bibitem{mehlhorn}
 Mehlhorn, K. (1975) Nearly Optimal Binary Search Trees 
 In Acta Informatica, 5(1), pp. 287 – 295
+
+\bibitem{morton}
+Morton, %TODO
 
 \bibitem{ann}
 Mount, D. M., Arya, S. (2012) ANN: A Library for Approximate Nearest Neighbor

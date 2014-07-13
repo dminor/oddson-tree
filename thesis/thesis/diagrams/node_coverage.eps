@@ -1,0 +1,43 @@
+%!PS-Adobe-2.0 EPSF-2.0 
+%%BoundingBox: 0 0 500 500
+/draw-circle {
+    /w exch def
+    /y exch def
+    /x exch def
+    gsave
+    newpath
+    0.9 0.9 1.0 setrgbcolor
+    x y w 0 360 arc
+    closepath
+    fill
+    grestore
+} def
+/node-bounds {
+    /y2 exch def
+    /y1 exch def
+    /x2 exch def
+    /x1 exch def
+    gsave
+    0.6 0.6 0.7 setrgbcolor
+    newpath
+    x2 y2 moveto
+    x1 y2 lineto
+    x1 y1 lineto
+    x2 y1 lineto
+    closepath
+    stroke 
+    grestore
+} def
+
+125 225 35 draw-circle
+125 275 35 draw-circle
+175 225 35 draw-circle
+175 275 35 draw-circle
+125 175 225 275 node-bounds
+
+325 175 79 draw-circle
+325 325 79 draw-circle
+375 175 79 draw-circle
+375 325 79 draw-circle
+325 375 175 325 node-bounds
+
