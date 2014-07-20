@@ -21,11 +21,20 @@
 
 \chapter*{Abstract}
 
-%TODO:
+The nearest neighbour search problem is given a set of points and a search
+point, return the closest point in the set to the search point. In the biased
+version of this problem a probability distribution over the search points is
+available which can be used to answer searches more efficiently. This thesis
+contains experimental results that show that practical implementations for the
+biased nearest neigbhour search problem are possible.
 
 \chapter*{Acknowledgements}
 
-%TODO:
+I would like to thank my supervisor Dr. Pat Morin for his willingness to take on
+a part-time student and his advice and patience over the past four years.
+
+I not sure I would have made it this far without the patience, kindness and
+support of my wife April.
 
 \afterpreface
 
@@ -119,10 +128,6 @@ avoids problems associated with geometric and numerical robustness.
 
 A linear decision tree model is a decision tree where the child is chosen based
 upon a linear function of the point coordinates.
-
-\section{Results Summary}
-
-%TODO
 
 \section{Organization of the Thesis}
 
@@ -1310,8 +1315,6 @@ most important factor in odds-on tree performance is the entropy of the sites
 given a probability distribution over the searches, using synthetic searches
 gives little advantage over just using entirely synthetic data.
 
-%%TODO: look some more for datasets with search information 
-
 \subsection{Sample Set Size}
 
 The sample set is a set of searches used to build the odds-on tree. Each sample
@@ -1733,22 +1736,71 @@ a lot of cache hits, that when the entropy is low, as is seen above.
 
 \section{Summary}
 
-%TODO:
+We have shown in this thesis that it is possible to create a practical data
+structure for biased neighbour search based upon Odds-on Trees. We developed
+implementations based upon quadtrees and kd-trees and through a series of
+careful experiments, compared their performance to our kd-tree implementation,
+on a number of synthetic datasets.
+
+Our primary metric was running time but we also considered cache hit ratios,
+when comparing performance between Odds-on Tree implementations.
+
+We found both implementations would outperform the kd-tree provided the entropy
+of the set of sites returned under the search distribution is sufficiently
+small. For small dimensions and sufficiently low search entropy, we found that
+the quadtree will outperform the kd-tree based implementation. For large
+dimensions, neither implementation performed bettered than a kd-tree.
+
+Increasing the number of samples used to build the Odds-on Tree increased
+build time but resulted in building a better cache. Adjusting the maximum
+build depth did not have a clear effect on the build times or the quality of the
+cache. Increasing the point set size did not change the relative performance
+of the implementations.
 
 \section{Future Work}
 
-%TODO:
-% - different partitioning strategies for kd-tree
-\subsection{Partition Strategies for kd-tree}
-% quadtree performance due to 'squarer' nodes, different partitioning
-% strategy might help here, or BBD trees?
+The experimentation in this thesis focused on synthetic datasets due to the
+difficulty in finding ``real world'' datasets that included search distributions
+as well as the underlying point sets. Further experimentation could be done
+should non-synthetic datasets be found.
 
-\subsection{k-Nearest Neighbour Search}
+The quadtree based implementation outperformed the kd-tree based implementation
+in some cases due to creating nodes that have equal side length. Our kd-tree
+implementation followed the original strategy in \cite{kdtree} of sorting the
+points into two equal sized groups. In applications of kd-trees, particularly
+in graphics, a number of other heuristic approaches have been developed which
+attempt to avoid creating nodes with a great disparity in side length
+\cite{physicallybasedrendering}. Using these heuristics might provide better
+performance than either a quadtree or a standard kd-tree.
 
-\subsection{Approximate Nearest Neighbour Search}
-% - approximate nn, Approximate Voronoi diagrams
+The Balanced Box Decomposition (BBD) Tree \cite{optimalann} is a more
+complicated data structure that maintains the equal space and equal partition
+size properties of quadtrees and kd-trees. It was not implemented as its
+reported performance in the literature did not seem to justify dealing with the
+increased complexity of implementation. Given the results found for quadtrees
+and kd-trees it now seems worthwhile investigating.
 
-%% applicable to metric trees, locality sensitive hashing?
+This thesis did not investigate the k nearest neighbour problem, where rather
+than returning a single nearest neighbour instead k nearest neighbours are
+returned. Intuitively, increasing k should have a negative impact on the cache
+as the area covered by a node which has the same k nearest neighbours will be
+smaller than the area covered by a node with only a single nearest neighbour.
+This could be investigated experimentally.
+
+A large portion of the time in doing a k-nearest neighbour search is spent in
+backtracking, where other potential nearest neighbours are investigated after
+the candidate nearest neighbours have been identified. The Odds-on Tree could
+be potentially used to prune the number of nodes investiated during back
+tracking, which might improve performance.
+
+This thesis also did not investigate approximate nearest neighbour search. An
+approximate nearest neighbour search often dramatically reduces the amount of
+backtracking required to identify nearest neighbours and performs better in
+higher dimensional spaces. The straightforward approach would be to mark nodes
+as terminal which have the same approximate nearest neighbours. Approximate
+Voronoi Diagrams \cite{avd} were not considered for implementation in this
+thesis as they only work in the approximate case, but would be worthwhile
+investigating in the future.
 
 \begin{thebibliography}{5}
 
@@ -1781,7 +1833,8 @@ Voronoi Diagrams, Proceedings of the 33rd Annual ACM Symposium on the Theory
 of Computing, pp. 721--730.
 
 \bibitem{TODO}
-Arya, S., Malamatos, T., Mount, D. M. (2001) A simple entropy-based algorithm for planar point location.
+Arya, S., Malamatos, T., Mount, D. M. (2001) A simple entropy-based algorithm
+for planar point location.
 In Proceedings of the Twelfth Annual ACM-SIAM Symposium on Discrete Algorithms,
 pp. 262-–268
 
