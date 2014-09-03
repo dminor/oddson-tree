@@ -1202,7 +1202,7 @@ used to answer the search.
 A test harness for the odds-on tree and kd-tree implementations is used to
 read test data and output performance metrics.
 
-A C++ program was written to instantiate each of the oddson-tree implementations
+A C++ program was written to instantiate each of the odds-on tree implementations
 and the kd-tree implementation. The point, search and sample sets are read from
 disk to ensure repeatability of results. The results of each search are written
 to standard output. This allows for comparison of results to a reference
@@ -1392,7 +1392,7 @@ arbitrarily small by increasing the number of queries performed.
 A secondary performance metric for the odds-on tree is the cache ``hit rate''.
 This is the number of queries answered by the odds-on tree as opposed to the
 backup tree. This allows for comparison between the kd-tree based and quadtree
-based oddson-tree implementations. 
+based odds-on tree implementations. 
 
 \section{Results}
 
@@ -1403,17 +1403,37 @@ the kd-tree.
 
 \subsection{Dimension}
 
+An increase in dimension caused a corresponding increase in the query
+time of the odds-on tree and kd-tree implementations. It also caused the
+relative performance of the odds-on tree to become worse. In two or three
+dimensions and low search set sigma, the odds-on tree outperforms the kd-tree.
+In eight dimensions, even with a favourable search set sigma, the kd-tree
+equals or outperforms the odds-on tree in query time. Typical results for a
+quadtree based odds-on tree are shown in ~\ref{fig:dimension_ctime}. This
+is likely caused by the decreased effectiveness of a fixed sample size as
+dimensionality increased.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/dims_pts50000_sample25000_sigma0.01_qtime.eps}
+\caption{Query Time (pts = 50000, sample = 25000, sigma = 0.01)}
+\label{fig:dimension_ctime}
+\end{center}
+\end{figure}
+
+Build times likewise became worse for the odds-on tree implementations as
+dimensionality increased. The impact on the kd-tree build time was negligible.
+
 \subsection{Point Set Size}
 
 To see the impact of point set size, the build depth and sample sigma are held
 constant and the build and construction times are plotted for each point set
-size. Potentially the odds-on tree exhibits better or worse performance relative
-to the kd-tree at larger or smaller point set sizes.
+size.
 
 For the kdtree based implementation increasing the point set size increases
 build time and query time and query time variance. The kdtree query time
 increases, but the build time is not significantly impacted at the point set
-sizes tested, in comparison to the oddson-tree implementation.
+sizes tested, in comparison to the odds-on tree implementation.
 
 \begin{figure}
 \begin{center}
@@ -1424,7 +1444,7 @@ sizes tested, in comparison to the oddson-tree implementation.
 \end{figure}
 
 For the most part the relative query performance of the kd-tree based odds-on
-tree and kdtree did not change with increased point set size. If the oddson-tree
+tree and kdtree did not change with increased point set size. If the odds-on tree
 outperformed the kdtree for small point set sizes, it also did so for large
 point set sizes. There were a few exceptions at larger search set entropies and
 higher dimensions.
@@ -1505,7 +1525,7 @@ results for a 2d kd-tree based odds-on tree..
 \end{center}
 \end{figure}
 
-The decrease in performance observed with increasing sigma values is due to
+The observed decrease in performance with increasing sigma values is due to
 a larger odds-on tree being built. The number of terminal nodes remains
 relatively small while the overall size of the odds-on tree and the number of
 nearest neigbhour queries required increases substantially. Typical results are
@@ -1544,14 +1564,14 @@ and query time results are in ~\ref{fig:sample_set_size_ctime}.
 \end{center}
 \end{figure}
 
-Although we typically present results for build time and query time separately,
-sample set size is a trade off between build time and query time. A typical
-result for overall running time is shown in ~\ref{fig:sample_set_size_total}.
-For lower sigma values the higher quality cache that results from a larger
-sample set size results in a lower overall running time. As sigma increases,
-this benefit decreases until performance becomes roughly equivalent for all
-sample set sizes, and before finally becoming worse for larger sample set size,
-at which point the kd-tree outperforms the odds-on tree.
+Because changing sample set size is a trade off between build time and query
+time, it makes sense to present results for total time. A typical result for
+overall running time is shown in ~\ref{fig:sample_set_size_total}.  For lower
+sigma values the higher quality cache that results from a larger sample set size
+results in a lower overall running time. As sigma increases, this benefit
+decreases until performance becomes roughly equivalent for all sample set sizes,
+and before finally becoming worse for larger sample set size, at which point the
+kd-tree outperforms the odds-on tree.
 
 \begin{figure}
 \begin{center}
@@ -1563,12 +1583,12 @@ at which point the kd-tree outperforms the odds-on tree.
 
 Increasing the sample set size increases both the number of terminal nodes and
 the total number of nodes in the odds-on tree as can bee seen in
-~\ref{fig:sample_set_size_nodecounts}. The overall ration of terminal nodes to
+~\ref{fig:sample_set_size_nodecounts}. The overall ratio of terminal nodes to
 total nodes is highly dependent on the search set entropy. At low entropy,
 increasing the sample set size increases the number of terminal nodes while
 maintaining a small overall odds-on tree size. This means that the odds-on
 tree is quick to search, and searching it is likely to result in finding a
-terminal node. At higher search set entropy values, this is not the case.
+terminal node. This is not the case at higher search set entropy values.
 
 \begin{figure}
 \begin{center}
@@ -1578,9 +1598,9 @@ terminal node. At higher search set entropy values, this is not the case.
 \end{center}
 \end{figure}
 
-
-
 \subsection{Maximum Build Depth}
+
+%%TODO - revisions
 
 The maximum build depth parameter limits how deep the odds-on tree the
 resulting odds-on tree will be. This affects both construction time and query
