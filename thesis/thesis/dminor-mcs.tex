@@ -22,8 +22,8 @@
 The nearest neighbour search problem is given a set of points and a search
 point, return the closest point in the set to the search point. In the biased
 version of this problem a probability distribution over the search points is
-available which can be used to answer searches more efficiently. This thesis
-contains experimental results that show that practical implementations of data
+available that can be used to answer searches more efficiently. This thesis
+contains experimental results showing that practical implementations of data
 structures for the biased nearest neighbour search problem are possible.
 
 \chapter*{Acknowledgements}
@@ -42,7 +42,7 @@ Thank you April, Deirdre and Tamsin for your love and support.
 We investigate the utility of data structures for biased nearest neighbour
 search in practice. The nearest neighbour search problem is to return the
 closest point in a set of points to a specified query point. In the biased
-version of this problem, information on the relative frequence of queries
+version of this problem, information on the relative frequency of queries
 is available, allowing for more common queries to be answered more quickly.
 
 Nearest neighbour search is of considerable practical interest with
@@ -62,8 +62,8 @@ continued to investigate heuristic and approximate approaches to nearest
 neighbour search. 
  
 Recently, two groups of researchers \cite{oddson,chan} have proposed a
-a biased data structure, called odds-on trees in \cite{oddson},  which can be
-applied to a variety of geometrical search problems and which seems as though it
+a biased data structure, called odds-on trees in \cite{oddson} that can be
+applied to a variety of geometrical search problems and seems as though it
 may be of practical as well as of theoretical interest.
 
 In a sense, the odds-on tree data structure provides a theoretical basis for
@@ -82,19 +82,19 @@ characteristics.
 
 Following terminology associated with Voronoi diagrams, we define the set of
 points for which nearest neighbour searches will be performed as sites. Each
-site defines an area, called a cell, which for all points inside the cell, the
+site defines an area, called a cell, that for all points inside the cell, the
 associated site is the nearest neighbour for a given metric.
 
-Given a point \(p\) its nearest neighbour is the site which is closest to it
-for a given metric. Its $k$-nearest neighbours are the $k$ sites which are
+Given a point \(p\) its nearest neighbour is the site that is closest to it
+for a given metric. Its $k$-nearest neighbours are the $k$ sites that are
 closest to it under a given a metric for a given $k$.  A nearest neighbour
-search is given a query point \(p\) determine its nearest neigbhour.
+search is given a query point \(p\) determine its nearest neighbour.
 A \(k\)-nearest neighbour search is given a query point \(p\) return the
 $k$-nearest neighbours.
 
 A \(1 + \epsilon\) approximate nearest neighbour search is given a point \(p\),
-return a site which is no more than \(1 + \epsilon\) times further away from $p$
-than the true nearest neigbhour.
+return a site that is no more than \(1 + \epsilon\) times further away from $p$
+than the true nearest neighbour.
 
 A \(1 + \epsilon\) approximate \(k\)-nearest neighbour search is given a point
 \(p\), return \(k\) points such than none are further away than \(1 + \epsilon\)
@@ -113,9 +113,8 @@ three dimensional simplex.
 
 A decision tree model is a model of computation where the progress of the
 algorithm is viewed as decision tree. At each step of an algorithm, a decision
-is made as to what operation to perform next, which can be viewed as a branch
-in a tree. Which child node to be chosen is determined according to a given
-criteria.
+is made as to what operation to perform next, that can be viewed as a branch
+in a tree. The child node chosen is determined according to a given criteria.
 
 A comparison tree model is a decision tree where the child is chosen based
 upon comparing coordinate values to each other using a suitable ordering.
@@ -128,9 +127,9 @@ upon a linear function of the point coordinates.
 
 \section{Contribution}
 
-In this thesis we present results that show experimentally that distribution
-sensitive data structures such as the Odds-on Tree can be used to develop
-data structures which have performance advantages over standard data structures
+In this thesis we present experimental results demonstrating that distribution
+sensitive data structures such as the odds-on tree can be used to develop
+data structures that have performance advantages over standard data structures
 if provided a suitable probability distribution over the searches.
 
 \section{Organization of the Thesis}
@@ -139,7 +138,7 @@ The remainder of the thesis is organized as follows: Chapter 2 summarizes
 previous work for biased search, distribution sensitive data structures and
 nearest neighbour search.  Chapter 3 describes the design and implementation of
 the odds-on tree data structure for nearest neighbour search, including a
-description of alternative designs which were explored. Chapter 4 gives details
+description of alternative designs that were explored. Chapter 4 gives details
 on the experimentation performed and results obtained, and Chapter 5 summarizes
 the results and discusses potential future work.
 
@@ -189,7 +188,7 @@ A traditional name for this problem is the post office problem, where given a
 set of sites (the post offices) determine for a given query point which
 post-office is closest \cite{dutch}.
 
-The Voronoi diagram for a set of sites is the subdivison of the plane (or
+The Voronoi diagram for a set of sites is the subdivision of the plane (or
 hyperplane in higher dimensions) into cells, where for every point in a cell,
 its nearest neighbour is the site associated with the cell. Efficient algorithms
 exist for creating Voronoi diagrams in low dimensions:
@@ -221,7 +220,7 @@ location in a planar subdivision was described by Kirkpatrick
 removing independent vertices (those which do not share an edge) from the
 triangulation to create a triangulation with fewer faces. Provided a constant
 number of vertices are removed from the triangulation at each step, performing
-the triangulation recursively will result in a data structure which supports
+the triangulation recursively will result in a data structure that supports
 point location in logarithmic time.
 
 \begin{thm} \emph{(Point Location in the Plane)}
@@ -233,20 +232,20 @@ The same bounds were achieved using different data structures by Sarnak and
 Tarjan \cite{sarnak} and Edelsbrunner et al. \cite{edelsbrunner}.
 
 In higher dimensions, given $n$ hyperplanes, it is possible to solve this problem
-by constructing a \(1/r\)-cutting, which is a collection of simplices that
+by constructing a \(1/r\)-cutting, that is a collection of simplices that
 covers the space and is constructed such that each simplex intersects with no
 more than \(n/r\) hyperplanes. Chazelle gives a hierarchical construction
 procedure for these hyperplanes such that a simplex is eventually fully
-contained in one of the cells, which can then be labelled and used to perform
+contained in one of the cells, that can then be labelled and used to perform
 point location \cite{chazelle}.
 
 \begin{thm} \emph{(Point Location in Higher Dimensions)}
-A data structure exists using \(O(n^d)\) storage which allows for  
-point location in a d-dimensional arrangment of hyperplanes to be performed in
+A data structure exists using \(O(n^d)\) storage that allows for  
+point location in a d-dimensional arrangement of hyperplanes to be performed in
 \(O(\log n)\) time \cite{chazelle}.
 \end{thm}
 
-Nearest-neigbhour search can be performed using Voronoi diagrams and provides
+Nearest-neighbour search can be performed using Voronoi diagrams and provides
 efficient algorithms in the plane. To extend this to reporting k-nearest
 neighbours, once the Voronoi cell containing the query point has been
 identified, the neighbour cells of the Voronoi diagram can be examined until
@@ -254,7 +253,7 @@ a sufficient number of neighbours has been found.
 
 In higher dimensions, the time requirement to build a Voronoi diagram and the
 space requirement for the point location data structure both depend upon the
-dimension of the space in an exponential fasion, which limits both their
+dimension of the space in an exponential fashion, which limits both their
 theoretical and practical utility for this problem.
 
 \subsection{Quadtrees}
@@ -276,7 +275,7 @@ Finkel and Bentley \cite{quadtree}.
 Quadtrees can be built over a region, in which case the subdivision proceeds
 until the portion of the region covered by a hypercube has the same value for
 some property of interest. For example, given an input image, a region based
-quadtree would continue to subdivide until each square covered an area which
+quadtree would continue to subdivide until each square covered an area that 
 had the same colour. Quadtrees over a region are called Trie-based quadtrees in
 \cite{samet} and can be used to approximate Voronoi diagrams.
 
@@ -325,7 +324,7 @@ along with a means of performing region queries was described in
 
 To perform nearest neighbour search in a quadtree we adapt the procedure given
 in \cite{samet} for kd-trees. Finding a nearest neighbour in a quadtree is done
-by maintaining a priority queue of nodes to visit, which initially contains the
+by maintaining a priority queue of nodes to visit, that initially contains the
 root node. The algorithm proceeds by removing a node from the priority queue and
 examining each of its children. If the child node contains a point it is added
 to the result set.
@@ -341,7 +340,7 @@ Nearest neighbour search in a quadtree of height h requires \(O(h)\) time.
 
 \subsection{Compressed Quadtrees}
 
-In a compressed quadtree only nodes which contain a point or have at least two
+In a compressed quadtree only nodes that contain a point or have at least two
 child nodes are present in the tree. Compressed quadtrees were first described
 in \cite{compressedquadtree}, and a detailed description can be found in
 \cite{skipquadtree}.
@@ -376,7 +375,7 @@ interleaving of bits is called the ``shuffle'' of a point in \cite{bern}.
 \end{figure}
 
 The points are then sorted according their Morton order. Each two adjacent
-points in the sorted order form a node in the quadtree, which can then be
+points in the sorted order form a node in the quadtree that can then be
 nested by finding the first larger square to the left and the right in the
 sorted order \cite{bern}.
 
@@ -454,7 +453,7 @@ expected time.
 
 \subsubsection{Point Location in a Skip Quadtree}
 
-Point location in a skip quadtree is peformed by recursively visiting each level
+Point location in a skip quadtree is performed by recursively visiting each level
 of the quadtree. Since each level is a compressed quadtree, point location is
 first performed in that compressed quadtree. Once the node in the compressed
 quadtree is located, the link to the corresponding node in the lower level
@@ -474,8 +473,8 @@ searching a standard quadtree, but the skip structure is used to limit
 the number of nodes visited.
 
 For a node \(p\) removed from the priority queue, the skip structure is used to
-determine the node \(q\), which is the smallest node in the lowest skip level
-which is equidistant to the query point. It is shown in \cite{skipquadtree}
+determine the node \(q\) that is the smallest node in the lowest skip level
+that is equidistant to the query point. It is shown in \cite{skipquadtree}
 that at most \(O(\log \frac{1}{\epsilon})\) nodes on the path from \(p\) to \(q\)
 need to be added to the priority queue.
 
@@ -496,7 +495,7 @@ the point set for the corresponding coordinate, and dividing the points in two
 halves using the median value. The two child nodes are then built by
 recursively building kd-trees for each half. In the original paper, Bentley
 specifies that the axis to split upon is chosen round robin, level by level,
-but it is possible to develop heuristics which potentially give better splits
+but it is possible to develop heuristics that potentially give better splits
 for specific problems.
 
 \begin{thm} \emph{(Height of a Kd-Tree)}
@@ -548,30 +547,30 @@ The expected time for nearest-neighbour search in a kd-tree with $n$ points is
 \subsection{Balanced Box Decomposition (BBD) Trees}
 
 A balanced box decomposition tree is a data structure invented by Arya et al.
-\cite{optimalann} which combines advantages of both quadtrees and kd-trees.
+\cite{optimalann} that combines advantages of both quadtrees and kd-trees.
 Like a kd-tree, as one traverses the tree, the number of points decreases
 exponentially, and like a quadtree, the area also decreases exponentially. By
-combinging these properties, an optimal data structure for approximate nearest
+combining these properties, an optimal data structure for approximate nearest
 neighbour search is obtained.
 
-Each node in a BBD-tree covers a cell which is the set theoretic difference
+Each node in a BBD-tree covers a cell that is the set theoretic difference
 between an outer box and an optional inner box. Both boxes are axis-aligned.
 If present, the inner box must either touch the edge of the outer box, or be
 separated from each edge by at least the width of the box in the direction of
-the edge. Each node is an BBD-tree has a bounded aspect ratio which ensures
+the edge. Each node is an BBD-tree has a bounded aspect ratio that ensures
 that the ratio of the shortest edge to the longest edge is bounded by some
 constant.
 
 A BBD-tree is constructed through a sequence of two operations, fair-splits
 and shrinks. A fair-split is a partition of a box using an axis aligned
-hyperplane, which maintains the aspect ratio bound but does not necessarily
+hyperplane that maintains the aspect ratio bound but does not necessarily
 result in an even partition of points. A shrink operation divides a node into
-inner and outer boxes, which is used in a manner similar to a compressed
-quadtree, and can ensure an even partition of points \cite{optimalann}.
+inner and outer boxes that is used in a manner similar to a compressed
+quadtree and can ensure an even partition of points \cite{optimalann}.
 
 Both fair-splits and shrinks can be performed in time linear in the number of
 points contained in the cell. A simple strategy for partitioning the points is
-the midpoint algorithm, which performs a fair-split by partitioning the node
+the midpoint algorithm that performs a fair-split by partitioning the node
 with a hyperplane orthogonal to the longest edge of the outer box. A shrink
 operation is somewhat more complicated, potentially requiring two shrink nodes
 and one split node to ensure that no child contains more than \(2/3\) of the
@@ -589,7 +588,7 @@ A BBD-tree for a \(d\)-dimensional space has \(O(n)\) nodes and can be build in
 \subsubsection{Nearest Neighbour Search in a BBD Tree}
 
 Nearest neighbour search in a BBD Tree is performed in a manner similar to
-search in a kd-tree. A priority queue is maintained of nodes to visit which
+search in a kd-tree. A priority queue is maintained of nodes to visit that 
 initially contains the root node. At each step of the search, the closest
 node to the point is removed from the queue and is recursively searched for
 the leaf closest to the search point. The distance to the other child nodes
@@ -604,7 +603,7 @@ Given a constant \(c_{d,\epsilon} \le \lceil 1 + {6d \over \epsilon} \rceil^d\)
 where d is the dimensionality of the space and \(\epsilon\) is the approximation
 factor, a \((1 + \epsilon)\)-nearest neighbour search in a BBD Tree can be
 performed in time \(O(c_{d,\epsilon} \log n)\) time and k approximate nearest
-neigbhours can be found in \(O((c_{d,\epsilon} + kd) \log n)\) time.
+neighbours can be found in \(O((c_{d,\epsilon} + kd) \log n)\) time.
 \end{thm}
 
 \subsection{Approximate Voronoi Diagrams}
@@ -614,12 +613,12 @@ space requirements by creating an approximation to the Voronoi diagram, for
 instance using quadtrees \cite{avd}. The complexity of the calculation is
 reduced by constructing the Voronoi diagram such that for each cell, any point
 within it is a \(1 + \epsilon\)-nearest neighbour, rather than an exact
-nearest neigbhour.
+nearest neighbour.
 
 Har-Peled \cite{avd} provides an algorithm for building an approximate
 Voronoi diagram that answers nearest-neighbour searches. His construction is
 complicated, requiring first clustering the input sites, then
-building a data structure for answerings point location in equal ball queries
+building a data structure for answering point location in equal ball queries
 (a technique also used in locality sensitive hashing \cite{lsh}) and finally
 using this data structure to build the approximate Voronoi diagram using
 compressed quadtrees.
@@ -631,17 +630,17 @@ decomposition of the sites of the Voronoi diagram. Two sets of points are well
 separated if each set can be bounded by a ball of radius \(r\) such that the
 distance between the center of each set is at least \(2r\). By decomposing
 the sites into well-separated subsets, a set of quadtree nodes can be
-generated which are then stored in a BBD-tree. 
+generated that are then stored in a BBD-tree. 
 
 We do not describe the construction algorithm in detail as these results are
 not used in the remainder of the thesis because we only consider exact
-nearest neigbhour search. We note that both \(\epsilon\) and t need to be fixed
+nearest neighbour search. We note that both \(\epsilon\) and t need to be fixed
 at construction time, which is less flexible than using quadtrees or kd-trees
 directly.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Approximate Voronoi Diagram)} 
 An approximate Voronoi diagram of size \(O({n \over \epsilon ^ d})\) can be
-constructed which can answer \((1 + \epsilon)\) approximate nearest neighbour
+constructed that can answer \((1 + \epsilon)\) approximate nearest neighbour
 searches in time \(O(\log {n \over \epsilon})\) \cite{arya-avd}.
 \end{thm}
 
@@ -651,18 +650,18 @@ Biased search is a generalization of search where rather than assuming each
 search result is equally likely a probability distribution over the results is
 available.
 
-We begin by describing some results from information theory which provide a
+We begin by describing some results from information theory that provide a
 bound on how well a biased data structure can perform. We then describe some
 classical results for biased search in a single dimension, and then proceed
 to some more recent results for higher dimensional search.
 
 \subsection{Information Theory}
 
-Lower bounds for search depend upon some results from information theory which
+Lower bounds for search depend upon some results from information theory that
 are briefly summarized here. Information theory is the study of the fundamental
 properties of communication systems. A data structure can be seen as a form of
 communication system, since it provides a means of communicating data from the
-present to the future.  A data structure which allows for efficient search is
+present to the future.  A data structure that allows for efficient search is
 essentially solving the same problem as creating an efficient code with which
 to transmit a message.
 
@@ -685,7 +684,7 @@ where \(\epsilon\) is arbitrarily small, and it is not possible to transmit
 at an average rate greater than \(C \over H\) \cite{claudeshannonwasagod}.
 \end{thm}
 
-A data structure can be viewed as a communication system which communicates
+A data structure can be viewed as a communication system that communicates
 through time rather than space, by allowing information to be retrieved in the
 future. For instance, take querying a binary search tree for a set of keys. If
 at each node, a ``0'' or ``1'' is generated depending upon whether the left or
@@ -703,11 +702,11 @@ search time is bounded by the entropy, that is \(\Omega(H)\) is a lower bound on
 the search time for any data structure.
 
 These results provide bound on how well a biased data structure can perform. The
-following sections describe data structures which can meet this bound.
+following sections describe data structures that can meet this bound.
 
 \subsection{Biased Search Trees}
 
-A biased search tree is a generalization of binary search trees which make use
+A biased search tree is a generalization of binary search trees that make use
 of knowledge of the probability distribution of the search keys to balance the
 tree.
 
@@ -739,7 +738,7 @@ Then we have that:
     \end{aligned}
 \end{equation}
 
-This recurrence allows us to find all optimal one node trees and then use that
+This recurrence allows us to find all optimal one node trees and then use those
 to find all optimal two node trees, and so forth, until an optimal search
 tree has been determined. This minimization is applied to \({1\over{6}} n^{3} \)
 values of \( k \), but a monotonicity property allows the running time to be
@@ -750,13 +749,13 @@ An optimal static biased search tree can be constructed in time \(O(n^2)\) and
 space \(O(n^2)\) using a dynamic programming approach \cite{knuth}.
 \end{thm}
 
-Knuth also proposed two heuristics which run in \(O(n \log n)\) time and
-\(O(n)\) space which produce nearly optimal trees:
+Knuth also proposed two heuristics that run in \(O(n \log n)\) time and
+\(O(n)\) space that produce nearly optimal trees:
 
 Rule I: Use the most frequent item as the root of the tree and apply the same
 rule to the subtrees.
 
-Rule II: Choose as the root the item which results in the weight of the left
+Rule II: Choose as the root the item that results in the weight of the left
 and right subtrees being as close to equal as possible and apply the same
 rule to the subtrees. 
 
@@ -792,32 +791,32 @@ requires the consideration of a large number of subcases to maintain balance and
 so we do not describe them further here.
 
 \begin{thm} \emph{(Construction of a Dynamic Biased Binary Search Tree)} 
-A dynamic biased search tree can be constructed in time \(O(n)\) which can
+A dynamic biased search tree can be constructed in time \(O(n)\) that can
 perform searches in time \(O(\log(w))\) where \(w\) is the weight of the item
-searched for and insertions and deletions in ammortized time \(O(W / w)\)
+searched for and insertions and deletions in amortized time \(O(W / w)\)
 where \(W\) is the total weight of all items in the search tree and \(w\) is
 the weight of the item added or removed \cite{bst2}.
 \end{thm}
 
 \subsection{Splay Trees}
 
-An alternative approach to biased search is to use data structures which
+An alternative approach to biased search is to use data structures that 
 modify themselves in response to queries. In this case, rather than specifying
 the probabilities in advance, the data structure will change itself to match
 the query distribution. 
 
-Splay trees, which were invented by Sleator and Tarjan \cite{splaytree} are a
-self-modifying binary search tree which perform well in practice. They operate
+Splay trees, which were invented by Sleator and Tarjan \cite{splaytree}, are a
+self-modifying binary search tree that perform well in practice. They operate
 by moving the most recently accessed node to the root of the tree using a
-process called splaying which rotates items in pairs according to three cases
-which depend upon the structure of the tree.
+process called splaying that rotates items in pairs according to three cases
+that depend upon the structure of the tree.
 
-Although splaying can be costly for an individual access, in an ammortized
+Although splaying can be costly for an individual access, in an amortized
 sense, operations on a splay tree take \(O(\log n)\) time.
 
 \begin{thm} \emph{(Splay Trees)} 
 Insertion, deletion and search in a splay tree take \(O(\log n)\) time in
-an ammortized sense \cite{splaytree}.
+an amortized sense \cite{splaytree}.
 \end{thm}
 
 Sleator and Tarjan also showed that splay trees perform within a constant
@@ -826,7 +825,7 @@ famously, conjectured that splay trees also perform within a constant factor
 of any dynamic search tree as well.
 
 \begin{thm} \emph{(Static Optimality of Splay Trees)} 
-The total ammortized time required for a sequence of $m$ accesses to a $n$
+The total amortized time required for a sequence of $m$ accesses to a $n$
 node splay tree is \(O(n \log n + m)\) \cite{splaytree}.
 \end{thm}
 
@@ -840,7 +839,7 @@ practice than splay trees.
 
 Looking at biased search in higher dimensions, we first consider the planar
 point location problem: given a subdivision of the plane and a query point \(p\),
-construct a data structure which allows us to efficiently determine which face
+construct a data structure that allows us to efficiently determine which face
 of the plane contains \(p\). If all of the planar subdivisions and the query
 point lie on a single line then this problem is the standard one dimensional
 search problem and the appropriate data structure is a binary search tree.
@@ -853,7 +852,7 @@ In the biased case, as with binary search trees, if \(p_i\) is the probability
 that the answer to a query is in the \(i\)th subdivision and we are given a
 probability distribution over the subdivisions such that each is chosen with
 \(p_i\) then the expected number of comparisons required to locate the query
-point \(p\) is bounded by the entropy of the set of subdivisons.
+point \(p\) is bounded by the entropy of the set of subdivisions.
 
 A data structure for biased point location in a triangulation was described
 by Iacono \cite{iacono}. It is based on a variation of Kirkpatrick's data
@@ -876,10 +875,10 @@ making up the triangulation.
 Biased range trees are a data structure invented by Dujmovic et al.
 \cite{biasedrange} to solve two-sided planar orthogonal range counting problems.
 Given a set \(S\) and a query point \(q_x, q_y\), the problem is to count all
-points in \(S\) which are above and to the left of the query point
+points in \(S\) that are above and to the left of the query point
 \(q_x, q_y\), that is \(p_x \ge q_x\) and \(p_y \ge q_y\).
 
-This is a restricted case of the orthogonal range counting problem which allows
+This is a restricted case of the orthogonal range counting problem that allows
 for a rectangular query area in two or higher dimensions. A data structure
 invented by Jon Bentley \cite{rangetree} called a Range Tree can solve range
 search problems in linear space and logarithmic time. A one dimensional range
@@ -900,7 +899,7 @@ Kd-Trees and Quadtrees can also be used to solve the orthogonal range counting
 problem, but with \(O(\sqrt n)\) time and \(O(n)\) worst case query time
 respectively.
 
-Although the biased range tree solves a faily restricted problem, it shares
+Although the biased range tree solves a fairly restricted problem, it shares
 many ideas with odds-on trees and is worth considering in detail. Biased range
 trees operate in the comparison tree model of computation, where at each step
 of the search decisions are made by comparing coordinate values. This has
@@ -921,7 +920,7 @@ plane into a set of faces \(F(A)\).
 
 Now consider a comparison tree to solve the range counting problem. Each leaf of
 the comparison tree is a rectangle because it is based upon comparisons to
-coordinates which are axis aligned.  These leaf rectangles do not intersect with
+coordinates that are axis aligned.  These leaf rectangles do not intersect with
 any of the edges of \(A\) because that implies that the answer to the range
 counting problem would not be consistent for the entire rectangle. This implies
 that we can use \(F(A)\) as a data structure for the range counting problem,
@@ -959,12 +958,12 @@ parent region. These strips are constructed such that the probability a point
 being in the region associated with a child node is at most half the probability
 of the point being in the parent region.
 
-Each node also has two associated data structures, called catalogues, which
+Each node also has two associated data structures, called catalogues, that 
 contain subsets of \(S\) sorted by the x- and y- coordinates respectively.
 Each catalogue is indexed by a biased search tree, and fractional cascading is
 used to speed up search within the catalogues.
 
-The second data structure is a backup range tree, as described above, which
+The second data structure is a backup range tree, as described above, that 
 uses \(O(n \log n)\) space and can answer range search queries in time
 \(O(\log n)\). This data structure is used to answer queries for which the
 depth of corresponding node in the primary tree would exceed \(O(\log n)\),
@@ -999,7 +998,7 @@ of geometric search problems.
 Given a probability distribution \(D\) over a set of queries, the odds-on tree
 is capable of answering any query drawn from \(D\) in expected time
 \(O(H^* + 1)\) where \(H^*\) is a lower bound on the expected cost of any
-linear decision tree which solves the search problem. In particular, the
+linear decision tree that solves the search problem. In particular, the
 entropy \(H\) of the output \(D\) is one such bound for many search
 problems. A linear decision tree is a search tree where the decision of which
 child node to follow is based on a linear function.
@@ -1013,7 +1012,7 @@ potentially overlap each other.
 
 \begin{thm} \emph{(Partition Trees)} 
 Given a set of \(S\) points, for any \(\epsilon > 0\) a data structure called
-a partition tree can be constructed which uses \(O(n)\) storage and can answer
+a partition tree can be constructed that uses \(O(n)\) storage and can answer
 counting queries for a search simplex in time \(O(n^{1/2 + \epsilon})\) time and
 report those points in an additional \(O(k)\) time, where \(k\) is the number
 of points in the search simplex. A partition tree can be constructed in
@@ -1051,7 +1050,7 @@ a node is terminal.
 
 The odds-on tree can be answer searches in expected time \(O(H^* + 1)\) where
 \(H^*\) is a lower bound on the expected cost of any linear decision tree
-which answers the search \cite{oddson}.  
+that answers the search \cite{oddson}.  
 \end{thm}
 
 \chapter{Implementation}
@@ -1066,14 +1065,14 @@ implementation.
 
 Compressed quadtrees and kd-trees lack strong theoretical performance
 guarantees but they are simple to implement and perform well in practice. In
-general, kd-trees have better performance guaranttes and out-perform quadtrees,
+general, kd-trees have better performance guarantees and out-perform quadtrees,
 but we chose to implement both data structures, as the initial results using
 kd-trees were not promising and it was possible that quadtrees would have
-advantages as the basis for an odds-on tree implementation that outweight their
+advantages as the basis for an odds-on tree implementation that outweigh their
 disadvantages in general. 
 
-The implementations are in C++. The use of C++ provides the most control over
-memory allocations and placement of objects in memory, which can be used for
+The implementations are in C++. The use of C++ provides great control over
+memory allocations and the placement of objects in memory, allowing for
 optimizations. Since it is not garbage collected, experimental results can be
 more deterministic as the programs will not be interrupted at unpredictable
 intervals for garbage collection. C++ also has reasonably performant
@@ -1106,7 +1105,7 @@ The most significant optimization made during the implementation is to use
 a memory pool rather than the system allocator for allocations. This allowed
 for left and right children of a node to be placed at adjacent locations in
 memory for better locality of reference and avoided the overhead associated
-with many small allocations using the system allocator, which resulting in a
+with many small allocations using the system allocator, which resulted in a
 50 percent improvement in running time. The implementation was based upon the
 kd-tree optimization notes in \cite{physicallybasedrendering}.
 
@@ -1129,32 +1128,32 @@ node as required.
 \section{Kd-Tree Based Odds-on Tree Implementation}
 
 The odds-on tree is built using two point sets. The first point set is used
-to build the backup kd-tree which is used to answer queries which can not be
+to build the backup kd-tree that is used to answer queries which can not be
 efficiently answered using the odds-on tree and during construction to
 answer nearest-neighbour queries while building the cache.
 
 The second point set is drawn from a probability distribution of query
-frequencies and is used to build the odds-on tre cache. The callback mechanism
+frequencies and is used to build the odds-on tree cache. The callback mechanism
 described above is used to determine if each ``corner'' of a newly constructed
-node has the same nearest neigbhour. If this is the case, the answer to a
+node has the same nearest neighbour. If this is the case, the answer to a
 nearest neighbour query for any point inside the node would be the same, and it
 is marked as terminal and the nearest neighbour is stored with the node.
 
 A maximum depth for a constructed node is also enforced by the callback
-function which will end the build process for a node without marking it
+function that will end the build process for a node without marking it
 terminal if the depth of its subtree will exceed a pre-determined maximum.
 
-The build process continues until one of three conditons occurs: all input nodes
+The build process continues until one of three conditions occurs: all input nodes
 have been processed, all nodes have been marked terminal, or all remaining nodes
 exceed the maximum depth specified.
 
 Both the kd-tree and quadtree based odds-on tree implementations handle queries
 in the same fashion.
 
-To handle queries, the odds-on tree relies upon a locate procedure which
-searches the cache for a terminal node containing the query point. If a terminal
-node exists which contains the query point, the stored nearest neighbour is
-returned. Otherwise, the backup kd-tree is searched for the nearest neighbour.
+To handle queries, the odds-on tree relies upon a locate procedure that searches
+the cache for a terminal node containing the query point. If a terminal node
+exists that contains the query point, the stored nearest neighbour is returned.
+Otherwise, the backup kd-tree is searched for the nearest neighbour.
 
 \section{Quadtree Based Odds-on Tree Implementation}
 
@@ -1164,18 +1163,18 @@ based upon sorting in Morton order did not perform well, and the second, based
 upon a top down recursive construction was used in the experimentation.
 
 As described in Chapter Two, sorting points in Morton order are sorted in the
-order in which they would be visied during a depth first traversal of a
+order in which they would be visited during a depth first traversal of a
 compressed quadtree. The sorted points were then visited in order to find
-sequences of points with a common nearest neigbhour. Once a sequence was
+sequences of points with a common nearest neighbour. Once a sequence was
 discovered, the end points were used to construct a bounding box, and the
 ``corners'' of the bounding box were tested using a backup kd-tree structure.
-If all of the corners shared a common nearest-neigbhour, the bounding box is
+If all of the corners shared a common nearest-neighbour, the bounding box is
 marked as terminal and added to a list of cache nodes. These cache nodes were
-then used to create a bounding volume hierarchy which is used as the cache for
+then used to create a bounding volume hierarchy that is used as the cache for
 the odds-on tree. This implementation is not competitive with kd-trees and so
 was abandoned in favour of a standard top down recursive build procedure.
 
-The recursive, top down build procedure for compressed quadtrees was implemeted
+The recursive, top down build procedure for compressed quadtrees was implemented
 as described in Chapter Two. The root node covers the area containing all of the
 input points, and each node is split into \(2^d\) children of equal size. A 
 a compressed quadtree is then built for each child. The build process terminates
@@ -1186,7 +1185,7 @@ node is replaced by this child, which causes a compressed rather than standard
 quadtree to be built.
 
 As with the kd-tree implementation, as each node is constructed a callback
-function is called which allows for the node to be marked as terminal if each
+function is called that allows for the node to be marked as terminal if each
 corner has the same nearest neighbour. A pre-determined maximum depth is also
 enforced. Building the compressed quadtree implementation top down is not as
 fast as sorting by Morton order, but results in a higher quality cache so that
@@ -1194,7 +1193,7 @@ cache hit rates are higher and the overall performance is better.
 
 The query procedure is essentially the same as for the kd-tree based
 implementation, with a locate procedure attempting to find a terminal node in
-the cache which contains the query point. If this fails, the backup kd-tree is
+the cache that contains the query point. If this fails, the backup kd-tree is
 used to answer the search.
 
 \section{Test Harness Implementation}
@@ -1209,7 +1208,7 @@ to standard output. This allows for comparison of results to a reference
 implementation. Performance metrics are written to standard error. This allows
 for search results to be discarded by redirecting standard output to the null
 device while retaining the performance metrics. Writing results to the terminal
-causes the searchs to perform substantially more slowly.
+causes the searches to perform substantially more slowly.
 
 The test harness outputs the time required to build the tree and the time
 required to run the queries after the tree is built. The timings are collected
@@ -1238,7 +1237,7 @@ platform, and presents results from the experimentation.
 
 The experimental hypothesis is that the odds-on tree provides better nearest
 neighbour search performance than a kd-tree implementation in cases where the
-entropy of the point set under a given probabilty distribution is suitably low.
+entropy of the point set under a given probability distribution is suitably low.
 
 The following sections describe and justify the experimental parameters chosen
 for this study.
@@ -1256,7 +1255,7 @@ odds-on tree and kd-tree implementations.
 
 \subsection{Point Set Size}
 
-The point set is the set of sites which are potential results for a nearest
+The point set is the set of sites that are potential results for a nearest
 neighbour search. The point sets are generated by sampling a multi-variate
 uniform distribution on the range \([-1, 1)\) for each dimension.
 
@@ -1267,7 +1266,7 @@ results.
 
 \subsection{Search Set Entropy}
 
-The search set is the set of query points which are used to test the odds-on
+The search set is the set of query points that are used to test the odds-on
 tree and kd-tree implementations.
 
 A multi-variate Gaussian distribution is used to generate the search set. The
@@ -1320,13 +1319,13 @@ distribution as the search set and so illustrates the search set distribution.
 
 For each case the search set consists of 100000 points. In pilot experiments
 this size ensured long enough running times to make meaningful comparisons
-between experimental cases without requring an excessive amount of time to
+between experimental cases without requiring an excessive amount of time to
 perform all of the experiments. If too few searches are used the runtimes may
 end up being within fractions of a second of each other and so much more likely
 to be affected by noise.
 
 The experimentation in this thesis is done using synthetic datasets due to the
-difficulty in finding existing datasets which include suitable probability
+difficulty in finding existing datasets that include suitable probability
 distributions over the searches . This also makes it difficult to demonstrate
 that the search distributions chosen reflect ``real-world'' problems.
 
@@ -1349,7 +1348,7 @@ sample set size.
 
 \subsection{Maximum Build Depth}
 
-The construction of the Odds-on Tree is controlled by a parameter which
+The construction of the odds-on tree is controlled by a parameter that 
 determines how ``deep'' the recursive build will proceed before terminating.
 This parameter will be set be varied between $\log(n)$, $1.5\log(n)$, and
 $2\log(n)$ where $n$ is the cardinality of the sample set. Values less than
@@ -1360,7 +1359,7 @@ results in the pilot experimentation.
 
 Each experimental configuration is repeated ten times with a different sample
 set in each case. During pilot experimentation, this was shown to generate
-statistically signicant differences between configurations for nearly all cases
+statistically significant differences between configurations for nearly all cases
 examined (t-test, p < 0.0001).
 
 \section{Measuring Performance}
@@ -1369,7 +1368,7 @@ examined (t-test, p < 0.0001).
 
 The experimentation is done using a virtualized host provided by a third party.
 This allows for easy duplication of hardware to run experiments in parallel and
-aids in repeatibility. Although virtual instance types are retired by
+aids in repeatability. Although virtual instance types are retired by
 providers, physical hardware is likewise only available for limited period of
 time.
 
@@ -1396,22 +1395,22 @@ based odds-on tree implementations.
 
 \section{Results}
 
-This section contains the results and analysis for each experiemental
+This section contains the results and analysis for each experimental
 parameter described above and concludes with a comparison of the quadtree and
 kd-tree based odds-on tree implementations and their performance relative to
 the kd-tree.
 
 \subsection{Dimension}
 
-An increase in dimension caused a corresponding increase in the query
-time of the odds-on tree and kd-tree implementations. It also caused the
-relative performance of the odds-on tree to become worse. In two or three
-dimensions and low search set sigma, the odds-on tree outperforms the kd-tree.
+An increase in dimension caused a corresponding increase in the query time of
+the odds-on tree and kd-tree implementations. It also caused the relative
+performance of the odds-on tree to become worse. In two or three
+dimensions and small search set sigma, the odds-on tree outperforms the kd-tree.
 In eight dimensions, even with a favourable search set sigma, the kd-tree
 equals or outperforms the odds-on tree in query time. Typical results for a
 quadtree based odds-on tree are shown in ~\ref{fig:dimension_ctime}. This
-is likely caused by the decreased effectiveness of a fixed sample size as
-dimensionality increased.
+decrease in performance is likely caused by the decreased effectiveness of a
+fixed sample size as dimensionality increased.
 
 \begin{figure}
 \begin{center}
@@ -1430,8 +1429,8 @@ To see the impact of point set size, the build depth and sample sigma are held
 constant and the build and construction times are plotted for each point set
 size.
 
-For the kdtree based implementation increasing the point set size increases
-build time and query time and query time variance. The kdtree query time
+For the kd-tree based implementation increasing the point set size increases
+build time and query time and query time variance. The kd-tree query time
 increases, but the build time is not significantly impacted at the point set
 sizes tested, in comparison to the odds-on tree implementation.
 
@@ -1444,8 +1443,8 @@ sizes tested, in comparison to the odds-on tree implementation.
 \end{figure}
 
 For the most part the relative query performance of the kd-tree based odds-on
-tree and kdtree did not change with increased point set size. If the odds-on tree
-outperformed the kdtree for small point set sizes, it also did so for large
+tree and kd-tree did not change with increased point set size. If the odds-on tree
+outperformed the kd-tree for small point set sizes, it also did so for large
 point set sizes. There were a few exceptions at larger search set entropies and
 higher dimensions.
 
@@ -1491,7 +1490,7 @@ tree itself.
 As sigma increases, the performance of the kd-tree itself also improves.
 This is due to the kd-tree doing less backtracking to determine if the
 candidate nearest-neighbour is in fact the actual nearest-neighbour at
-larer sigma values. For sigma = 0.25, the kd-tree does 17 percent less
+larger sigma values. For sigma = 0.25, the kd-tree does 17 percent less
 backtracking, and for sigma = 0.5 the kd-tree does 35 percent less
 backtracking. This is in turn a side effect of the searches being centered
 around the origin. As sigma increases, the searches are more likely to
@@ -1509,7 +1508,7 @@ kd-tree based odds-on tree..
 \end{figure}
 
 The construction time for the kd-tree based odds-on tree implementation worsens
-as sigma increases until it reachs a maximum at a sigma of 0.1. At this point,
+as sigma increases until it reaches a maximum at a sigma of 0.1. At this point,
 the construction time begins to decrease. This decrease matches the decrease
 in query time for the kd-tree at those sigma values. Since constructing the
 odds-on tree requires a large number of kd-tree based nearest neighbour
@@ -1528,7 +1527,7 @@ results for a 2d kd-tree based odds-on tree..
 The observed decrease in performance with increasing sigma values is due to
 a larger odds-on tree being built. The number of terminal nodes remains
 relatively small while the overall size of the odds-on tree and the number of
-nearest neigbhour queries required increases substantially. Typical results are
+nearest neighbour queries required increases substantially. Typical results are
 shown in ~\ref{fig:node_counts}.
 
 \begin{figure}
@@ -1551,7 +1550,7 @@ and query time results are in ~\ref{fig:sample_set_size_ctime}.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_2d_pts10000_groupbysample_ctime.eps}
-\caption{Construction Time(kdtree, 2d, pts=10000)}
+\caption{Construction Time(kd-tree, 2d, pts=10000)}
 \label{fig:sample_set_size_ctime}
 \end{center}
 \end{figure}
@@ -1559,7 +1558,7 @@ and query time results are in ~\ref{fig:sample_set_size_ctime}.
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/kt_2d_pts10000_groupbysample_qtime.eps}
-\caption{Query Time(kdtree, 2d, pts=10000)}
+\caption{Query Time(kd-tree, 2d, pts=10000)}
 \label{fig:sample_set_size_qtime}
 \end{center}
 \end{figure}
@@ -1600,16 +1599,16 @@ terminal node. This is not the case at higher search set entropy values.
 
 \subsection{Maximum Build Depth}
 
-%%TODO - revisions
+The maximum build depth parameter limits how deep the odds-on tree will be
+built, which affects both construction time and query time. The smallest build
+depth value ($\log(n)$, where $n$ is the point set size) investigated typically
+results in faster construction time but slower query times and slower overall
+performance.
 
-The maximum build depth parameter limits how deep the odds-on tree the
-resulting odds-on tree will be. This affects both construction time and query
-time. The smallest build depth value ($\log(n)$, where $n$ is the point set size)
-investigated typically results in faster construction time but slower query times,
-and slower overall performance. The results for the other two build depth
-values ($1.5*\log(n)$, $2*\log(n)$) are typically very close together.
-Example results for build time are shown in ~\ref{fig:max_build_depth_ctime} and
-for query time are shown in ~\ref{fig:max_build_depth_qtime}.
+The results for the other two build depth values ($1.5*\log(n)$, $2*\log(n)$)
+are typically very close together.  Example results for build time are shown in
+~\ref{fig:max_build_depth_ctime} and for query time are shown in
+~\ref{fig:max_build_depth_qtime}.
 
 \begin{figure}
 \begin{center}
@@ -1631,7 +1630,7 @@ As with sample set size, build depth is a trade off between build time and query
 time. A typical result for overall running time is shown in
 ~\ref{fig:max_build_depth_total}. In this case the trees with greater depth are
 faster for the sigma = 0.01 condition, but the additional build time ends up
-making them slower for the other sigma values.
+making them slower overall for greater sigma values. 
 
 \begin{figure}
 \begin{center}
@@ -1647,11 +1646,11 @@ upon the results here, it seems best to set it at a moderate value, say between
 $1.25\log(n)$ and $1.5\log(n)$ and use sample set size to make trade offs
 between build time and construction time of the odds-on tree.
 
-For the quadtree based odds-on tree, in general, the build depth parameter had
-does not have a significant impact on either build time or construction time.
-There is a lot of variance in the results here indicating that for the quadtree
-based implementation, the parameter is highly dependent upon the sample set
-distribution.
+For the quadtree based odds-on tree there is a lot of variance in the running
+time and the build depth parameter does not seem to have a significant impact
+on either build time or construction time. As with the kd-tree based
+implementation, it seems best to set it at moderate values and use the sample
+set size, which has more predictable impact on performance.
 
 \begin{figure}
 \begin{center}
@@ -1669,22 +1668,22 @@ distribution.
 \end{center}
 \end{figure}
 
-
 \subsection{Quadtree vs. Kd-Tree Based Implementation}
 
-Initial experimentation did not show either the kd-tree or quadtree based
-implementation to be consistently better than the other. In general, a kd-tree
-based implementation should exhibit better performance than a quadtree based
-implementation, but this is not necessarily case for the experimental
-conditions investigated in this thesis.
+Pilot experimentation did not show either the kd-tree or quadtree based
+implementation to be consistently better than the other. In worst case analysis,
+kd-trees are expected to exhibit better performance than compressed quadtrees
+for nearest neighbour search, but this is not necessarily the case for the
+experimental conditions investigated in this thesis.
 
-In general, the quadtree build times are worse than the kd-tree based build
-times. This is due in part to the fact that building a kd-tree can be done
-with in place sorting of the nodes, whereas building a compressed quadtree
-in a recursive fashion requires pruning nodes after they are built. It is
-possible to build compressed quadtrees based upon sorting (refer to the section
-on z-order above) but initial experiments with building trees this way were
-found to be slower than straightforward top down recursive builds.
+The quadtree build times are generally worse than the kd-tree based build times.
+A kd-tree can be built efficiently by sorting in place, but constructing a
+compressed quadtree using a recursive top-down procedure requires allocating
+space for new nodes, copying points into them, and then potentially pruning them
+after the face. It is possible to build compressed quadtrees based upon sorting
+points (see the section on z-order above) but pilot experiments found that
+constructing quadtrees this way is faster, but resulted in lower quality caches
+so that overall running time was slower.
 
 \begin{figure}
 \begin{center}
@@ -1694,7 +1693,7 @@ found to be slower than straightforward top down recursive builds.
 \end{center}
 \end{figure}
 
-For query time, it is found that for conditions under which the odds-on tree
+For query time it is found that for conditions under which the odds-on tree
 performs well (sigma \(\le 0.1\)), the quadtree based implementation will
 outperform the kd-tree based implementation.
 
@@ -1713,9 +1712,10 @@ The quadtree based implementation is substantially worse than the kd-tree
 base implementation for the \(d = 8\) case ~\ref{fig:8d_kd_qt_total}.  Quadtrees
 exhibit best performance in small dimensions. This is in part because
 the number of child nodes of a quadtree node is \(2^d\) for a \(d\)-dimensional
+quadtree.
 
 The kd-tree based implementation does not perform well in higher dimensional
-spaces either, so the quadtree remains a viable implementation choice over the
+spaces either so the quadtree remains a viable implementation choice over the
 dimensions for which the odds-on tree exhibits good performance.
 
 \begin{figure}
@@ -1751,7 +1751,7 @@ For a node to be marked terminal the area it covers must have the same nearest
 neighbour. Since the interference queries are run from the corners of the node,
 a certain area outside of the node must also have the same nearest neighbour.
 A square node requires less area outside of the node to have the same nearest
-neighbour and so is more likely to be marked terminal. The area which must have
+neighbour and so is more likely to be marked terminal. The area that must have
 the same nearest neighbour for a square and for a rectangular node is
 illustrated in ~\ref{fig:node_coverage}.
 
@@ -1759,8 +1759,8 @@ A quadtree node always has equal length sides, but a kd-tree node is built
 by sub-dividing points and may have some sides much longer than others. Because
 of this, given a quadtree node and a kd-tree node of the same area the kd-tree
 node is less likely to be marked terminal, which means that a kd-tree based
-odds-on tree implementation is likely to have more, smaller nodes, which will
-cause a lower cache hit rate.
+odds-on tree implementation is likely to have a greater number of smaller nodes,
+which will cause a lower cache hit rate.
 
 \begin{figure}
 \begin{center}
@@ -1770,22 +1770,23 @@ cause a lower cache hit rate.
 \end{center}
 \end{figure}
 
-Since the quadtree based implementation has a better hit rate than the kd-tree
-based implementation, it provides better performance in cases where there are
-a lot of cache hits, that when the entropy is low, as is seen above.
+The quadtree based implementation is able to build a more efficient cache than
+the kd-tree based implementation. Because of this, it exhibits better
+performance than the kd-tree based implementations for small values of search
+set sigma.
 
 \chapter{Conclusions}
 
 \section{Summary}
 
 We have shown in this thesis that it is possible to create a practical data
-structure for biased neighbour search based upon Odds-on Trees. We developed
+structure for biased neighbour search based upon odds-on trees. We developed
 implementations based upon quadtrees and kd-trees and through a series of
 careful experiments, compared their performance to our kd-tree implementation,
 on a number of synthetic datasets.
 
 Our primary metric was running time but we also considered cache hit ratios,
-when comparing performance between Odds-on Tree implementations.
+when comparing performance between odds-on tree implementations.
 
 We found both implementations would outperform the kd-tree provided the entropy
 of the set of sites returned under the search distribution is sufficiently
@@ -1793,7 +1794,7 @@ small. For small dimensions and sufficiently low search entropy, we found that
 the quadtree will outperform the kd-tree based implementation. For large
 dimensions, neither implementation performed bettered than a kd-tree.
 
-Increasing the number of samples used to build the Odds-on Tree increased
+Increasing the number of samples used to build the odds-on tree increased
 build time but resulted in building a better cache. Adjusting the maximum
 build depth did not have a clear effect on the build times or the quality of the
 cache. Increasing the point set size did not change the relative performance
@@ -1803,46 +1804,47 @@ of the implementations.
 
 The experimentation in this thesis focused on synthetic datasets due to the
 difficulty in finding ``real world'' datasets that included search distributions
-as well as the underlying point sets. Further experimentation could be done
-should non-synthetic datasets be found.
+as well as the underlying point sets. Further experimentation should be done
+if suitable non-synthetic datasets are found.
 
 The quadtree based implementation outperformed the kd-tree based implementation
 in some cases due to creating nodes that have equal side length. Our kd-tree
 implementation followed the original strategy in \cite{kdtree} of sorting the
 points into two equal sized groups. In applications of kd-trees, particularly
-in graphics, a number of other heuristic approaches have been developed which
+in graphics, a number of other heuristic approaches have been developed that 
 attempt to avoid creating nodes with a great disparity in side length
 \cite{physicallybasedrendering}. Using these heuristics might provide better
 performance than either a quadtree or a standard kd-tree.
 
 The Balanced Box Decomposition (BBD) Tree \cite{optimalann} is a more
 complicated data structure that maintains the equal space and equal partition
-size properties of quadtrees and kd-trees. It was not implemented as its
-reported performance in the literature did not seem to justify dealing with the
-increased complexity of implementation. Given the results found for quadtrees
-and kd-trees it now seems worthwhile investigating.
+size properties of quadtrees and kd-trees. It was not implemented as part of
+this thesis as its reported performance in the literature did not seem to
+justify dealing with the increased complexity of implementation. Given the
+results found for quadtrees and kd-trees it now seems worthwhile investigating.
 
 This thesis did not investigate the k nearest neighbour problem, where rather
 than returning a single nearest neighbour instead k nearest neighbours are
 returned. Intuitively, increasing k should have a negative impact on the cache
-as the area covered by a node which has the same k nearest neighbours will be
+as the area covered by a node that has the same k nearest neighbours will be
 smaller than the area covered by a node with only a single nearest neighbour.
 This could be investigated experimentally.
 
 A large portion of the time in doing a k-nearest neighbour search is spent in
 backtracking, where other potential nearest neighbours are investigated after
-the candidate nearest neighbours have been identified. The Odds-on Tree could
-be potentially used to prune the number of nodes investiated during back
+the candidate nearest neighbours have been identified. The odds-on tree could
+potentially be used to prune the number of nodes investigated during back
 tracking, which might improve performance.
 
 This thesis also did not investigate approximate nearest neighbour search. An
 approximate nearest neighbour search often dramatically reduces the amount of
 backtracking required to identify nearest neighbours and performs better in
 higher dimensional spaces. The straightforward approach would be to mark nodes
-as terminal which have the same approximate nearest neighbours. Approximate
-Voronoi Diagrams \cite{avd} were not considered for implementation in this
-thesis as they only work in the approximate case, but would be worthwhile
-investigating in the future.
+as terminal that have the same approximate nearest neighbours.
+
+Approximate Voronoi Diagrams \cite{avd} were not considered for implementation
+in this thesis as they only work in the approximate case, but would be
+worthwhile investigating in the future.
 
 \begin{thebibliography}{5}
 
@@ -1921,7 +1923,7 @@ Computer Science, Tucson, AZ
 
 \bibitem{connor}
 Connor, M. and Kumar, P. (2009) Fast Construction of k-Nearest Neighbor Graphs
-For Point Clouds, IEEE Transactions of Visualizatoin and Computer Graphics,
+For Point Clouds, IEEE Transactions of Visualization and Computer Graphics,
 September 2009.
 
 \bibitem{dutch}
@@ -1978,11 +1980,11 @@ pp. 240-–241
 
 \bibitem{lsh}
 Indyk, P., Motwani, R. (1998) Approximate Nearest Neighbors: Towards Removing
-the Cursoe of Dimensionality, In Proceedings of the Thirtieth Annual ACM
+the Curse of Dimensionality, In Proceedings of the Thirtieth Annual ACM
 Symposium on Theory of Computing, pp. 604 -- 613 
 
 \bibitem{kirkpatrick}
-Kirkpatrick, D. (1983) Optimal Search in Planar Subdivisons,
+Kirkpatrick, D. (1983) Optimal Search in Planar Subdivisions,
 Siam Journal of Computing, Vol. 12, No. 1, pp. 28 -- 34.
 
 \bibitem{knuth}
