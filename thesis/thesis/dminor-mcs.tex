@@ -2,7 +2,7 @@
 \usepackage{url}
 \usepackage{amsmath}
 \usepackage{amsthm}
-\usepackage{graphicx}
+\usepackage[dvipdfmx]{graphicx}
 
 \title {Biased Nearest Neighbour Search}
 \author {Daniel Minor}
@@ -11,20 +11,21 @@
 
 \begin{document}
 
-\newtheorem*{thm}{Theorem}[section]
+\newtheorem*{thm}{Theorem}
 
 \beforepreface
 
-\prefacesection
+%\prefacesection
 
 \chapter*{Abstract}
 
-The nearest neighbour search problem is given a set of points and a search
-point, return the closest point in the set to the search point. In the biased
-version of this problem a probability distribution over the search points is
-available that can be used to answer searches more efficiently. This thesis
-contains experimental results showing that practical implementations of data
-structures for the biased nearest neighbour search problem are possible.
+The nearest neighbour search problem is when provided a set of points and a
+search point, return the closest point in the point set to the search point. In
+the biased version of this problem a probability distribution over the search
+points is available that can be used to answer searches more efficiently on
+average. This thesis contains empirical results showing that practical
+implementations of data structures for the biased nearest neighbour search
+problem are possible.
 
 \chapter*{Acknowledgements}
 
@@ -39,11 +40,12 @@ Thank you April, Deirdre and Tamsin for your love and support.
 
 \section{Problem Statement}
 
-We investigate the utility of data structures for biased nearest neighbour
-search in practice. The nearest neighbour search problem is to return the
+We investigate the practical utility of data structures for biased nearest
+neighbour search. The nearest neighbour search problem is to return the
 closest point in a set of points to a specified query point. In the biased
 version of this problem, information on the relative frequency of queries
-is available, allowing for more common queries to be answered more quickly.
+is available, allowing for more common queries to be answered more quickly,
+improving overall performance.
 
 Nearest neighbour search is of considerable practical interest with
 applications in geographical information systems, computer graphics,
@@ -120,7 +122,8 @@ A comparison tree model is a decision tree where the child is chosen based
 upon comparing coordinate values to each other using a suitable ordering.
 The comparison tree model is important to geometric search problems as it is
 the basis of most implemented data structures due to the fact comparison
-avoids problems associated with geometric and numerical robustness.
+avoids problems associated with geometric and numerical robustness when
+performing calculations.
 
 A linear decision tree model is a decision tree where the child is chosen based
 upon a linear function of the point coordinates.
@@ -134,17 +137,17 @@ if provided a suitable probability distribution over the searches.
 
 \section{Organization of the Thesis}
 
-The remainder of the thesis is organized as follows: Chapter 2 summarizes
+The remainder of the thesis is organized as follows: Chapter Two summarizes
 previous work for biased search, distribution sensitive data structures and
-nearest neighbour search.  Chapter 3 describes the design and implementation of
-the odds-on tree data structure for nearest neighbour search, including a
-description of alternative designs that were explored. Chapter 4 gives details
-on the experimentation performed and results obtained, and Chapter 5 summarizes
-the results and discusses potential future work.
+nearest neighbour search.  Chapter Three describes the design and implementation
+of the odds-on tree data structure for nearest neighbour search, including a
+description of alternative designs that were explored. Chapter Four gives
+details on the experimentation performed and results obtained, and Chapter Five
+summarizes the results and discusses potential future work.
 
 \chapter{Previous Work}
 
-In this section we examine previous work relevant to odds-on trees. In the first
+In this chapter we examine previous work relevant to odds-on trees. In the first
 section we examine data structures for nearest-neighbour search. In the second
 section we present results on biased search and describe the odds-on tree data
 structure.
@@ -154,28 +157,28 @@ structure.
 In this section we examine data structures and algorithms for nearest-neighbour
 search. A very large number of data structures exist for this problem, so we
 we restrict ourselves to algorithms that operate in a comparison tree
-model, where at each step data structures make decisions based upon making
-comparisons between point coordinates.
+model, where decisions are based upon making comparisons between point
+coordinates.
 
-Comparison based data structures are easy to implement and fast in practice, at
-least for a small number of dimensions, and avoid numerical and geometrical
-robustness problems. Evidence suggests that in problems with 16 dimensions or
+Comparison based data structures are easy to implement and fast in practice for
+a moderate number of dimensions, and avoid numerical and geometrical robustness
+problems. Empirical evidence suggests that in problems with 16 dimensions or
 more, using comparison based approaches performs no better on average than a
 brute force search of all of the sites \cite{fastvector}.
 
-Since we do not use the results in the remainder of the thesis, we do not
-consider non-comparison based approaches such as such as locality sensitive
-hashing \cite{lsh} or metric trees, where points are sorted based upon distance
-to a reference point rather than based upon their coordinates. Chapter 4 of the
-book by Samet \cite{samet} features a comprehensive treatment of nearest
-neighbour search in higher dimensions. The paper by Liu et al. evaluates some of
-these techniques experimentally \cite{practicalann}. 
+Some non-comparison based approaches include locality sensitive hashing
+\cite{lsh} where adjacent points are hashed to the same cell, or metric trees,
+where points are sorted based upon distance to a reference point rather than
+based upon their coordinates. Chapter 4 of the book by Samet \cite{samet}
+features a comprehensive treatment of nearest neighbour search in higher
+dimensions. The paper by Liu et al. evaluates some of these techniques
+experimentally \cite{practicalann}. 
 
-We also restrict ourselves to an in-memory model and so do not consider
-external memory based data structures such as R-trees \cite{rtree}. Since an
-odds-on tree is essentially a cache, it is less interesting to consider an
-external memory representation, although an odds-on tree may be quite useful
-as an in-memory cache for an external memory data structure.
+We also restrict ourselves to an in-memory model and do not consider external
+memory based data structures such as R-trees \cite{rtree}. Since an odds-on tree
+is essentially a cache, it is less interesting to consider an external memory
+representation, although an odds-on tree may be quite useful as an in-memory
+cache for an external memory data structure.
 
 \subsection{Voronoi Diagrams}
 
@@ -251,15 +254,15 @@ neighbours, once the Voronoi cell containing the query point has been
 identified, the neighbour cells of the Voronoi diagram can be examined until
 a sufficient number of neighbours has been found. 
 
-In higher dimensions, the time requirement to build a Voronoi diagram and the
-space requirement for the point location data structure both depend upon the
-dimension of the space in an exponential fashion, which limits both their
-theoretical and practical utility for this problem.
+In higher dimensions, the time required to build a Voronoi diagram and the space
+required for the point location data structure both depend upon the dimension of
+the space in an exponential fashion, which limits both their theoretical and
+practical interest for this problem.
 
 \subsection{Quadtrees}
 
 Quadtrees are based upon recursively dividing n-dimensional space into \(2^n\)
-equal sized hypercubes, with each node in the tree keeping pointers to its
+equal sized nodes, with each node in the tree keeping pointers to its
 children.  In the two dimensional case, this means that space is divided into
 four quadrants, hence the name quadtrees. Quadtrees were introduced in 1974 by
 Finkel and Bentley \cite{quadtree}. 
@@ -314,7 +317,7 @@ Point location in a quadtree of height h can be performed in time \(O(h)\).
 
 \subsubsection{Nearest Neighbour Search in a Quadtree}
 
-Given a query point $p$ the quadtree node containing $p$, if any, can be found by
+Given a query point $p$, the quadtree node containing $p$, can be found by
 starting at the root, comparing $p$ to the bounds of the each child of the root,
 and recursively visiting the child containing $p$ until a leaf node is found.  
 Since the maximum depth of a quadtree with $n$ points is not bounded by $n$, the
@@ -354,7 +357,7 @@ as follows:
 node's parent to point to the node's child.
 \end{enumerate}
 
-Since this procedure requires first building a regular quadtree, it also
+Because this procedure requires first building a regular quadtree, it also
 requires \(O((h + 1)n\) time to complete.
 
 This construction procedure can be made more efficient, or at least bounded by
@@ -374,10 +377,10 @@ interleaving of bits is called the ``shuffle'' of a point in \cite{bern}.
 \end{center}
 \end{figure}
 
-The points are then sorted according their Morton order. Each two adjacent
-points in the sorted order form a node in the quadtree that can then be
-nested by finding the first larger square to the left and the right in the
-sorted order \cite{bern}.
+The points are sorted according their Morton order. Each two adjacent points in
+the sorted order form a node in the quadtree that can then be nested by finding
+the first larger square to the left and the right in the sorted order
+\cite{bern}.
 
 \begin{thm} \emph{(Compressed Quadtree Construction)}
 A quadtree containing $n$ points can be constructed in \(O(n \log n)\) time
@@ -478,15 +481,15 @@ that is equidistant to the query point. It is shown in \cite{skipquadtree}
 that at most \(O(\log \frac{1}{\epsilon})\) nodes on the path from \(p\) to \(q\)
 need to be added to the priority queue.
 
-\begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
+\begin{thm} \emph{(Nearest Neighbour Search in a Skip Quadtree)} 
 Approximate \(1 + \epsilon\) nearest neighbour search for d dimensions in a skip
 quadtree with $n$ points requires
-\(O(\epsilon^{1 - d}(\log n + \log \epsilon^(-1)))\) expected time.
+\(O(\epsilon^{1 - d}(\log n + \log \epsilon^{-1}))\) expected time.
 \end{thm}
 
 \subsection{Kd-Trees}
 
-Kd-trees were created by Jon Bentley in 1975 as an improvement on quadtrees
+Kd-trees were developed by Jon Bentley in 1975 as an improvement on quadtrees
 \cite{kdtree}. Kd-trees are binary search trees for which each non-leaf node
 divides the point set in half using an axis-aligned line.
 
@@ -518,17 +521,17 @@ to split the children for that node, and the visiting the appropriate child
 node \cite{kdtree}.
 
 \begin{thm} \emph{(Point Location in a Kd-Tree)} 
-Point location in a skip quadtree with $n$ points can be performed in time
+Point location in a kd-tree with $n$ points can be performed in time
 \(O(\log n\)). 
 \end{thm}
 
 \subsubsection{Nearest Neighbour Search in a Kd-tree}
 
-An algorithm for nearest-neighbour search in a kd-tree tree was described
-by Friedman et al. \cite{friedman} in 1977 as an improvement on the algorithm
-contained in the original paper describing kd-trees.
+An improved algorithm for nearest-neighbour search in a kd-tree tree was
+described by Friedman et al. \cite{friedman} in 1977 and is described here
+rather than the algorithm in the original paper describing kd-trees.
 
-The algorithm proceeds in a manner similar to the procedure for point-location,
+The algorithm proceeds in a manner similar to the procedure for point location,
 but at each step the child node that was not visited is added to a priority
 queue. When a leaf node is reached, the point at that node is added to the
 result set and the priority queue is examined. If the closest node in the
@@ -548,10 +551,10 @@ The expected time for nearest-neighbour search in a kd-tree with $n$ points is
 
 A balanced box decomposition tree is a data structure invented by Arya et al.
 \cite{optimalann} that combines advantages of both quadtrees and kd-trees.
-Like a kd-tree, as one traverses the tree, the number of points decreases
-exponentially, and like a quadtree, the area also decreases exponentially. By
-combining these properties, an optimal data structure for approximate nearest
-neighbour search is obtained.
+Like a kd-tree, as one traverses the tree, the number of points associated with
+a node decreases exponentially, and like a quadtree, the area associated with a
+node also decreases exponentially. By combining these properties, an optimal
+data structure for approximate nearest neighbour search is obtained.
 
 Each node in a BBD-tree covers a cell that is the set theoretic difference
 between an outer box and an optional inner box. Both boxes are axis-aligned.
@@ -578,7 +581,7 @@ points covered by the parent node \cite{optimalann}.
 
 To prove properties of the BBD-tree, Arya et al. assume that fair-splits and
 shrinks are applied alternately as the tree is constructed. In practice, they
-note that for almost all cases, only fair-splits are required \cite{optimalann}. 
+note that for almost all cases only fair-splits are required \cite{optimalann}. 
 
 \begin{thm} \emph{(BBD-Tree Construction)} 
 A BBD-tree for a \(d\)-dimensional space has \(O(n)\) nodes and can be build in
@@ -616,7 +619,7 @@ within it is a \(1 + \epsilon\)-nearest neighbour, rather than an exact
 nearest neighbour.
 
 Har-Peled \cite{avd} provides an algorithm for building an approximate
-Voronoi diagram that answers nearest-neighbour searches. His construction is
+Voronoi diagram that supports nearest-neighbour searches. His construction is
 complicated, requiring first clustering the input sites, then
 building a data structure for answering point location in equal ball queries
 (a technique also used in locality sensitive hashing \cite{lsh}) and finally
@@ -647,8 +650,8 @@ searches in time \(O(\log {n \over \epsilon})\) \cite{arya-avd}.
 \section{Biased Search}
 
 Biased search is a generalization of search where rather than assuming each
-search result is equally likely a probability distribution over the results is
-available.
+search result is equally likely, instead a probability distribution over the
+results is available.
 
 We begin by describing some results from information theory that provide a
 bound on how well a biased data structure can perform. We then describe some
@@ -660,8 +663,8 @@ to some more recent results for higher dimensional search.
 Lower bounds for search depend upon some results from information theory that
 are briefly summarized here. Information theory is the study of the fundamental
 properties of communication systems. A data structure can be seen as a form of
-communication system, since it provides a means of communicating data from the
-present to the future.  A data structure that allows for efficient search is
+communication system because it provides a means of communicating data from the
+present to the future. A data structure that allows for efficient search is
 essentially solving the same problem as creating an efficient code with which
 to transmit a message.
 
@@ -684,25 +687,20 @@ where \(\epsilon\) is arbitrarily small, and it is not possible to transmit
 at an average rate greater than \(C \over H\) \cite{claudeshannonwasagod}.
 \end{thm}
 
-A data structure can be viewed as a communication system that communicates
-through time rather than space, by allowing information to be retrieved in the
-future. For instance, take querying a binary search tree for a set of keys. If
-at each node, a ``0'' or ``1'' is generated depending upon whether the left or
-right subtree is taken, then the generated sequence is a code for the key, and
-we can apply Shannon's theorem to give a bound on the expected number of
-comparisons required.
+To see how a data structure can be viewed as a communication system consider 
+querying a binary search tree for a set of keys. If at each node, a ``0'' or
+``1'' is generated depending upon whether the left or right subtree is taken,
+then the generated sequence is a code for the key, and we can apply Shannon's
+theorem to give a bound on the expected number of comparisons required.
 
 For random queries for which the data structure has no information other than
-the distribution of outcomes, so that \(p_i\) is the probability of searching for
+the distribution of outcomes, so that \(p_i\) is the probability of retrieving
 the \(i\)-th key, then any data structure for search can not have an expected
 number of comparisons less than \(H\).
 
 Since search time depends upon the expected number of comparisons, the expected
-search time is bounded by the entropy, that is \(\Omega(H)\) is a lower bound on
+search time is bounded by the entropy and \(\Omega(H)\) is a lower bound on
 the search time for any data structure.
-
-These results provide bound on how well a biased data structure can perform. The
-following sections describe data structures that can meet this bound.
 
 \subsection{Biased Search Trees}
 
@@ -711,9 +709,9 @@ of knowledge of the probability distribution of the search keys to balance the
 tree.
 
 The initial work on biased search trees focused on the static case, where
-the query frequencies are known in advance and no deletions and insertions
-are allowed. This work is summarized in Volume 3 of Donald Knuth's The Art of
-Computer Programming \cite{knuth}.
+the query frequencies are known in advance and no deletions and insertions of
+keys are allowed. This work is summarized in Volume 3 of Donald Knuth's The Art
+of Computer Programming \cite{knuth}.
 
 Given a set of $n$ keys \(K_i\) and \(2n + 1\) probabilities
 \(p_1, p_2, ..., p_n\) and \(q_1, q_2, ..., q_n\) where \(p_i\) is the
@@ -746,7 +744,7 @@ reduced to \( O(n^2) \) \cite{knuth}.
 
 \begin{thm} \emph{(Construction of an Optimal Static Biased Binary Search Tree)} 
 An optimal static biased search tree can be constructed in time \(O(n^2)\) and
-space \(O(n^2)\) using a dynamic programming approach \cite{knuth}.
+space \(O(n^2)\) using dynamic programming \cite{knuth}.
 \end{thm}
 
 Knuth also proposed two heuristics that run in \(O(n \log n)\) time and
@@ -781,14 +779,15 @@ the entropy \(H\) of the frequency distribution can be constructed in time
 
 Biased search trees allowing insertions and deletions based upon 2-4 and
 red-black trees were described by Bent, Sleator and Tarjan \cite{bst} in 1984.
-As with 2-4 trees, their data structure relies upon maintaing invariants
-on the tree during updates through complicated, multi-case rules for
-re-parenting nodes to maintain balance. In this case, the balance condition
-depends upon the weight of the node. If all of the weights are one, the
-resulting tree is simply a 2-4 tree. Somewhat simpler trees are provided
-by Feigenbaum and Tarjan \cite{bst2}. The construction of both data structures
-requires the consideration of a large number of subcases to maintain balance and
-so we do not describe them further here.
+As with 2-4 trees, their data structure relies upon maintaining invariants
+on the tree during updates through extensive multi-case rules for re-parenting
+nodes to maintain balance. In this case, the balance condition depends upon the
+weight of the node, where the weight can be set based upon the probability of
+its retrieval. If all of the weights are one, the resulting tree is simply a 2-4
+tree. Somewhat simpler trees are provided by Feigenbaum and Tarjan \cite{bst2}.
+The construction of both data structures requires the consideration of a large
+number of subcases to maintain balance and so we do not describe them further
+here.
 
 \begin{thm} \emph{(Construction of a Dynamic Biased Binary Search Tree)} 
 A dynamic biased search tree can be constructed in time \(O(n)\) that can
@@ -801,9 +800,9 @@ the weight of the item added or removed \cite{bst2}.
 \subsection{Splay Trees}
 
 An alternative approach to biased search is to use data structures that 
-modify themselves in response to queries. In this case, rather than specifying
-the probabilities in advance, the data structure will change itself to match
-the query distribution. 
+modify themselves in response to queries rather than insertions or deletions. In
+this case, rather than specifying the probabilities in advance, the data
+structure will change itself to match the query distribution. 
 
 Splay trees, which were invented by Sleator and Tarjan \cite{splaytree}, are a
 self-modifying binary search tree that perform well in practice. They operate
@@ -832,7 +831,7 @@ node splay tree is \(O(n \log n + m)\) \cite{splaytree}.
 It is possible to create biased versions of other, simpler data structures
 such as randomized search trees (treaps) \cite{treap} and skip lists
 \cite{bsl2} but these do not provide better theoretical performance guarantees
-than biased search trees, and do not seem to provide better performance in
+than biased search trees and also do not seem to provide better performance in
 practice than splay trees.
 
 \subsection{Planar Point Location}
@@ -876,7 +875,9 @@ Biased range trees are a data structure invented by Dujmovic et al.
 \cite{biasedrange} to solve two-sided planar orthogonal range counting problems.
 Given a set \(S\) and a query point \(q_x, q_y\), the problem is to count all
 points in \(S\) that are above and to the left of the query point
-\(q_x, q_y\), that is \(p_x \ge q_x\) and \(p_y \ge q_y\).
+\(q_x, q_y\), that is \(p_x \ge q_x\) and \(p_y \ge q_y\). Although the biased
+range tree solves a fairly restricted problem, it shares many ideas with odds-on
+trees and is worth considering in detail.
 
 This is a restricted case of the orthogonal range counting problem that allows
 for a rectangular query area in two or higher dimensions. A data structure
@@ -890,21 +891,13 @@ contains a \(d - 1\) range tree.
 A range tree for a set of points \(S\) of cardinality \(n\) can be built in
 time \(O(n \log n)\) and requires \(O(n \log n)\) space. It can report the
 points in a rectangular query area in time \(O(\log^2 n + k)\) time, where
-\(k\) is the number of points in the query area. A technique called
-fractional cascading can reduce the query time to \(O(\log n + k)\)
-\cite{dutch}. 
+\(k\) is the number of points in the query area. Using fractional cascading can
+reduce the query time to \(O(\log n + k)\) \cite{dutch}. 
 \end{thm}
 
 Kd-Trees and Quadtrees can also be used to solve the orthogonal range counting
 problem, but with \(O(\sqrt n)\) time and \(O(n)\) worst case query time
 respectively.
-
-Although the biased range tree solves a fairly restricted problem, it shares
-many ideas with odds-on trees and is worth considering in detail. Biased range
-trees operate in the comparison tree model of computation, where at each step
-of the search decisions are made by comparing coordinate values. This has
-advantages in practice because comparisons avoid the numerical and geometrical
-robustness problems that can arise by using other operations \cite{biasedrange}. 
 
 The answer to any range counting query is an integer in \({0, ..., n}\). Let
 \(p_i\) be the probability that the answer is i. Since we are operating in a
@@ -992,8 +985,8 @@ range search \cite{biasedrange}.
 \subsection{Odds-on Trees}
 
 Odds-on trees make use of similar ideas of those described above to solve
-2-sided orthogonal range searches, but are capable of solving a large class
-of geometric search problems.
+2-sided orthogonal range searches, but are capable of solving a much larger
+class of geometric search problems.
 
 Given a probability distribution \(D\) over a set of queries, the odds-on tree
 is capable of answering any query drawn from \(D\) in expected time
@@ -1073,22 +1066,23 @@ disadvantages in general.
 
 The implementations are in C++. The use of C++ provides great control over
 memory allocations and the placement of objects in memory, allowing for
-optimizations. Since it is not garbage collected, experimental results can be
-more deterministic as the programs will not be interrupted at unpredictable
-intervals for garbage collection. C++ also has reasonably performant
-implementations of basic data structures such as vectors and lists in the
-standard library. The implementations were parameterized using templates to
-allow for user defined classes to be used for points, and the underlying data
-type used for numbers to be chosen. The experiments are done using double
-precision floating point numbers.
+optimizations. Since it is not garbage collected, experimental results are less 
+variable as the programs will not be interrupted at unpredictable intervals for
+garbage collection. C++ also has reasonably performant implementations of basic
+data structures such as vectors and lists in the standard library.
+
+The implementations are parameterized using templates to allow for user defined
+classes to be used for points, and the underlying data type used for numbers to
+be chosen. The experiments are done using double precision floating point
+numbers.
 
 The heap data structure implementation in the C++ standard library on the
 development platform was found to have poor performance. Two priority queue
 implementation were developed based upon the heap data structure, one of which
 enforced a queue size limitation for use when searching for \(k\) nearest
 neighbours. Both were found to outperform the C++ priority queue implementation
-based upon the std::vector class and were used in both the kd-tree and
-compressed quadtree implementations.
+based upon the std::vector class and were used in the kd-tree and compressed
+quadtree implementations.
 
 \section{Kd-tree Implementation}
 
@@ -1096,8 +1090,8 @@ We first describe our implementation of kd-trees. The kd-tree implementation was
 used as the backup oracle for both the kd-tree and quadtree based odds-on tree,
 and as the reference implementation of kd-trees for experimentation.
 
-The kd-tree is built as described in chapter two, by choosing an axis round
-robin, determining the median value in the point set for the corresponding
+The kd-tree is built as described in chapter two, by choosing a splitting axis
+round robin, determining the median value in the point set for the corresponding
 coordinate and dividing the points in two halves using the median value. The two
 child nodes are then built by recursively building kd-trees for each half.
 
@@ -1212,26 +1206,26 @@ causes the searches to perform substantially more slowly.
 
 The test harness outputs the time required to build the tree and the time
 required to run the queries after the tree is built. The timings are collected
-using the clock\_gettime calls to read the system realtime clock under Linux. 
-
+using the clock\_gettime calls to read the system realtime clock under Linux.
 The odds-on tree implementations also output the number of ``cache hits'', that
 is the number of searches answered by the odds-on tree rather than the backup
 tree.
 
 The C++ test harness was called by a separate python script which given a
 directory of sample data, would automatically call the odds-on tree
-implementation and kd-tree implementation with the appropriate permutations
+implementation and kd-tree implementation with the appropriate permutations of
 sample and search sets for each probability distribution over the search sets
 present. It also provides the capability to randomize the order in which the
-tests were, validate that the search results match between the kd-tree and the
-odds-on tree, and limit the number of runs so that the full set are not
-performed.
+tests were run, validate that the search results match between the kd-tree and
+the odds-on tree, and limit the number of runs so that the full set are not
+performed. These validation and rum limiting faeatures are used to validate the
+implementations.
 
 \chapter{Experimental Results}
 
 This chapter describes the experimentation performed to test the odds-on tree
-implementation, including experimental design, performance metrics, test
-platform, and presents results from the experimentation.
+implementation, including the experimental design, performance metrics, test
+platform, and the results of the experimentation.
 
 \section{Experiment Design}
 
@@ -1247,9 +1241,9 @@ for this study.
 The dimension of the point sets is varied across 2, 3, 4, and 8 dimensions.
 Previous experimental work indicates that dimensions of 16 and above are not
 suitable for exact search in kd-trees (and by extension quadtrees) and typically 
-approximate nearest neighbour search for good performance \cite{app-ann}. Pilot 
-experimentation indicated that even at eight dimensions the benefits of using
-odds-on tree are slight and so higher dimensions were not investigated, as
+require approximate nearest neighbour search for good performance \cite{app-ann}.
+Pilot experimentation indicated that even at eight dimensions the benefits of
+using odds-on tree are slight and so higher dimensions were not investigated, as
 increase in dimension substantially increases running times for both the
 odds-on tree and kd-tree implementations.
 
@@ -1331,8 +1325,8 @@ that the search distributions chosen reflect ``real-world'' problems.
 
 Although it is possible to take existing datasets and attempt to derive or
 create typical search distributions for them, this would essentially still be
-using synthetic data because the primary factor in odds-on tree performance is
-the entropy of the sites given a probability distribution over the searches.
+using synthetic data because the primary determinant of odds-on tree performance
+is the entropy of the sites given a probability distribution over the searches.
 
 \subsection{Sample Set Size}
 
@@ -1341,10 +1335,9 @@ set is created by sampling the same probability distribution used to create the
 search set. A different sample set is generated for each run. Example sample
 sets are shown in the figures above.
 
-The sample set set size chosen will be $0.5n$, $n$, and $2n$, where
-$n$ is the cardinality of the point set. Pilot experimentation showed that
-these values provide a reasonable indication of the performance impact of
-sample set size. 
+The sample set set size used is $0.5n$, $n$, and $2n$, where $n$ is the
+cardinality of the point set. Pilot experimentation showed that these values
+provide a reasonable indication of the performance impact of sample set size. 
 
 \subsection{Maximum Build Depth}
 
@@ -1360,7 +1353,7 @@ results in the pilot experimentation.
 Each experimental configuration is repeated ten times with a different sample
 set in each case. During pilot experimentation, this was shown to generate
 statistically significant differences between configurations for nearly all cases
-examined (t-test, p < 0.0001).
+examined (t-test, $p < 0.0001 $).
 
 \section{Measuring Performance}
 
@@ -1368,13 +1361,13 @@ examined (t-test, p < 0.0001).
 
 The experimentation is done using a virtualized host provided by a third party.
 This allows for easy duplication of hardware to run experiments in parallel and
-aids in repeatability. Although virtual instance types are retired by
+aids in repeatability. Although instance types are eventually retired by
 providers, physical hardware is likewise only available for limited period of
 time.
 
 The benchmark platform is a Digital Ocean droplet with a 2.4GHz processor, 1 GB
 of RAM, and 30 GB SSD secondary storage. During pilot experimentation, the
-digital ocean instance was found to considerably faster and so more
+digital ocean instance was found to be considerably faster and so more
 cost-effective than an Amazon Web Services EC2 Medium Compute Optimized
 instance, with two 64-bit processors and 1.7GB of RAM. This is likely due to the
 Amazon instance type not providing SSD backed storage and so becoming I/O bound 
@@ -1408,7 +1401,7 @@ performance of the odds-on tree to become worse. In two or three
 dimensions and small search set sigma, the odds-on tree outperforms the kd-tree.
 In eight dimensions, even with a favourable search set sigma, the kd-tree
 equals or outperforms the odds-on tree in query time. Typical results for a
-quadtree based odds-on tree are shown in ~\ref{fig:dimension_ctime}. This
+quadtree based odds-on tree are shown in figure ~\ref{fig:dimension_ctime}. This
 decrease in performance is likely caused by the decreased effectiveness of a
 fixed sample size as dimensionality increased.
 
@@ -1459,8 +1452,8 @@ higher dimensions.
 The results for the quadtree based odds-on tree follow the same pattern, with
 increased point set size increasing the overall running time, but not changing
 the relative performance of the odds-on tree and the kd-tree. Typical build
-time results are shown in ~\ref{fig:point_set_size_ctime_qt} and construction
-time results in ~\ref{fig:point_set_size_qtime_qt}  
+time results are shown in figure ~\ref{fig:point_set_size_ctime_qt} and
+construction time results in figure ~\ref{fig:point_set_size_qtime_qt}  
 
 \begin{figure}
 \begin{center}
@@ -1528,7 +1521,7 @@ The observed decrease in performance with increasing sigma values is due to
 a larger odds-on tree being built. The number of terminal nodes remains
 relatively small while the overall size of the odds-on tree and the number of
 nearest neighbour queries required increases substantially. Typical results are
-shown in ~\ref{fig:node_counts}.
+shown in figure ~\ref{fig:node_counts}.
 
 \begin{figure}
 \begin{center}
@@ -1544,8 +1537,9 @@ The sample set size has a direct impact on build and query times. Increasing
 the sample set size requires more time to build due to additional nearest
 neighbour queries during the cache construction, but usually results in a
 better cache, causing the a corresponding decrease in query time.  An example
-of typical build time results are shown in ~\ref{fig:sample_set_size_qtime}
-and query time results are in ~\ref{fig:sample_set_size_ctime}.
+of typical build time results are shown in figure
+~\ref{fig:sample_set_size_qtime} and query time results are in figure
+~\ref{fig:sample_set_size_ctime}.
 
 \begin{figure}
 \begin{center}
@@ -1565,12 +1559,12 @@ and query time results are in ~\ref{fig:sample_set_size_ctime}.
 
 Because changing sample set size is a trade off between build time and query
 time, it makes sense to present results for total time. A typical result for
-overall running time is shown in ~\ref{fig:sample_set_size_total}.  For lower
-sigma values the higher quality cache that results from a larger sample set size
-results in a lower overall running time. As sigma increases, this benefit
-decreases until performance becomes roughly equivalent for all sample set sizes,
-and before finally becoming worse for larger sample set size, at which point the
-kd-tree outperforms the odds-on tree.
+overall running time is shown in figure ~\ref{fig:sample_set_size_total}. For
+lower sigma values the higher quality cache that results from a larger sample
+set size results in a lower overall running time. As sigma increases, this
+benefit decreases until performance becomes roughly equivalent for all sample
+set sizes, and before finally becoming worse for larger sample set size, at
+which point the kd-tree outperforms the odds-on tree.
 
 \begin{figure}
 \begin{center}
@@ -1581,7 +1575,7 @@ kd-tree outperforms the odds-on tree.
 \end{figure}
 
 Increasing the sample set size increases both the number of terminal nodes and
-the total number of nodes in the odds-on tree as can bee seen in
+the total number of nodes in the odds-on tree as can bee seen in figure
 ~\ref{fig:sample_set_size_nodecounts}. The overall ratio of terminal nodes to
 total nodes is highly dependent on the search set entropy. At low entropy,
 increasing the sample set size increases the number of terminal nodes while
@@ -1605,9 +1599,9 @@ depth value ($\log(n)$, where $n$ is the point set size) investigated typically
 results in faster construction time but slower query times and slower overall
 performance.
 
-The results for the other two build depth values ($1.5*\log(n)$, $2*\log(n)$)
+The results for the other two build depth values ($1.5\log(n)$, $2\log(n)$)
 are typically very close together.  Example results for build time are shown in
-~\ref{fig:max_build_depth_ctime} and for query time are shown in
+figure ~\ref{fig:max_build_depth_ctime} and for query time are shown in figure
 ~\ref{fig:max_build_depth_qtime}.
 
 \begin{figure}
@@ -1627,7 +1621,7 @@ are typically very close together.  Example results for build time are shown in
 \end{figure}
 
 As with sample set size, build depth is a trade off between build time and query
-time. A typical result for overall running time is shown in
+time. A typical result for overall running time is shown in figure
 ~\ref{fig:max_build_depth_total}. In this case the trees with greater depth are
 faster for the sigma = 0.01 condition, but the additional build time ends up
 making them slower overall for greater sigma values. 
@@ -1707,10 +1701,10 @@ outperform the kd-tree based implementation.
 
 Comparing total run times, the quadtree based implementation outperforms the
 kd-tree based implementation for low entropy conditions (sigma \(\le 0.05\))
-~\ref{fig:3d_kd_qt_total}. This is not the case in higher dimensions.
+figure ~\ref{fig:3d_kd_qt_total}. This is not the case in higher dimensions.
 The quadtree based implementation is substantially worse than the kd-tree
-base implementation for the \(d = 8\) case ~\ref{fig:8d_kd_qt_total}.  Quadtrees
-exhibit best performance in small dimensions. This is in part because
+base implementation for the \(d = 8\) case (see figure ~\ref{fig:8d_kd_qt_total}).
+Quadtrees exhibit best performance in small dimensions. This is in part because
 the number of child nodes of a quadtree node is \(2^d\) for a \(d\)-dimensional
 quadtree.
 
@@ -1737,7 +1731,7 @@ dimensions for which the odds-on tree exhibits good performance.
 Cache hit rate measures the number of times the odds-on tree is able to answer
 a search without making use of the backup kd-tree structure. In general, the
 quadtree has a better hit rate than the kd-tree based odds-on tree. Typical
-results are shown in ~\ref{fig:2d_kd_qt_hits}.
+results are shown in figure ~\ref{fig:2d_kd_qt_hits}.
 
 \begin{figure}
 \begin{center}
@@ -1753,7 +1747,7 @@ a certain area outside of the node must also have the same nearest neighbour.
 A square node requires less area outside of the node to have the same nearest
 neighbour and so is more likely to be marked terminal. The area that must have
 the same nearest neighbour for a square and for a rectangular node is
-illustrated in ~\ref{fig:node_coverage}.
+illustrated in figure ~\ref{fig:node_coverage}.
 
 A quadtree node always has equal length sides, but a kd-tree node is built
 by sub-dividing points and may have some sides much longer than others. Because
@@ -1821,7 +1815,8 @@ complicated data structure that maintains the equal space and equal partition
 size properties of quadtrees and kd-trees. It was not implemented as part of
 this thesis as its reported performance in the literature did not seem to
 justify dealing with the increased complexity of implementation. Given the
-results found for quadtrees and kd-trees it now seems worthwhile investigating.
+results found that quadtrees build better caches than kd-trees it now seems
+worthwhile implementing.
 
 This thesis did not investigate the k nearest neighbour problem, where rather
 than returning a single nearest neighbour instead k nearest neighbours are
@@ -1844,17 +1839,18 @@ as terminal that have the same approximate nearest neighbours.
 
 Approximate Voronoi Diagrams \cite{avd} were not considered for implementation
 in this thesis as they only work in the approximate case, but would be
-worthwhile investigating in the future.
+worthwhile investigating in the future if further work were done with
+approximate nearest neighour search.
 
 \begin{thebibliography}{5}
 
 \bibitem{treap}
 Aragon, C. R.,  Seidel, R. (1996) Randomized Search Trees.
-In Algorithmica, Vol. 16, Number 4/5, pp. 464--497
+In Algorithmica, Vol. 16, Number 4/5, pp. 464 -- 497.
 
 \bibitem{fastvector}
 Arya, S., Mount, D. M. (1993) Algorithms for Fast Vector Quantization,
-Proceedings of DCC '93, IEEE Press, pp 381--390. 
+Proceedings of DCC '93, IEEE Press, pp 381 -- 390. 
 
 \bibitem{app-ann}
 Arya, S., Mount, D. M. (1993) Approximate nearest neighbour queries in Fixed
@@ -1864,39 +1860,33 @@ pp 271 -- 280.
 \bibitem{optimalann}
 Arya, S., Mount, D. M., Netanyahu, N. S., Silverman, R. Wu, A. Y. (1998)
 An Optimal Algorithm for Approximate Nearest Neighbor Searching in Fixed
-Dimensions, Journal of the ACM, Volume 45, Issue 6, pp 891--923
+Dimensions, Journal of the ACM, Volume 45, Issue 6, pp 891 -- 923.
 
 \bibitem{simpleentropy}
 Arya, S., Malamatos, T. Mount, D. M. (2001) A Simple Entropy-Based Algorithm
 for Planar Point Location. In Proceedings of the Twelfth Annual ACM-SIAM
-Symposium on Discrete Algorithms, pp. 262--268
+Symposium on Discrete Algorithms, pp. 262 -- 268.
 
 \bibitem{arya-avd}
 Arya, S., Malamatos, T. Mount, D. M. (2002) Space-efficient Approximate
 Voronoi Diagrams, Proceedings of the 33rd Annual ACM Symposium on the Theory
-of Computing, pp. 721--730.
-
-\bibitem{simpleentropy}
-Arya, S., Malamatos, T., Mount, D. M. (2001) A simple entropy-based algorithm
-for planar point location.
-In Proceedings of the Twelfth Annual ACM-SIAM Symposium on Discrete Algorithms,
-pp. 262-–268
+of Computing, pp. 721 -- 730.
 
 \bibitem{bsl}
 Bagchi, A. Buchsbaum, A. L., Goodrich, M. T. (2005) Biased Skip Lists.
-In Algorithmica Vol. 42, pp. 31 – 48
+In Algorithmica Vol. 42, pp. 31 -- 48.
 
 \bibitem{bst}
 Bent, S. W., Sleator, D. D., Tarjan, R. E. (1984) Biased Search Trees,
-In SIAM Journal on Computing, Volume 14, pp. 545 - 568
+In SIAM Journal on Computing, Volume 14, pp. 545 -- 568.
 
 \bibitem{kdtree}
 Bentley, J. L. (1975) Multidimensional Binary Search Trees Used for Associative
-Searching, In Communications of the ACM, Volume 18, Number 9, pp. 509--517 
+Searching, In Communications of the ACM, Volume 18, Number 9, pp. 509 -- 517.
 
 \bibitem{rangetree}
 Bentley, J. L. (1980) Multidimensional Divide-and-Conquer.
-In Communications of the ACM, Volume 23, pp. 214--229.
+In Communications of the ACM, Volume 23, pp. 214 -- 229.
 
 \bibitem{bern}
 Bern, M., Eppstein, D., Teng, S-H. (1993) Parallel Construction of Quadtrees and
@@ -1911,15 +1901,15 @@ April 27, 2013.
 \bibitem{chan}
 Chan, T. M. (2006) A Minimalist's Implementation of an Approximate Nearest
 Neighbour Algorithm in Fixed Dimensions, unpublished note, retrieved from
-\url{http://www.cs.uwaterloo.ca/~tmchan/pub\_ann.html} on July 29, 2012
+\url{http://www.cs.uwaterloo.ca/~tmchan/pub\_ann.html} on July 29, 2012.
 
 \bibitem{chazelle} Chazelle, B. (1993) Cutting hyperplanes for divide-and-conquer.
-Discrete and Computational Geometry 9, pp. 145--158.
+Discrete and Computational Geometry 9, pp. 145 -- 158.
 
 \bibitem{compressedquadtree}
 Clarkson, Kenneth L. (1983) Fast Algorithms for the All Nearest Neighbors Problem,
 FOCS '83: Proceedings of the Twenty-fourth Symposium on Foundations of
-Computer Science, Tucson, AZ 
+Computer Science, Tucson, AZ. 
 
 \bibitem{connor}
 Connor, M. and Kumar, P. (2009) Fast Construction of k-Nearest Neighbor Graphs
@@ -1929,59 +1919,59 @@ September 2009.
 \bibitem{dutch}
 de Berg., M. van Kreveld, M., Overmars, M., Schwarzkopf, O. (2000)
 Computational Geometry: Algorithms and Applications, 2nd Edition, Springer-Verlag,
-Berlin Heidelberg New York
+Berlin Heidelberg New York.
 
 \bibitem{biasedrange}
 Dujmovic, V., Howat, J., Morin, P. (2009) Biased Range Trees
 In Proceedings of the twentieth Annual ACM-SIAM Symposium on Discrete Algorithms,
-New York, New York, pp. 486 -- 495
+New York, New York, pp. 486 -- 495.
 
 \bibitem{edelsbrunner}
 Edelsbrunner, H., Guibas, L. J., Stolfi, J. (1986) Optimal Point Location in a
-Monotone Subdivision, SIAM Journal on Computing, 15(2), pp. 317--340. 
+Monotone Subdivision, SIAM Journal on Computing, 15(2), pp. 317 -- 340. 
 
 \bibitem{skipquadtree}
 Eppstein, D., Goodrich, M. T., Sun, J. Z. (2008) The Skip Quadtree: A Simple
 Dynamic Data Structure for Multidimensional Data, Int. Journal on Computational
-Geometry and Applications, 18(1/2), pp. 131--160 
+Geometry and Applications, 18(1/2), pp. 131 -- 160.
 
 \bibitem{bsl2}
 Ergun, F., Sahinalp, S. C., Sharp, J., Sinha, R. K. (2001) Biased Skip Lists
 for Highly Skewed Access Patterns, Proceedings of ALENEX 2001, Lecture Notes in
-Computer Science, Volume 2153, pp. 216--229 
+Computer Science, Volume 2153, pp. 216 -- 229.
 
 \bibitem{bst2}
 Feigenbaum, J., Tarjan, R. E. (1983) Two New Kinds of Biased Search Tree,
-In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 -- 3158
+In Bell Systems Technical Journal, Vol. 62, No. 10, pp. 3139 -- 3158.
 
 \bibitem{quadtree}
 Finkel, R. A. and Bentley, J. L. (1974) Quad Trees A Data Structure for
-Retrieval on Composite Keys, Acta Informatica, 4(1), pp. 1 –- 9 
+Retrieval on Composite Keys, Acta Informatica, 4(1), pp. 1 –- 9.
 
 \bibitem{friedman}
 Friedman, J. H., Bentley, J. L., Finkel, R. A. (1977) An Algorithm for Finding
 Best Matches in Logarithmic Expected Time, ACM Transactions on Mathematical
-Software, Vol. 3 Number 3, pp. 209 -- 226
+Software, Vol. 3 Number 3, pp. 209 -- 226.
 
 \bibitem{rtree}
 Guttman, A. (1984) R-Trees: A Dynamic Index Structure for Spatial Searching,
 SIGMOD '84: Proceedings of the 1984 ACM SIGMOD International Conference on the
-Management of Data, pp. 47 -- 58
+Management of Data, pp. 47 -- 58.
 
 \bibitem{avd}
 Har-Peled, S. (2001) A Replacement for Voronoi Diagrams of Near Linear Size, 
 FOCS '01: Proceedings of the Symposium on Foundations of Computer Science, 
-pp. 94 -- 103
+pp. 94 -- 103.
 
 \bibitem{iacono}
 Iacono, J. (2001) Optimal Planar Point Location
 In Proceedings of the Twelfth Annual ACM-SIAM Symposium on Discrete Algorithms,
-pp. 240-–241
+pp. 240 -- 241.
 
 \bibitem{lsh}
 Indyk, P., Motwani, R. (1998) Approximate Nearest Neighbors: Towards Removing
 the Curse of Dimensionality, In Proceedings of the Thirtieth Annual ACM
-Symposium on Theory of Computing, pp. 604 -- 613 
+Symposium on Theory of Computing, pp. 604 -- 613.
 
 \bibitem{kirkpatrick}
 Kirkpatrick, D. (1983) Optimal Search in Planar Subdivisions,
@@ -1989,32 +1979,32 @@ Siam Journal of Computing, Vol. 12, No. 1, pp. 28 -- 34.
 
 \bibitem{knuth}
 Knuth, D. E. (1998) The Art of Computer Programming, Second Edition,
-Volume 3, Sorting and Searching.  Addison-Wesley, Reading, Massachusetts, USA.
+Volume 3, Sorting and Searching. Addison-Wesley, Reading, Massachusetts, USA.
 
 \bibitem{practicalann}
 Liu, T., Moore, A. W., Gray, A., Yang, K. (2004) An Investigation of Practical
 Approximate Nearest-Neighbour Algorithms, Proceedings of Neural Information
-Processing Systems(NIPS 2004), pp. 825 -- 832 
+Processing Systems(NIPS 2004), pp. 825 -- 832.
 
 \bibitem{mehlhorn}
 Mehlhorn, K. (1975) Nearly Optimal Binary Search Trees 
-In Acta Informatica, 5(1), pp. 287 – 295
+In Acta Informatica, 5(1), pp. 287 -- 295.
 
 \bibitem{morton}
 Morton, G. M. (1966), A Computer Oriented Geodetic Data Base; and a New
-Technique in File Sequencing, Technical Report, IBM Ltd., Ottawa, Canada
+Technique in File Sequencing, Technical Report, IBM Ltd., Ottawa, Canada.
 
 \bibitem{ann}
 Mount, D. M., Arya, S. (2012) ANN: A Library for Approximate Nearest Neighbor
-Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on July 29, 2012 
+Searching, retrieved from \url{http://www.cs.umd.edu/~mount/ANN} on July 29, 2012.
 
 \bibitem{physicallybasedrendering}
 Pharr, M., Humphreys, G. (2010) Physically Based Rendering
-Morgan-Kaufmann, San Francisco, CA.  
+Morgan-Kaufmann, San Francisco, CA.
 
 \bibitem{skiplist}
 Pugh, W. (1990) Skip Lists: A Probabilistic Alternative to Balanced Trees.
-In Communications of the ACM, 33(6), pp. 668 – 676
+In Communications of the ACM, 33(6), pp. 668 -- 676.
 
 \bibitem{samet}
 Samet, H. (2006) Foundations of Multidimensional and Metric Data Structures
@@ -2022,20 +2012,20 @@ Morgan-Kaufmann, San Francisco, CA.
 
 \bibitem{sarnak}
 Sarnak, N. and Tarjan, R. E. (1986) Planar Point Location Using Persistent
-Search Trees. Communications of the ACM, 29(7), pp. 669 -- 679
+Search Trees. Communications of the ACM, 29(7), pp. 669 -- 679.
 
 \bibitem{claudeshannonwasagod}
 Shannon, Claude E. (1948) A Mathematical Theory of Communication,
-Bell System Technical Journal, 27, pp. 379--423 and 623--656.
+Bell System Technical Journal, 27, pp. 379 -- 423 and 623 -- 656.
 
 \bibitem{splaytree}
 Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
-In Journal of the ACM, 32, pp. 652 – 686
+In Journal of the ACM, 32, pp. 652 -- 686.
 
 \bibitem{satp}
 Williams, H. E., Zobel, J., Heinz, S. (2001) Self-Adjusting Trees in Practice
 for Large Text Collections, In Software - Practice and Experience,
-Volume 31, pp. 925 - 939
+Volume 31, pp. 925 -- 939.
 
 \end{thebibliography}
 
