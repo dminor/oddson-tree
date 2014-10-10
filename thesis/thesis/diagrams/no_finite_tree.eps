@@ -1,0 +1,40 @@
+%!PS-Adobe-2.0 EPSF-2.0 
+%%BoundingBox: 0 0 300 300 
+/draw-point {
+    /y exch def
+    /x exch def
+    gsave
+    newpath
+    0.9 0.2 0.2 setrgbcolor
+    x y 5 0 360 arc
+    closepath
+    fill
+    newpath
+    0.4 setgray
+    x y 5 0 360 arc
+    closepath
+    stroke
+    grestore
+} def
+/draw-line {
+    /y2 exch def
+    /x2 exch def
+    /y1 exch def
+    /x1 exch def
+    gsave
+    newpath
+    x1 y1 moveto
+    x2 y2 lineto
+    closepath
+    stroke 
+    grestore
+} def
+0.7 setgray
+0 100 200 100 draw-line
+0 150 200 150 draw-line
+200 0 200 300 draw-line
+150 100 150 300 draw-line
+175 75 draw-point
+225 125 draw-point
+0.2 0.2 0.9 setrgbcolor
+300 0 0 300 draw-line

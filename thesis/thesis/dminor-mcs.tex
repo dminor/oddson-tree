@@ -19,13 +19,13 @@
 
 \chapter*{Abstract}
 
-The nearest neighbour search problem is when provided a set of points and a
-search point, return the closest point in the point set to the search point. In
-the biased version of this problem a probability distribution over the search
-points is available that can be used to answer searches more efficiently on
-average. This thesis contains empirical results showing that practical
-implementations of data structures for the biased nearest neighbour search
-problem are possible.
+The nearest neighbour search problem is to preprocess a set of points so that
+for any query point, the closest point the in the set to that query point can be
+determined quickly. In the biased version of this problem a probability
+distribution over the search points is available that can be used to answer
+searches more efficiently on average. This thesis contains empirical results
+showing that practical implementations of data structures for the biased nearest
+neighbour search problem are possible.
 
 \chapter*{Acknowledgements}
 
@@ -41,20 +41,20 @@ Thank you April, Deirdre and Tamsin for your love and support.
 \section{Problem Statement}
 
 We investigate the practical utility of data structures for biased nearest
-neighbour search. The nearest neighbour search problem is to return the
-closest point in a set of points to a specified query point. In the biased
-version of this problem, information on the relative frequency of queries
-is available, allowing for more common queries to be answered more quickly,
-improving overall performance.
+neighbour search. The nearest neighbour search problem is to preprocess a set of
+points so that for any query point, the closest point the in the set to that
+query point can be determined quickly. In the biased version of this problem,
+information on the relative frequency of queries is available, allowing for more
+common queries to be answered more quickly, improving overall performance.
 
 Nearest neighbour search is of considerable practical interest with
 applications in geographical information systems, computer graphics,
 computer vision, signal processing and machine learning, and has received
 attention from both theoretical and applied computer scientists since at least
-the early 1970s.
+the early 1970s \cite{knuth} \cite{kdtree}.
 
 Although theoretically optimal solutions have existed since the 1990s, these
-suffer from the so-called ``curse of dimensionality'' where as the number of
+suffer from the so-called ``curse of dimensionality'' where, as the number of
 dimensions increases, an increasingly large number of points must be searched
 until performance in practice is no better than a brute force search of all of
 the points. Even in low dimensions, nearest neighbour search can be a difficult
@@ -62,6 +62,8 @@ problem in practice given a large enough point set or the requirement to support
 a large number of queries in a timely fashion. For these reasons, research has
 continued to investigate heuristic and approximate approaches to nearest
 neighbour search. 
+
+%TODO: example of geometric search tree
  
 Recently, two groups of researchers \cite{oddson,chan} have proposed a
 a biased data structure, called odds-on trees in \cite{oddson} that can be
@@ -75,58 +77,74 @@ existing heuristic solutions with varying degrees of theoretical justification,
 it is a natural area in which to apply the odds-on tree with a view to
 determining its effectiveness in practice.
 
-Our goal is to implement a practical data structure based on the theoretical
-results about odds-on trees.  This involves design and implementation work as
+Our goal is to engineer a practical data structure based on the theoretical
+results about odds-on trees. This involves design and implementation work as
 well as careful experimentation to establish correctness and performance
 characteristics.
+
+Our experimentation investigates the problem of returning a single, exact
+nearest neighbour. This is a fundamental problem and one to which odds-on trees
+as described in the literature are immediately applicable. If odds-on trees are
+not practical in this case, it is not likely they are practical in other cases.
+
+The odds-on tree data structure is based upon a cache containing a subset of
+points likely to returned as search results and a backup data structure 
+containing all points.
+
+Since the cache does not contain all points, returning multiple results requires
+searching both the cache and the backup data structure on every search. To be
+able to do so efficiently requires careful coordination between the two data
+structures and would never be as efficient as searching for a single point,
+which can potentially be answered using just the cache data structure.
+
+The other alternative would be to construct the cache for all points which have
+the same predetermined number of nearest neigbhours, which would result in each
+cache node covering a smaller area than in the single nearest neighbour search 
+case. Again, this would not be as efficient as searching for a single point, and
+would require the (maximum) number of nearest neighbours to be returned to be
+fixed in advance.
+
+Answering approximate nearest neighbour searches is easily done for a fixed
+approximation factor by creating a cache for that approximation factor. One
+could also perform experiments comparing exact search in an odds-on tree to 
+approximate search in non-biased data structures. Both of these cases would
+provide for interesting experiments, but are not investigated in this thesis as
+they would require substantial additional experimentation and are not as
+fundamental a problem as exact nearest neighbour search.
 
 \section{Definitions}
 
 Following terminology associated with Voronoi diagrams, we define the set of
-points for which nearest neighbour searches will be performed as sites. Each
-site defines an area, called a cell, that for all points inside the cell, the
-associated site is the nearest neighbour for a given metric.
+points for which nearest neighbour searches will be performed as \emph{sites}.
+Each site defines an area, called a \emph{cell}, that for all points inside the
+cell, the associated site is the nearest neighbour for a given metric.
 
 Given a point \(p\) its nearest neighbour is the site that is closest to it
 for a given metric. Its $k$-nearest neighbours are the $k$ sites that are
-closest to it under a given a metric for a given $k$.  A nearest neighbour
-search is given a query point \(p\) determine its nearest neighbour.
-A \(k\)-nearest neighbour search is given a query point \(p\) return the
+closest to it under a given a metric for a given $k$.  A \emph{nearest neighbour
+search} is given a query point \(p\) determine its nearest neighbour.
+A \emph{\(k\)-nearest neighbour search} is given a query point \(p\) return the
 $k$-nearest neighbours.
 
-A \(1 + \epsilon\) approximate nearest neighbour search is given a point \(p\),
-return a site that is no more than \(1 + \epsilon\) times further away from $p$
-than the true nearest neighbour.
+A \emph{\(1 + \epsilon\) approximate nearest neighbour search} is given a point
+\(p\), return a site that is no more than \(1 + \epsilon\) times further away
+from $p$ than the true nearest neighbour.
 
-A \(1 + \epsilon\) approximate \(k\)-nearest neighbour search is given a point
-\(p\), return \(k\) points such than none are further away than \(1 + \epsilon\)
-times the true \(k\)th nearest neighbour of $p$.
+A \emph{\(1 + \epsilon\) approximate \(k\)-nearest neighbour search} is given a
+point \(p\), return \(k\) points such that for each point \(r_i\) is no further
+away than \(1 + \epsilon\) times the distance to the \(i\)th true nearest
+neighbour of $p$.
 
-Entropy is the measure (in bits) of the amount of randomness of a set.  That is,
-if \(p_i\) is the probability of the $i$th member of the set, then the entropy
-\(H\) is defined as
+Entropy is the measure (in bits) of the amount of randomness of a probability
+distribution.  That is, if \(p_i\) is the probability of the $i$th member of the
+set, then the entropy \(H\) is defined as
 $$
 H = \sum{ p_i \log{1 \over p_i}}
 $$
 
-A simplex is the intersection of at most \(d + 1\) halfspaces. A triangle is an
-example of a simplex in two dimensions, and a tetrahedron is an example of a
-three dimensional simplex.
-
-A decision tree model is a model of computation where the progress of the
-algorithm is viewed as decision tree. At each step of an algorithm, a decision
-is made as to what operation to perform next, that can be viewed as a branch
-in a tree. The child node chosen is determined according to a given criteria.
-
-A comparison tree model is a decision tree where the child is chosen based
-upon comparing coordinate values to each other using a suitable ordering.
-The comparison tree model is important to geometric search problems as it is
-the basis of most implemented data structures due to the fact comparison
-avoids problems associated with geometric and numerical robustness when
-performing calculations.
-
-A linear decision tree model is a decision tree where the child is chosen based
-upon a linear function of the point coordinates.
+A \emph{simplex} is the intersection of at most \(d + 1\) halfspaces. A triangle
+is an example of a simplex in two dimensions, and a tetrahedron is an example of
+a three dimensional simplex.
 
 \section{Contribution}
 
@@ -152,22 +170,52 @@ section we examine data structures for nearest-neighbour search. In the second
 section we present results on biased search and describe the odds-on tree data
 structure.
 
+Both problems are extremely well studied, so no attempt has been made to be
+comprehensive and we restrict this survey to commonly used or historically
+important data structures.
+
 \section{Nearest Neighbour Search}
 
 In this section we examine data structures and algorithms for nearest-neighbour
-search. A very large number of data structures exist for this problem, so we
-we restrict ourselves to algorithms that operate in a comparison tree
-model, where decisions are based upon making comparisons between point
-coordinates.
+search. In particular, we focus on data structures which are based upon
+orthogonal, axis aligned decompositions of space, as these are the sort of data
+structure we chose for the odds-on tree implementation.
 
-Comparison based data structures are easy to implement and fast in practice for
-a moderate number of dimensions, and avoid numerical and geometrical robustness
-problems. Empirical evidence suggests that in problems with 16 dimensions or
+In general, these data structures work by recursively subdividing an input point
+set into based upon containment in an axis-aligned hypercube in such a way that
+at each step either the area of the hypercube or the number of points contained
+within it or both decrease exponentially at each level.
+
+For example, in a kd-tree, the number of points associated with each child node
+is half that of the parent node, and in a two dimensional quadtree, the area
+associated with each child node is a quarter of that associated with the parent
+node. The advantage of this approach is that the data structures can be built
+using only comparisons between point coordinates rather that calculated values
+and nearest neighbour search can be done using squared distances, both of which
+avoid problems with numerical and geometrical robustness \cite{TODO}.
+
+The disadvantage of data structures based upon orthogonal decomposition is that
+it is not possible to do nearest neighbour search in the Euclidean metric with
+a finite tree, even if there are only two points in the tree, as can be seen
+in the figure below ~\ref{fig:no_finite_tree}. The blue line bisecting the two points
+can not be represented with a finite number of axis aligned boxes.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/no_finite_tree.eps}
+\caption{Representing Nearest Neighbour Search with Axis Aligned Hypercubes}
+\label{fig:no_finite_tree}
+\end{center}
+\end{figure}
+
+Empirical evidence suggests that in problems with 16 dimensions or
 more, using comparison based approaches performs no better on average than a
 brute force search of all of the sites \cite{fastvector}.
 
+%TODO: better justification of comparison based structures
+
 Some non-comparison based approaches include locality sensitive hashing
-\cite{lsh} where adjacent points are hashed to the same cell, or metric trees,
+\cite{lsh} where near by points are hashed to the same cell, or metric trees,
 where points are sorted based upon distance to a reference point rather than
 based upon their coordinates. Chapter 4 of the book by Samet \cite{samet}
 features a comprehensive treatment of nearest neighbour search in higher
