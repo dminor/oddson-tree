@@ -1,0 +1,90 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%BoundingBox: 0 0 650 300
+/Times-Roman findfont
+12 scalefont
+setfont
+/draw-point {
+    /y exch def
+    /x exch def
+    gsave
+    newpath
+    x y 5 0 360 arc
+    closepath
+    fill
+    newpath
+    0.4 setgray
+    x y 5 0 360 arc
+    closepath
+    stroke
+    grestore
+} def
+/draw-line {
+    /y2 exch def
+    /x2 exch def
+    /y1 exch def
+    /x1 exch def
+    gsave
+    newpath
+    x1 y1 moveto
+    x2 y2 lineto
+    closepath
+    stroke
+    grestore
+} def
+0.7 setgray
+0 120 300 120 draw-line
+220 120 220 300 draw-line
+170 0 170 120 draw-line
+
+0.6 0.6 0.9 setrgbcolor
+70 50 157 0 360 arc
+closepath
+stroke
+
+0.9 0.2 0.2 setrgbcolor
+190 150 draw-point
+
+0.2 0.2 0.9 setrgbcolor
+70 50 draw-point
+73 33 moveto
+(Query Point) true charpath
+0.5 setlinewidth
+0.4 setgray
+fill
+
+200 137 moveto
+(Candidate NN) true charpath
+0.5 setlinewidth
+0.4 setgray
+fill
+
+350 0 translate
+
+0.7 setgray
+0 120 300 120 draw-line
+220 120 220 300 draw-line
+170 0 170 120 draw-line
+
+0.9 0.2 0.2 setrgbcolor
+190 150 draw-point
+
+0.6 0.6 0.9 setrgbcolor
+70 50 47 0 360 arc
+closepath
+stroke
+
+0.2 0.2 0.9 setrgbcolor
+70 50 draw-point
+73 33 moveto
+(Query Point) true charpath
+0.5 setlinewidth
+0.4 setgray
+fill
+
+0.9 0.2 0.2 setrgbcolor
+100 85 draw-point
+110 60 moveto
+(Candidate NN) true charpath
+0.5 setlinewidth
+0.4 setgray
+fill

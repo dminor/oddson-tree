@@ -34,6 +34,9 @@ a part-time student and his advice and patience over the past four years.
 
 Thank you April, Deirdre and Tamsin for your love and support.
 
+To the staff of the Bridgehead at Golden Avenue in memory of many an early
+Sunday morning spent in one another's company.
+
 \afterpreface
 
 \chapter{Introduction}
@@ -51,19 +54,29 @@ Nearest neighbour search is of considerable practical interest with
 applications in geographical information systems, computer graphics,
 computer vision, signal processing and machine learning, and has received
 attention from both theoretical and applied computer scientists since at least
-the early 1970s \cite{knuth} \cite{kdtree}.
+the early 1970s \cite{knuth} \cite{kdtree}. A traditional name for problem is
+the post office problem, where given a set of sites (the post offices) determine
+for a given query point which post-office is closest \cite{knuth}.
 
-Although theoretically optimal solutions have existed since the 1990s, these
-suffer from the so-called ``curse of dimensionality'' where, as the number of
-dimensions increases, an increasingly large number of points must be searched
-until performance in practice is no better than a brute force search of all of
-the points. Even in low dimensions, nearest neighbour search can be a difficult
-problem in practice given a large enough point set or the requirement to support
-a large number of queries in a timely fashion. For these reasons, research has
-continued to investigate heuristic and approximate approaches to nearest
-neighbour search. 
+The biased version of this problem is imporant because the result distributions
+for many problems of practical interest are highly skewed.  In speech
+recognition, phonemes, the basic sounds that comprise a language, follow a power
+law distribution \cite{yule} and so some phonemes are much more likely to occur
+in practice than others. For example, in English, the ten most common phonemes
+occur roughly 47 percent of the time in spoken language \cite{english-frequency}.
+A geographical information system such as Google Maps will receive many more
+queries for an area around Toronto than it will for the an area of the same
+size around Sioux Lookout.
 
-%TODO: example of geometric search tree
+Although theoretically optimal solutions for nearest neighbour search have
+existed since the 1990s, these suffer from the so-called ``curse of
+dimensionality'' where, as the number of dimensions increases, an increasingly
+large number of points must be searched until performance in practice is no
+better than a brute force search of all of the points. Even in low dimensions,
+nearest neighbour search can be a difficult problem in practice given a large
+enough point set or the requirement to support a large number of queries in a
+timely fashion. For these reasons, research has continued to investigate
+heuristic and approximate approaches to nearest neighbour search. 
  
 Recently, two groups of researchers \cite{oddson,chan} have proposed a
 a biased data structure, called odds-on trees in \cite{oddson} that can be
@@ -98,7 +111,7 @@ structures and would never be as efficient as searching for a single point,
 which can potentially be answered using just the cache data structure.
 
 The other alternative would be to construct the cache for all points which have
-the same predetermined number of nearest neigbhours, which would result in each
+the same predetermined number of nearest neighbours, which would result in each
 cache node covering a smaller area than in the single nearest neighbour search 
 case. Again, this would not be as efficient as searching for a single point, and
 would require the (maximum) number of nearest neighbours to be returned to be
@@ -146,6 +159,31 @@ A \emph{simplex} is the intersection of at most \(d + 1\) halfspaces. A triangle
 is an example of a simplex in two dimensions, and a tetrahedron is an example of
 a three dimensional simplex.
 
+A \emph{metric} is a function \(d(p,q)\) defined on the elements of a point set
+\(X\) such that for points \(p\) and \(q\) of \(X\) the following properties
+hold \cite{rudin}:
+
+a) \(d(p,q) > 0\) if \(p \ne q\); otherwise \(d(p, q) = 0\)
+
+b) \(d(p,q) = d(q, p)\)
+
+c) \(d(p,q) \le d(p, r) + d(r, q)\) for any \(r \in X\) 
+
+The \emph{Euclidean} metric for two points \(p\) and \(q\) on an \(n\)
+dimensional space is defined as:
+$$
+\sqrt{\sum_i^n{(q_i-p_i)^2}}
+$$
+
+Other metrics are possible, for example, the \emph{``Manhattan''} or
+\emph{``Taxicab''} metric for two points \(p\) and \(q\) is defined as:
+$$
+\sqrt{\sum_i^n{(q_i-p_i)}}
+$$
+
+Unless otherwise stated, all results in this thesis are for the Euclidean
+metric.
+
 \section{Contribution}
 
 In this thesis we present experimental results demonstrating that distribution
@@ -192,13 +230,13 @@ associated with each child node is a quarter of that associated with the parent
 node. The advantage of this approach is that the data structures can be built
 using only comparisons between point coordinates rather that calculated values
 and nearest neighbour search can be done using squared distances, both of which
-avoid problems with numerical and geometrical robustness \cite{TODO}.
+avoid problems with numerical and geometrical robustness \cite{shewchuk}.
 
 The disadvantage of data structures based upon orthogonal decomposition is that
 it is not possible to do nearest neighbour search in the Euclidean metric with
 a finite tree, even if there are only two points in the tree, as can be seen
-in the figure below ~\ref{fig:no_finite_tree}. The blue line bisecting the two points
-can not be represented with a finite number of axis aligned boxes.
+in the figure below ~\ref{fig:no_finite_tree}. The blue line bisecting the two
+points can not be represented with a finite number of axis aligned boxes.
 
 \begin{figure}
 \begin{center}
@@ -208,11 +246,33 @@ can not be represented with a finite number of axis aligned boxes.
 \end{center}
 \end{figure}
 
-Empirical evidence suggests that in problems with 16 dimensions or
-more, using comparison based approaches performs no better on average than a
-brute force search of all of the sites \cite{fastvector}.
+Because of this limitation, nearest neighbour search in a data structure based
+upon orthogonal decomposition can not be done solely by point location. The
+algorithm instead is, given a query point, perform point location for that
+input point, keeping track of the closest point seen while traversing the tree.
+Because the nodes in the tree do not represent the area for which the closest
+point is the true nearest neighbour, it is possibly that the true nearest
+neighbour is contained in a node which does not contain the query point. To
+find the true nearest neighbour, it is necessary to backtrack and examine the
+other sibling nodes for each parent node back to the root of the tree, to see
+if they in fact contain a point nearest to the query point that the closest
+point found so far.
 
-%TODO: better justification of comparison based structures
+This backtracking process can be more expensive than the initial depth first
+search, but can be made much cheaper by doing approximate nearest neighbour
+search, where nodes are only visiting during backtracking if they contain a
+point which is within an predetermined approximation factor of the distance from
+the query point to the current approximate nearest neighbour \cite{app-ann}.
+Even with approximation nearest neighbour search, the cost of backtracking
+increase as the number of dimensions increases. Empirical evidence suggests that
+in problems with 16 dimensions or more, using orthongal decomposition based
+approaches performs no better on average than a brute force search of all of the
+sites \cite{fastvector}.
+
+Despite these limitations, data structures based upon orthogonal decomposition
+are widely used and appear to be the fastest solution in practice for small
+dimensional problems. They are relatively simple to implement and avoid
+geometric and numerical robustness problems. 
 
 Some non-comparison based approaches include locality sensitive hashing
 \cite{lsh} where near by points are hashed to the same cell, or metric trees,
@@ -228,26 +288,95 @@ is essentially a cache, it is less interesting to consider an external memory
 representation, although an odds-on tree may be quite useful as an in-memory
 cache for an external memory data structure.
 
+\subsection{General Algorithm for Nearest Neighbour Search}
+
+Nearest neighbour search in data structures based upon orthogonal decomposition
+is done according to the same general algorithm, based upon the description for
+kd-trees in \cite{samet}. It is described in detail here, rather than being
+repeated in the sections describing individual data structures below.
+
+As described above, a data structure based upon orthogonal decomposition of
+a $d$ dimensional space is a tree where each node is an axis-aligned box in
+$R^d$. It is constructed based upon a set of input nodes, called sites.
+
+Each child node covers a smaller area than its parent node. The root node
+covers the area containing all of the input points which were used to construct
+the tree. An internal node is a node with at least on child, and an external
+node is a node with no children. Depending upon the data structure, every node
+may have a site associated with it, or sites may only be associated with
+external nodes. If a node is associated with a site, it is contained within the
+node's axis aligned box.
+
+Given a query point $p$, nearest neighbour search is performed by a mixture of
+depth first search and backtracking. A priority queue, initially containing only
+the root node is used for backtracking. The priorities are based upon the
+distance from the $p$ to the nearest edge of the axis-aligned box associated
+with the node. This backtracking is required due to a finite orthogonal
+decomposition being unable to exactly represent nearest neighbour search, as
+described above.
+
+A node is first popped from the priority queue and the distance from the query
+point to the closest axis is compared to the distance from the query point to
+the candidate nearest neighbour. If the closest face of the bounding box is
+further away than the candidate nearest neighbour, then all sites contained
+within the box associated the node must also be farther away than the candidate
+nearest neighbour. Since the priority queue is maintained based upon distance
+from the query point, it is not necessary to search the the remaining nodes and
+the candidate nearest neighbour is returned as the result to the nearest
+neighbour search.
+
+If it is necessary to search the node, depth first search is performed on the
+node to locate the external child node containing the query point $p$. For each
+child node visited, if there is a site associated with that child, the distance
+from the $p$ to that site is calculated and if it is less than the distance to
+the candidate nearest neighbour, the site becomes the new candidate nearest
+neighbour. The distance to the closest face of the bounding box of any sibling
+nodes is calculated and the are added to the priority queue so they can
+potentially be visited while backtracking. The depth first search continues
+until an external node is visited. At this point, a new node is popped from
+the priority queue as described above.
+
+These two cases are illustrated in figure ~\ref{fig:nn_search}. On the left hand
+side, the candidate nearest neighbour is further away than the nearest side of
+the bounding box for a node and so further search is required. On the right hand
+side, the candidate nearest neighbour is closer than the bounding boxes of the
+other nodes and so is the true nearest neighbour and the search is finished.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{diagrams/nn_search.eps}
+\caption{Nearest Neighbour Search Algorithm}
+\label{fig:nn_search}
+\end{center}
+\end{figure}
+
+To extend this algorithm to support \(k\)-nearest neighbour search a priority
+queue of candidate nearest neighbours can be maintained rather than using a
+single nearest neighbour. For efficiency, the size of the priority queue can be
+limited to only hold \(k\) nodes. When a node is popped from the
+priority queue, the distance from th \(k\)-th nearest neighbour is compared to
+the distance to nearest face of the bounding box \cite{samet}.
+
+This algorithm also supports \(1 + \epsilon\)-approximate nearest-neighbour
+search. In this case, when a node is popped from the priority queue, the
+distance to the nearest face of the bounding box is multiplied by
+\(1 + \epsilon\) prior to comparing it to the candidate nearest neighbour
+\cite{samet}.
+
 \subsection{Voronoi Diagrams}
-
-One way of looking at nearest neighbour search is as a subdivision of the plane
-into disjoint areas based upon which site to which they are closest. Finding
-the nearest neighbour to a query point is then a matter of determining which
-subdivision the query point lies in.
-
-A traditional name for this problem is the post office problem, where given a
-set of sites (the post offices) determine for a given query point which
-post-office is closest \cite{dutch}.
 
 The Voronoi diagram for a set of sites is the subdivision of the plane (or
 hyperplane in higher dimensions) into cells, where for every point in a cell,
-its nearest neighbour is the site associated with the cell. Efficient algorithms
-exist for creating Voronoi diagrams in low dimensions:
+its nearest neighbour is the site associated with the cell. Given a Voronoi
+diagram, nearest neighbour search is a matter of determining in which
+subdivision the query point lies.
+
+Efficient algorithms exist for creating Voronoi diagrams in low dimensions:
 
 \begin{thm} \emph{(Voronoi Diagram Construction)}
 The Voronoi diagram for a set of $n$ points in two dimensions can be computed
 in time \(O(n \log n)\). In higher dimensions, the time becomes
-\(O(n \log n + n^r{\lceil(d/2)\rceil})\) where $d$ is the dimensionality of the
+\(O(n \log n + n^{\lceil(d/2)\rceil})\) where $d$ is the dimensionality of the
 space \cite{dutch}.
 \end{thm}
 
@@ -270,9 +399,9 @@ location in a planar subdivision was described by Kirkpatrick
 \cite{kirkpatrick}. It based upon first triangulating the subdivision and then
 removing independent vertices (those which do not share an edge) from the
 triangulation to create a triangulation with fewer faces. Provided a constant
-number of vertices are removed from the triangulation at each step, performing
-the triangulation recursively will result in a data structure that supports
-point location in logarithmic time.
+fraction of constant vertices are removed from the triangulation at each step,
+performing the triangulation recursively will result in a data structure that
+supports point location in logarithmic time.
 
 \begin{thm} \emph{(Point Location in the Plane)}
 A data structure exists using \(O(n)\) storage that allows for planar
@@ -297,15 +426,10 @@ point location in a d-dimensional arrangement of hyperplanes to be performed in
 \end{thm}
 
 Nearest-neighbour search can be performed using Voronoi diagrams and provides
-efficient algorithms in the plane. To extend this to reporting k-nearest
-neighbours, once the Voronoi cell containing the query point has been
-identified, the neighbour cells of the Voronoi diagram can be examined until
-a sufficient number of neighbours has been found. 
-
-In higher dimensions, the time required to build a Voronoi diagram and the space
-required for the point location data structure both depend upon the dimension of
-the space in an exponential fashion, which limits both their theoretical and
-practical interest for this problem.
+efficient algorithms in the plane. In higher dimensions, the time required to
+build a Voronoi diagram and the space required for the point location data
+structure both depend upon the dimension of the space in an exponential fashion,
+which limits both their theoretical and practical interest for this problem.
 
 \subsection{Quadtrees}
 
@@ -334,7 +458,7 @@ In this section we use quadtrees that are defined over a set of points, in which
 case the recursive subdivision is done until each hypercube contains a single
 point from the point set.
 
-The root of the quadtree is the hypercube containing all of the points, a leaf
+The root of a quadtree is the hypercube containing all of the points, a leaf
 is a hypercube containing a single point, and the height of a quadtree
 is the longest path from the root of the quadtree to the leaf of a quadtree
 \cite{dutch}.
@@ -342,11 +466,12 @@ is the longest path from the root of the quadtree to the leaf of a quadtree
 \begin{thm} \emph{(Height of a Quadtree)}
 The height of a quadtree for a set of $n$ points has an upper bound of \(\log(s/c)
 + 3/2\), where c is the smallest distance between any two points in the set, and
-s is the side length of the initial square containing all of the points.
+s is the side length of the initial hypercube containing all of the points.
 \cite{dutch}.
 \end{thm}
 
-Note that the height of the quadtree is not bounded by $n$.
+Note that the height $h$ of the quadtree is not bounded by any function of $n$
+and so the running time for algorithms on quadtrees are given in terms of $h$.
 
 \begin{thm} \emph{(Quadtree Construction)}
 A quadtree of height h containing $n$ points can be constructed in \(O((h + 1)n)\)
@@ -365,28 +490,11 @@ Point location in a quadtree of height h can be performed in time \(O(h)\).
 
 \subsubsection{Nearest Neighbour Search in a Quadtree}
 
-Given a query point $p$, the quadtree node containing $p$, can be found by
-starting at the root, comparing $p$ to the bounds of the each child of the root,
-and recursively visiting the child containing $p$ until a leaf node is found.  
-Since the maximum depth of a quadtree with $n$ points is not bounded by $n$, the
-running time of this search algorithm is also not bounded by $n$. This algorithm,
-along with a means of performing region queries was described in
-\cite{quadtree}.
-
-To perform nearest neighbour search in a quadtree we adapt the procedure given
-in \cite{samet} for kd-trees. Finding a nearest neighbour in a quadtree is done
-by maintaining a priority queue of nodes to visit, that initially contains the
-root node. The algorithm proceeds by removing a node from the priority queue and
-examining each of its children. If the child node contains a point it is added
-to the result set.
-
-Otherwise, the distance from the query point to each child node is calculated
-and if it is smaller than the distance to the current furthest result point,
-it is added to the priority queue. The work done by this algorithm is at
-least the same amount of work required to do perform a point location query.
+Nearest neighbour search in a quadtree is performed as described in the section
+on nearest neighbour search in a bounding volume hierarchy.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
-Nearest neighbour search in a quadtree of height h requires \(O(h)\) time.
+Nearest neighbour search in a quadtree of height h requires \(\Omega(h)\) time.
 \end{thm}
 
 \subsection{Compressed Quadtrees}
@@ -400,16 +508,16 @@ A compressed quadtree can be created by pruning nodes from an existing quadtree
 as follows:
 
 \begin{enumerate}
-\item If a node contains no children, remove it.
+\item If a node contains no children and no points, remove it.
 \item If a node has a single child node, change the pointer to the node in the
 node's parent to point to the node's child.
 \end{enumerate}
 
 Because this procedure requires first building a regular quadtree, it also
-requires \(O((h + 1)n\) time to complete.
+requires \(\Omega((h + 1)n\) time to complete.
 
 This construction procedure can be made more efficient, or at least bounded by
-n, by first sorting the points according to Morton (or z-) order. Morton order
+\(n\), by first sorting the points according to Morton (or z-) order. Morton order
 is defined by interleaving the bits of each of coordinate of the point, such
 that the first bit of the first coordinate is followed by the first bit of the
 second coordinate and so on until one bit has been used from each coordinate.
@@ -431,8 +539,8 @@ the first larger square to the left and the right in the sorted order
 \cite{bern}.
 
 \begin{thm} \emph{(Compressed Quadtree Construction)}
-A quadtree containing $n$ points can be constructed in \(O(n \log n)\) time
-\cite{bern}.
+A compressed quadtree containing $n$ points can be constructed in
+\(O(n \log n)\) time \cite{bern}.
 \end{thm}
 
 Chan \cite{chan} showed that the shuffle can be calculated without explicitly
@@ -466,9 +574,9 @@ time \(O(n)\).
 \subsubsection{Nearest Neighbour Search in a Compressed Quadtree}
 
 Nearest neighbour search in a compressed quadtree can be done by following the
-same algorithm as for standard quadtrees. Again, since the height of a compressed
-quadtree is bounded by the number of points, we can bound the time required to
-perform point location.
+same algorithm as described for bounding volume hierarchies. Again, since the
+height of a compressed quadtree is bounded by the number of points, we can bound
+the time required to perform point location by a function of $n$.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Compressed Quadtree)} 
 Nearest neighbour search in a compressed quadtree with $n$ points requires
@@ -499,7 +607,7 @@ create \(O(\log n)\) compressed quadtrees.
 
 \begin{thm} \emph{(Skip Quadtree Construction)}
 A skip quadtree containing $n$ points can be constructed in \(O(n \log^2 n)\)
-expected time.
+expected time \cite{skipquadtree}.
 \end{thm}
 
 \subsubsection{Point Location in a Skip Quadtree}
@@ -520,12 +628,15 @@ Point location in a skip quadtree with $n$ points can be performed in time
 \subsubsection{Nearest Neighbour Search in a Skip Quadtree}
 
 Nearest neighbour search in a skip quadtree is similar to the procedure for
-searching a standard quadtree, but the skip structure is used to limit
+searching in a standard quadtree, but the skip structure is used to limit
 the number of nodes visited.
 
 For a node \(p\) removed from the priority queue, the skip structure is used to
 determine the node \(q\) that is the smallest node in the lowest skip level
-that is equidistant to the query point. It is shown in \cite{skipquadtree}
+that is equidistant to the query point. It is then necessary to add nodes along
+the path from \(p\) to \(q\) into the priority queue for further searching by
+examining nodes that potentially intersect with the radius from the query point
+to the candidate nearest neighbour. It is shown in \cite{skipquadtree}
 that at most \(O(\log \frac{1}{\epsilon})\) nodes on the path from \(p\) to \(q\)
 need to be added to the priority queue.
 
@@ -575,20 +686,8 @@ Point location in a kd-tree with $n$ points can be performed in time
 
 \subsubsection{Nearest Neighbour Search in a Kd-tree}
 
-An improved algorithm for nearest-neighbour search in a kd-tree tree was
-described by Friedman et al. \cite{friedman} in 1977 and is described here
-rather than the algorithm in the original paper describing kd-trees.
-
-The algorithm proceeds in a manner similar to the procedure for point location,
-but at each step the child node that was not visited is added to a priority
-queue. When a leaf node is reached, the point at that node is added to the
-result set and the priority queue is examined. If the closest node in the
-priority queue is closer than the furthest point in the result set, then it
-is visited according to the recursive procedure given for point location. 
-
-For a \(1 + \epsilon\) approximate nearest neighbour search, nodes in the
-priority queue are only visited if they closer than \(1 + \epsilon\) times
-the distance to furthest point in the result set.
+Nearest neighbour search in a compressed quadtree can be done by following the
+same algorithm as described for bounding volume hierarchies.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Kd-tree)} 
 The expected time for nearest-neighbour search in a kd-tree with $n$ points is
@@ -608,9 +707,11 @@ Each node in a BBD-tree covers a cell that is the set theoretic difference
 between an outer box and an optional inner box. Both boxes are axis-aligned.
 If present, the inner box must either touch the edge of the outer box, or be
 separated from each edge by at least the width of the box in the direction of
-the edge. Each node is an BBD-tree has a bounded aspect ratio that ensures
-that the ratio of the shortest edge to the longest edge is bounded by some
-constant.
+the edge, in which case the node is called ``sticky''. Figure
+~\ref{fig:bbd_tree_node} reproduced from \cite{optimalann} illustrates
+``sticky'' and ``non-sticky'' nodes. Each node is an BBD-tree has a bounded
+aspect ratio that ensures that the ratio of the shortest edge to the longest
+edge is bounded by some constant.
 
 A BBD-tree is constructed through a sequence of two operations, fair-splits
 and shrinks. A fair-split is a partition of a box using an axis aligned
@@ -714,11 +815,11 @@ properties of communication systems. A data structure can be seen as a form of
 communication system because it provides a means of communicating data from the
 present to the future. A data structure that allows for efficient search is
 essentially solving the same problem as creating an efficient code with which
-to transmit a message.
+to transmit a message. The message here is the result of the search.
 
 Based upon earlier work by Ralph Hartley, Claude Shannon \cite{claudeshannonwasagod}
 defined entropy as the measure (in bits) of the amount of randomness of a set.
-That is if \(p_i\) is the probability of the i-th member of the set, then the
+That is if \(p_i\) is the probability of the \(i\)-th member of the set, then the
 entropy \(H\) is defined as
 $$
 H = \sum{ p_i \log{1 \over p_i}}
@@ -762,11 +863,11 @@ keys are allowed. This work is summarized in Volume 3 of Donald Knuth's The Art
 of Computer Programming \cite{knuth}.
 
 Given a set of $n$ keys \(K_i\) and \(2n + 1\) probabilities
-\(p_1, p_2, ..., p_n\) and \(q_1, q_2, ..., q_n\) where \(p_i\) is the
+\(p_1, p_2, ..., p_n\) and \(q_0, q_1, ..., q_n\) where \(p_i\) is the
 probability that \(K_i\) is the search item and \(q_i\) is the
 probability that the search item lies between \(K_i\) and \(K_{i+1}\), an
 optimal biased search tree is one that minimizes the expected number of
-comparisons to search the tree \cite{knuth}.
+comparisons to search the tree \cite{knuth}. %TODO: check this
 
 Each subtree of a optimal biased search tree is itself optimal, and so the
 problem can be solved through a dynamic programming algorithm, using the
@@ -873,7 +974,7 @@ of any dynamic search tree as well.
 
 \begin{thm} \emph{(Static Optimality of Splay Trees)} 
 The total amortized time required for a sequence of $m$ accesses to a $n$
-node splay tree is \(O(n \log n + m)\) \cite{splaytree}.
+node splay tree is \(O(n \log n + mH)\) \cite{splaytree}.
 \end{thm}
 
 It is possible to create biased versions of other, simpler data structures
@@ -896,10 +997,10 @@ nearest-neighbour search in a Voronoi diagram, and noted that a linear space
 and \(O(\log n)\) search time solution existed for this problem.
 
 In the biased case, as with binary search trees, if \(p_i\) is the probability
-that the answer to a query is in the \(i\)th subdivision and we are given a
-probability distribution over the subdivisions such that each is chosen with
-\(p_i\) then the expected number of comparisons required to locate the query
-point \(p\) is bounded by the entropy of the set of subdivisions.
+that the answer to a query is in the \(i\)th face and we are given a probability
+distribution over the faces such that each is chosen with \(p_i\) then the
+expected number of comparisons required to locate the query point \(p\) is
+lower bounded by the entropy of the set of faces.
 
 A data structure for biased point location in a triangulation was described
 by Iacono \cite{iacono}. It is based on a variation of Kirkpatrick's data
@@ -943,15 +1044,15 @@ points in a rectangular query area in time \(O(\log^2 n + k)\) time, where
 reduce the query time to \(O(\log n + k)\) \cite{dutch}. 
 \end{thm}
 
-Kd-Trees and Quadtrees can also be used to solve the orthogonal range counting
+Kd-Trees and quadtrees can also be used to solve the orthogonal range counting
 problem, but with \(O(\sqrt n)\) time and \(O(n)\) worst case query time
-respectively.
+respectively \cite{dutch}.
 
 The answer to any range counting query is an integer in \({0, ..., n}\). Let
 \(p_i\) be the probability that the answer is i. Since we are operating in a
 comparison based model, Shannon's theorem for a noiseless channel applies and
 the entropy \(H=\sum_{i=0}^n{p_i\log(1/p_i)}\) is a lower-bound on the number of
-comparisons required. This is not a strong lower bound, and no comparison (or
+comparisons required. This is not a tight lower bound, and no comparison (or
 decision) tree is able to meet it in general \cite{biasedrange}.
 
 A stronger lower bound for the range counting problem can be found by creating
@@ -1022,13 +1123,13 @@ the range counting query.
 
 \begin{thm} \emph{(Two-Sided Orthogonal Biased Range Search)} 
 Two sided orthogonal biased range search can be performed using space
-\(O(\log n\)) and expected time \(O(H)\) where \(H\) is the entropy of the
-set of possible range counting results (an integer in \({0, ..., n}\)) under
-a given probability distribution \(P\). \(H\) is a lower bound on the expected
-number of comparisons done by any comparison-based data structure, so
+\(O(\log n)\) and expected time \(O(H)\) where \(H\) is a lower bound on the
+expected number of comparisons done by any comparison-based data structure, so
 biased range trees are an optimal data structure for two-sided orthogonal
 range search \cite{biasedrange}.
 \end{thm}
+
+%TODO: ADDRESSED COMMENTS TO HERE
 
 \subsection{Odds-on Trees}
 
@@ -2038,6 +2139,11 @@ Processing Systems(NIPS 2004), pp. 825 -- 832.
 Mehlhorn, K. (1975) Nearly Optimal Binary Search Trees 
 In Acta Informatica, 5(1), pp. 287 -- 295.
 
+\bibitem{frequency-english}
+Mines, M. A., Hanson, B. F., Shoup, J. E. (1978) Frequency of Occurence of
+Phonemes in Conversational English, Language and Speech, vol. 21 no. 3,
+pp. 221 -- 241 
+
 \bibitem{morton}
 Morton, G. M. (1966), A Computer Oriented Geodetic Data Base; and a New
 Technique in File Sequencing, Technical Report, IBM Ltd., Ottawa, Canada.
@@ -2054,6 +2160,10 @@ Morgan-Kaufmann, San Francisco, CA.
 Pugh, W. (1990) Skip Lists: A Probabilistic Alternative to Balanced Trees.
 In Communications of the ACM, 33(6), pp. 668 -- 676.
 
+\bibitem{rudin}
+Rudin, W. (1976) Principles of Mathematical Analysis, Third Edition
+McGraw-Hill, New York, NY.
+
 \bibitem{samet}
 Samet, H. (2006) Foundations of Multidimensional and Metric Data Structures
 Morgan-Kaufmann, San Francisco, CA.
@@ -2062,6 +2172,10 @@ Morgan-Kaufmann, San Francisco, CA.
 Sarnak, N. and Tarjan, R. E. (1986) Planar Point Location Using Persistent
 Search Trees. Communications of the ACM, 29(7), pp. 669 -- 679.
 
+\bibitem{shewchuk} Shewchuk, J. R. (2013) Lecture Notes on Geometric Robustness,
+Retrieved from http://www.cs.berkeley.edu/~jrs/meshpapers/robnotes.pdf on
+October 13, 2014.
+
 \bibitem{claudeshannonwasagod}
 Shannon, Claude E. (1948) A Mathematical Theory of Communication,
 Bell System Technical Journal, 27, pp. 379 -- 423 and 623 -- 656.
@@ -2069,6 +2183,10 @@ Bell System Technical Journal, 27, pp. 379 -- 423 and 623 -- 656.
 \bibitem{splaytree}
 Sleator, D. D., Tarjan, R. E. (1985) Self-adjusting binary search trees.
 In Journal of the ACM, 32, pp. 652 -- 686.
+
+\bibitem{yule}
+Tambovtsev, Y. and Martindale, C. (2007) Phoneme Frequencies Follow a Yule
+Distribution. SKASE Journal of Theoretical Linguistics 4: 2.
 
 \bibitem{satp}
 Williams, H. E., Zobel, J., Heinz, S. (2001) Self-Adjusting Trees in Practice
