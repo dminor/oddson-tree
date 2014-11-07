@@ -58,14 +58,14 @@ the early 1970s \cite{knuth} \cite{kdtree}. A traditional name for problem is
 the post office problem, where given a set of sites (the post offices) determine
 for a given query point which post-office is closest \cite{knuth}.
 
-The biased version of this problem is imporant because the result distributions
+The biased version of this problem is important because the result distributions
 for many problems of practical interest are highly skewed.  In speech
 recognition, phonemes, the basic sounds that comprise a language, follow a power
 law distribution \cite{yule} and so some phonemes are much more likely to occur
 in practice than others. For example, in English, the ten most common phonemes
 occur roughly 47 percent of the time in spoken language \cite{english-frequency}.
 A geographical information system such as Google Maps will receive many more
-queries for an area around Toronto than it will for the an area of the same
+queries for an area around Toronto than it will for an area of the same
 size around Sioux Lookout.
 
 Although theoretically optimal solutions for nearest neighbour search have
@@ -78,7 +78,7 @@ enough point set or the requirement to support a large number of queries in a
 timely fashion. For these reasons, research has continued to investigate
 heuristic and approximate approaches to nearest neighbour search. 
  
-Recently, two groups of researchers \cite{oddson,chan} have proposed a
+Recently, two groups of researchers \cite{oddson,chan} have proposed
 a biased data structure, called odds-on trees in \cite{oddson} that can be
 applied to a variety of geometrical search problems and seems as though it
 may be of practical as well as of theoretical interest.
@@ -265,7 +265,7 @@ point which is within an predetermined approximation factor of the distance from
 the query point to the current approximate nearest neighbour \cite{app-ann}.
 Even with approximation nearest neighbour search, the cost of backtracking
 increase as the number of dimensions increases. Empirical evidence suggests that
-in problems with 16 dimensions or more, using orthongal decomposition based
+in problems with 16 dimensions or more, using orthogonal decomposition based
 approaches performs no better on average than a brute force search of all of the
 sites \cite{fastvector}.
 
@@ -321,7 +321,7 @@ the candidate nearest neighbour. If the closest face of the bounding box is
 further away than the candidate nearest neighbour, then all sites contained
 within the box associated the node must also be farther away than the candidate
 nearest neighbour. Since the priority queue is maintained based upon distance
-from the query point, it is not necessary to search the the remaining nodes and
+from the query point, it is not necessary to search the remaining nodes and
 the candidate nearest neighbour is returned as the result to the nearest
 neighbour search.
 
@@ -1057,7 +1057,7 @@ problem, but with \(O(\sqrt n)\) time and \(O(n)\) worst case query time
 respectively \cite{dutch}.
 
 The answer to any range counting query is an integer in \({0, ..., n}\). Let
-\(p_i\) be the probability that the answer is i. Since we are operating in a
+\(p_i\) be the probability that the answer is \(i\). Since we are operating in a
 comparison based model, Shannon's theorem for a noiseless channel applies and
 the entropy \(H=\sum_{i=0}^n{p_i\log(1/p_i)}\) is a lower-bound on the number of
 comparisons required. This is not a tight lower bound, and no comparison (or
@@ -1085,7 +1085,7 @@ This lower bound is still not strong enough. To see this consider figure
 red circles. In this case, the query points are always in the same face of
 \(F(A)\), so the entropy above is 0. A comparison tree based data structure
 for this problem uses \(n + 1\) leaves to determine which circle contains
-the query point, so the the lower bound must be greater than \(\log(n + 1)\).
+the query point, so the lower bound must be greater than \(\log(n + 1)\).
 
 \begin{figure}
 \begin{center}
@@ -1192,11 +1192,11 @@ structure with a different analysis was created by Chan et al. \cite{chan}.
 
 \begin{thm} \emph{(Odds-on Tree)}
 For any \(n\) and \(\tau>0\) an odds-on tree of size \(m = n^\tau\) of maximum
-depth k = \(\lfloor {1 \over 4} \log_{r \over 3} m \rfloor \), where \(r\) is
-the number of simplices associated with the root node of the odds-on tree, can
-be constructed in time \(O(m \log^{O(1)} n)\) plus the cost of \(O(m)\) samples
-from \(D\) plus the cost of \(O(m \log^{O(1)} n)\) searches to determine whether
-a node is terminal.
+depth \(k\) = \(\lfloor {1 \over 4} \log_{r \over 3} m \rfloor \), where \(r\)
+is the number of simplices associated with the root node of the odds-on tree,
+can be constructed in time \(O(m \log^{O(1)} n)\) plus the cost of \(O(m)\)
+samples from \(D\) plus the cost of \(O(m \log^{O(1)} n)\) searches to determine
+whether a node is terminal.
 
 The odds-on tree can be answer searches in expected time \(O(H^* + 1)\) where
 \(H^*\) is a lower bound on the expected cost of any linear decision tree
@@ -1471,7 +1471,7 @@ distribution as the search set and so illustrates the search set distribution.
 For each case the search set consists of 100000 points. In pilot experiments
 this size ensured long enough running times to make meaningful comparisons
 between experimental cases without requiring an excessive amount of time to
-perform all of the experiments. If too few searches are used the runtimes may
+perform all of the experiments. If too few searches are used the run times may
 end up being within fractions of a second of each other and so much more likely
 to be affected by noise.
 
@@ -1693,7 +1693,7 @@ shown in figure ~\ref{fig:node_counts}.
 The sample set size has a direct impact on build and query times. Increasing
 the sample set size requires more time to build due to additional nearest
 neighbour queries during the cache construction, but usually results in a
-better cache, causing the a corresponding decrease in query time.  An example
+better cache, causing a corresponding decrease in query time.  An example
 of typical build time results are shown in figure
 ~\ref{fig:sample_set_size_qtime} and query time results are in figure
 ~\ref{fig:sample_set_size_ctime}.
@@ -1975,7 +1975,7 @@ justify dealing with the increased complexity of implementation. Given the
 results found that quadtrees build better caches than kd-trees it now seems
 worthwhile implementing.
 
-This thesis did not investigate the k nearest neighbour problem, where rather
+This thesis did not investigate the k-nearest neighbour problem, where rather
 than returning a single nearest neighbour instead k nearest neighbours are
 returned. Intuitively, increasing k should have a negative impact on the cache
 as the area covered by a node that has the same k nearest neighbours will be
@@ -1997,7 +1997,7 @@ as terminal that have the same approximate nearest neighbours.
 Approximate Voronoi Diagrams \cite{avd} were not considered for implementation
 in this thesis as they only work in the approximate case, but would be
 worthwhile investigating in the future if further work were done with
-approximate nearest neighour search.
+approximate nearest neighbour search.
 
 \begin{thebibliography}{5}
 
