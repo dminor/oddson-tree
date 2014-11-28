@@ -54,9 +54,10 @@ Nearest neighbour search is of considerable practical interest with
 applications in geographical information systems, computer graphics,
 computer vision, signal processing and machine learning, and has received
 attention from both theoretical and applied computer scientists since at least
-the early 1970s \cite{knuth} \cite{kdtree}. A traditional name for problem is
-the post office problem, where given a set of sites (the post offices) determine
-for a given query point which post-office is closest \cite{knuth}.
+the early 1970s \cite{knuth} \cite{kdtree}. A traditional name for this problem
+is the \emph{post office} problem, where given a set of sites (the post
+offices), determine for a given query point which post-office is closest
+\cite{knuth}.
 
 The biased version of this problem is important because the result distributions
 for many problems of practical interest are highly skewed.  In speech
@@ -78,10 +79,10 @@ enough point set or the requirement to support a large number of queries in a
 timely fashion. For these reasons, research has continued to investigate
 heuristic and approximate approaches to nearest neighbour search. 
  
-Recently, two groups of researchers \cite{oddson,chan} have proposed
+Recently two groups of researchers \cite{oddson,chan} have proposed
 a biased data structure, called odds-on trees in \cite{oddson} that can be
-applied to a variety of geometrical search problems and seems as though it
-may be of practical as well as of theoretical interest.
+applied to a variety of geometrical search problems. It seems as though this 
+data structure may be of practical as well as of theoretical interest.
 
 In a sense, the odds-on tree data structure provides a theoretical basis for
 the development of heuristics to accelerate geometrical search problems. Since
@@ -99,31 +100,6 @@ Our experimentation investigates the problem of returning a single, exact
 nearest neighbour. This is a fundamental problem and one to which odds-on trees
 as described in the literature are immediately applicable. If odds-on trees are
 not practical in this case, it is not likely they are practical in other cases.
-
-The odds-on tree data structure is based upon a cache containing a subset of
-points likely to returned as search results and a backup data structure 
-containing all points.
-
-Since the cache does not contain all points, returning multiple results requires
-searching both the cache and the backup data structure on every search. To be
-able to do so efficiently requires careful coordination between the two data
-structures and would never be as efficient as searching for a single point,
-which can potentially be answered using just the cache data structure.
-
-The other alternative would be to construct the cache for all points which have
-the same predetermined number of nearest neighbours, which would result in each
-cache node covering a smaller area than in the single nearest neighbour search 
-case. Again, this would not be as efficient as searching for a single point, and
-would require the (maximum) number of nearest neighbours to be returned to be
-fixed in advance.
-
-Answering approximate nearest neighbour searches is easily done for a fixed
-approximation factor by creating a cache for that approximation factor. One
-could also perform experiments comparing exact search in an odds-on tree to 
-approximate search in non-biased data structures. Both of these cases would
-provide for interesting experiments, but are not investigated in this thesis as
-they would require substantial additional experimentation and are not as
-fundamental a problem as exact nearest neighbour search.
 
 \section{Definitions}
 
@@ -186,10 +162,10 @@ metric.
 
 \section{Contribution}
 
-In this thesis we present experimental results demonstrating that distribution
-sensitive data structures such as the odds-on tree can be used to develop
-data structures that have performance advantages over standard data structures
-if provided a suitable probability distribution over the searches.
+In this thesis we present experimental results demonstrating that
+distribution-sensitive data structures such as the odds-on tree can be used to
+develop data structures that have performance advantages over standard data
+structures if provided a suitable probability distribution over the searches.
 
 \section{Organization of the Thesis}
 
@@ -235,7 +211,7 @@ avoid problems with numerical and geometrical robustness \cite{shewchuk}.
 The disadvantage of data structures based upon orthogonal decomposition is that
 it is not possible to do nearest neighbour search in the Euclidean metric with
 a finite tree, even if there are only two points in the tree, as can be seen
-in the figure below ~\ref{fig:no_finite_tree}. The blue line bisecting the two
+in Figure ~\ref{fig:no_finite_tree}. The blue line bisecting the two
 points can not be represented with a finite number of axis aligned boxes.
 
 \begin{figure}
@@ -258,16 +234,16 @@ other sibling nodes for each parent node back to the root of the tree, to see
 if they in fact contain a point nearest to the query point that the closest
 point found so far.
 
-This backtracking process can be more expensive than the initial depth first
-search, but can be made much cheaper by doing approximate nearest neighbour
-search, where nodes are only visiting during backtracking if they contain a
-point which is within an predetermined approximation factor of the distance from
-the query point to the current approximate nearest neighbour \cite{app-ann}.
-Even with approximation nearest neighbour search, the cost of backtracking
-increase as the number of dimensions increases. Empirical evidence suggests that
-in problems with 16 dimensions or more, using orthogonal decomposition based
-approaches performs no better on average than a brute force search of all of the
-sites \cite{fastvector}.
+This backtracking process can be more expensive than the initial search, but
+can be made much cheaper by doing approximate nearest neighbour search, where
+nodes are only visiting during backtracking if they contain a point which is
+within an predetermined approximation factor of the distance from the query
+point to the current approximate nearest neighbour \cite{app-ann}.  Even with
+approximation nearest neighbour search, the cost of backtracking increase as
+the number of dimensions increases. Empirical evidence suggests that in
+problems with 16 dimensions or more, using orthogonal decomposition based
+approaches performs no better on average than a brute force search of all of
+the sites \cite{fastvector}.
 
 Despite these limitations, data structures based upon orthogonal decomposition
 are widely used and appear to be the fastest solution in practice for small
@@ -275,7 +251,7 @@ dimensional problems. They are relatively simple to implement and avoid
 geometric and numerical robustness problems. 
 
 Some non-comparison based approaches include locality sensitive hashing
-\cite{lsh} where near by points are hashed to the same cell, or metric trees,
+\cite{lsh} where nearby points are hashed to the same cell, or metric trees,
 where points are sorted based upon distance to a reference point rather than
 based upon their coordinates. Chapter 4 of the book by Samet \cite{samet}
 features a comprehensive treatment of nearest neighbour search in higher
@@ -319,16 +295,16 @@ A node is first popped from the priority queue and the distance from the query
 point to the closest axis is compared to the distance from the query point to
 the candidate nearest neighbour. If the closest face of the bounding box is
 further away than the candidate nearest neighbour, then all sites contained
-within the box associated the node must also be farther away than the candidate
-nearest neighbour. Since the priority queue is maintained based upon distance
-from the query point, it is not necessary to search the remaining nodes and
-the candidate nearest neighbour is returned as the result to the nearest
-neighbour search.
+within the box associated with the node must also be farther away than the
+candidate nearest neighbour. Since the priority queue is maintained based upon
+distance from the query point, it is not necessary to search the remaining
+nodes and the candidate nearest neighbour is returned as the result to the
+nearest neighbour search.
 
 If it is necessary to search the node, depth first search is performed on the
 node to locate the external child node containing the query point $p$. For each
 child node visited, if there is a site associated with that child, the distance
-from the $p$ to that site is calculated and if it is less than the distance to
+from $p$ to that site is calculated and if it is less than the distance to
 the candidate nearest neighbour, the site becomes the new candidate nearest
 neighbour. The distance to the closest face of the bounding box of any sibling
 nodes is calculated and the are added to the priority queue so they can
@@ -717,7 +693,7 @@ edge is bounded by some constant.
 \begin{center}
 \includegraphics[scale=0.5]{diagrams/bbd_tree_node.eps}
 \caption{Balanced Box Decomposition Tree Nodes}
-\label{fig:bbd_tree_node.eps_finite_tree}
+\label{fig:bbd_tree_node}
 \end{center}
 \end{figure}
 
@@ -875,7 +851,7 @@ Given a set of $n$ keys \(K_i\) and \(2n + 1\) probabilities
 probability that \(K_i\) is the search item and \(q_i\) is the
 probability that the search item lies between \(K_i\) and \(K_{i+1}\), an
 optimal biased search tree is one that minimizes the expected number of
-comparisons to search the tree \cite{knuth}. %TODO: check this
+comparisons to search the tree \cite{knuth}.
 
 Each subtree of a optimal biased search tree is itself optimal, and so the
 problem can be solved through a dynamic programming algorithm, using the
@@ -1137,8 +1113,6 @@ biased range trees are an optimal data structure for two-sided orthogonal
 range search \cite{biasedrange}.
 \end{thm}
 
-%TODO: ADDRESSED COMMENTS TO HERE
-
 \subsection{Odds-on Trees}
 
 Odds-on trees make use of similar ideas of those described above to solve
@@ -1171,11 +1145,12 @@ of points in the search simplex. A partition tree can be constructed in
 
 The points used to create this partition are drawn from the query distribution
 \(D\), and the maximum depth of any node in the tree does not exceed a specified
-constant. For each node in the partition tree the area corresponding to the node
-is searched to see if the answer to the search problem is the same for all points
-associated with the area. Since the simplices created by a partition tree are
-possibly overlapping, it is necessary to determine the polytope associated with
-the node which is not associated with any other node in the tree.
+level, \(\alpha \log n\) for some constant \(\alpha\). For each node in the
+partition tree the area corresponding to the node is searched to see if the
+answer to the search problem is the same for all points associated with the
+area. Since the simplices created by a partition tree are possibly overlapping,
+it is necessary to determine the polytope associated with the node which is not
+associated with any other node in the tree.
 
 If the result of the search is the same for all points in the polytope, the node
 is marked as terminal, any children nodes are removed, and the result of the
@@ -1288,7 +1263,8 @@ frequencies and is used to build the odds-on tree cache. The callback mechanism
 described above is used to determine if each ``corner'' of a newly constructed
 node has the same nearest neighbour. If this is the case, the answer to a
 nearest neighbour query for any point inside the node would be the same, and it
-is marked as terminal and the nearest neighbour is stored with the node.
+is marked as terminal and the nearest neighbour is stored with the node. This
+follows from the convexity of Voronoi regions.
 
 A maximum depth for a constructed node is also enforced by the callback
 function that will end the build process for a node without marking it
@@ -1375,7 +1351,7 @@ sample and search sets for each probability distribution over the search sets
 present. It also provides the capability to randomize the order in which the
 tests were run, validate that the search results match between the kd-tree and
 the odds-on tree, and limit the number of runs so that the full set are not
-performed. These validation and rum limiting faeatures are used to validate the
+performed. These validation and run-limiting features are used to validate the
 implementations.
 
 \chapter{Experimental Results}
@@ -1610,7 +1586,9 @@ The results for the quadtree based odds-on tree follow the same pattern, with
 increased point set size increasing the overall running time, but not changing
 the relative performance of the odds-on tree and the kd-tree. Typical build
 time results are shown in figure ~\ref{fig:point_set_size_ctime_qt} and
-construction time results in figure ~\ref{fig:point_set_size_qtime_qt}  
+construction time results in figure ~\ref{fig:point_set_size_qtime_qt}. The
+construction time required for the kd-tree is negligible compared to the time
+required for the odds-on tree.
 
 \begin{figure}
 \begin{center}
@@ -1631,9 +1609,9 @@ construction time results in figure ~\ref{fig:point_set_size_qtime_qt}
 \subsection{Search Set Entropy}
 
 Increasing sigma value causes the performance of the odds-on tree to
-At small sigma values, the odds-on tree performs significantly better than
-the kd-tree. As sigma increases, the odds-on tree begins to perform worse
-until its performance is more or less equivalent, indicating that almost
+deteriorate.  At small sigma values, the odds-on tree performs significantly
+better than the kd-tree. As sigma increases, the odds-on tree begins to perform
+worse until its performance is more or less equivalent, indicating that almost
 all queries are being handled by the backup kd-tree rather than the odds-on
 tree itself.
 
@@ -1644,7 +1622,7 @@ larger sigma values. For sigma = 0.25, the kd-tree does 17 percent less
 backtracking, and for sigma = 0.5 the kd-tree does 35 percent less
 backtracking. This is in turn a side effect of the searches being centered
 around the origin. As sigma increases, the searches are more likely to
-fall on the periphery of the kd-tree, meaning less nodes inside the
+fall on the periphery of the kd-tree, meaning fewer nodes inside the
 kd-tree need to be visited while backtracking to find the nearest
 neighbour. Figure ~\ref{fig:sigma_qtime} shows query time results for a 2d
 kd-tree based odds-on tree..
@@ -1732,7 +1710,7 @@ which point the kd-tree outperforms the odds-on tree.
 \end{figure}
 
 Increasing the sample set size increases both the number of terminal nodes and
-the total number of nodes in the odds-on tree as can bee seen in figure
+the total number of nodes in the odds-on tree as can be seen in figure
 ~\ref{fig:sample_set_size_nodecounts}. The overall ratio of terminal nodes to
 total nodes is highly dependent on the search set entropy. At low entropy,
 increasing the sample set size increases the number of terminal nodes while
@@ -1982,6 +1960,23 @@ as the area covered by a node that has the same k nearest neighbours will be
 smaller than the area covered by a node with only a single nearest neighbour.
 This could be investigated experimentally.
 
+The odds-on tree data structure is based upon a cache containing a subset of
+points likely to returned as search results and a backup data structure 
+containing all points.
+
+Since the cache does not contain all points, returning multiple results requires
+searching both the cache and the backup data structure on every search. To be
+able to do so efficiently requires careful coordination between the two data
+structures and would never be as efficient as searching for a single point,
+which can potentially be answered using just the cache data structure.
+
+The other alternative would be to construct the cache for all points which have
+the same predetermined number of nearest neighbours, which would result in each
+cache node covering a smaller area than in the single nearest neighbour search 
+case. Again, this would not be as efficient as searching for a single point, and
+would require the (maximum) number of nearest neighbours to be returned to be
+fixed in advance.
+
 A large portion of the time in doing a k-nearest neighbour search is spent in
 backtracking, where other potential nearest neighbours are investigated after
 the candidate nearest neighbours have been identified. The odds-on tree could
@@ -1991,13 +1986,20 @@ tracking, which might improve performance.
 This thesis also did not investigate approximate nearest neighbour search. An
 approximate nearest neighbour search often dramatically reduces the amount of
 backtracking required to identify nearest neighbours and performs better in
-higher dimensional spaces. The straightforward approach would be to mark nodes
-as terminal that have the same approximate nearest neighbours.
+higher dimensional spaces.
+
+Answering approximate nearest neighbour searches is easily done for a fixed
+approximation factor by creating a cache for that approximation factor. One
+could also perform experiments comparing exact search in an odds-on tree to 
+approximate search in non-biased data structures. Both of these cases would
+provide for interesting experiments.
 
 Approximate Voronoi Diagrams \cite{avd} were not considered for implementation
 in this thesis as they only work in the approximate case, but would be
 worthwhile investigating in the future if further work were done with
 approximate nearest neighbour search.
+
+
 
 \begin{thebibliography}{5}
 
@@ -2147,7 +2149,7 @@ Processing Systems(NIPS 2004), pp. 825 -- 832.
 Mehlhorn, K. (1975) Nearly Optimal Binary Search Trees 
 In Acta Informatica, 5(1), pp. 287 -- 295.
 
-\bibitem{frequency-english}
+\bibitem{english-frequency}
 Mines, M. A., Hanson, B. F., Shoup, J. E. (1978) Frequency of Occurence of
 Phonemes in Conversational English, Language and Speech, vol. 21 no. 3,
 pp. 221 -- 241 
