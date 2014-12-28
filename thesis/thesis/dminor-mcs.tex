@@ -20,7 +20,7 @@
 \chapter*{Abstract}
 
 The nearest neighbour search problem is to preprocess a set of points so that
-for any query point, the closest point the in the set to that query point can be
+for any query point, the closest point in the set to that query point can be
 determined quickly. In the biased version of this problem a probability
 distribution over the search points is available that can be used to answer
 searches more efficiently on average. This thesis contains empirical results
@@ -45,7 +45,7 @@ Sunday morning spent in one another's company.
 
 We investigate the practical utility of data structures for biased nearest
 neighbour search. The nearest neighbour search problem is to preprocess a set of
-points so that for any query point, the closest point the in the set to that
+points so that for any query point, the closest point in the set to that
 query point can be determined quickly. In the biased version of this problem,
 information on the relative frequency of queries is available, allowing for more
 common queries to be answered more quickly, improving overall performance.
@@ -154,12 +154,20 @@ $$
 Other metrics are possible, for example, the \emph{``Manhattan''} or
 \emph{``Taxicab''} metric for two points \(p\) and \(q\) is defined as:
 $$
-\sqrt{\sum_i^n{(q_i-p_i)}}
+\sum_i^n{(q_i-p_i)}
 $$
 
 Unless otherwise stated, all results in this thesis are for the Euclidean
 metric.
 
+A \emph{Gaussian} or \emph{Normal} distribution is defined as:
+$$
+P(x) = \frac{1}{{\sigma \sqrt {2\pi } }}e^{{{ - \left( {x - \mu } \right)^2 } \mathord{\left/ {\vphantom {{ - \left( {x - \mu } \right)^2 } {2\sigma ^2 }}} \right. \kern-\nulldelimiterspace} {2\sigma ^2 }}}
+$$
+
+The \emph{sigma} (\(\sigma\)) parameter is the standard deviation and the
+\emph{mu} (\(\mu\)) parameter is the mean of the distribution.
+ 
 \section{Contribution}
 
 In this thesis we present experimental results demonstrating that
@@ -236,7 +244,7 @@ point found so far.
 
 This backtracking process can be more expensive than the initial search, but
 can be made much cheaper by doing approximate nearest neighbour search, where
-nodes are only visiting during backtracking if they contain a point which is
+nodes are only visited during backtracking if they contain a point which is
 within an predetermined approximation factor of the distance from the query
 point to the current approximate nearest neighbour \cite{app-ann}.  Even with
 approximation nearest neighbour search, the cost of backtracking increase as
@@ -352,7 +360,7 @@ Efficient algorithms exist for creating Voronoi diagrams in low dimensions:
 \begin{thm} \emph{(Voronoi Diagram Construction)}
 The Voronoi diagram for a set of $n$ points in two dimensions can be computed
 in time \(O(n \log n)\). In higher dimensions, the time becomes
-\(O(n \log n + n^{\lceil(d/2)\rceil})\) where $d$ is the dimensionality of the
+\(O(n \log n + n^{\lceil(d+1/2)\rceil})\) where $d$ is the dimensionality of the
 space \cite{dutch}.
 \end{thm}
 
@@ -470,7 +478,8 @@ Nearest neighbour search in a quadtree is performed as described in the section
 on nearest neighbour search in a bounding volume hierarchy.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Quadtree)} 
-Nearest neighbour search in a quadtree of height h requires \(\Omega(h)\) time.
+Nearest neighbour search in a quadtree of height h performed in a top down
+recursive manner needs \(\Omega(h)\) time.
 \end{thm}
 
 \subsection{Compressed Quadtrees}
@@ -582,7 +591,7 @@ approximately half as many points as that in the level below, we expect to
 create \(O(\log n)\) compressed quadtrees.
 
 \begin{thm} \emph{(Skip Quadtree Construction)}
-A skip quadtree containing $n$ points can be constructed in \(O(n \log^2 n)\)
+A skip quadtree containing $n$ points can be constructed in \(O(n \log n)\)
 expected time \cite{skipquadtree}.
 \end{thm}
 
@@ -735,7 +744,7 @@ can be easily extended to find k nearest neighbours, and to find approximate
 nearest neighbours rather than an exact ones.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a BBD Tree)} 
-Given a constant \(c_{d,\epsilon} \le \lceil 1 + {6d \over \epsilon} \rceil^d\)
+For a fixed constant \(c_{d,\epsilon} \le \lceil 1 + {6d \over \epsilon} \rceil^d\)
 where d is the dimensionality of the space and \(\epsilon\) is the approximation
 factor, a \((1 + \epsilon)\)-nearest neighbour search in a BBD Tree can be
 performed in time \(O(c_{d,\epsilon} \log n)\) time and k approximate nearest
@@ -775,9 +784,10 @@ at construction time, which is less flexible than using quadtrees or kd-trees
 directly.
 
 \begin{thm} \emph{(Nearest Neighbour Search in a Approximate Voronoi Diagram)} 
-An approximate Voronoi diagram of size \(O({n \over \epsilon ^ d})\) can be
-constructed that can answer \((1 + \epsilon)\) approximate nearest neighbour
-searches in time \(O(\log {n \over \epsilon})\) \cite{arya-avd}.
+An approximate Voronoi diagram of size \(O({n \over \epsilon ^ d})\) in 
+$d$ dimensions can be constructed that can answer \((1 + \epsilon)\)
+approximate nearest neighbour searches in time \(O(\log {n \over \epsilon})\)
+\cite{arya-avd}.
 \end{thm}
 
 \section{Biased Search}
@@ -906,8 +916,8 @@ $$
 
 \begin{thm} \emph{(Nearly Optimal Static Biased Binary Search Tree)} 
 A static biased search tree where the search time for an item is bounded by
-the entropy \(H\) of the frequency distribution can be constructed in time
-\(O(n \log n)\) and space \(O(n)\) \cite{mehlhorn}.
+a constant multiple of the entropy \(H\) of the frequency distribution can be
+constructed in time \(O(n \log n)\) and space \(O(n)\) \cite{mehlhorn}.
 \end{thm}
 
 Biased search trees allowing insertions and deletions based upon 2-4 and
@@ -1021,9 +1031,9 @@ coordinate is chosen to create a binary search tree, and each child node
 contains a \(d - 1\) range tree. 
 
 \begin{thm} \emph{(Planar Range Search using Range Trees)} 
-A range tree for a set of points \(S\) of cardinality \(n\) can be built in
-time \(O(n \log n)\) and requires \(O(n \log n)\) space. It can report the
-points in a rectangular query area in time \(O(\log^2 n + k)\) time, where
+A range tree for a set of points \(S\) of cardinality \(n\) in the plane can be
+built in time \(O(n \log n)\) and requires \(O(n \log n)\) space. It can report
+the points in a rectangular query area in time \(O(\log^2 n + k)\) time, where
 \(k\) is the number of points in the query area. Using fractional cascading can
 reduce the query time to \(O(\log n + k)\) \cite{dutch}. 
 \end{thm}
@@ -1074,9 +1084,9 @@ the query point, so the lower bound must be greater than \(\log(n + 1)\).
 A Biased Range Tree relies upon two data structures. The primary search tree
 is based upon a kd-tree. The nodes of the primary tree are associated with
 regions of space, and the root node covers the plane. Any node in the primary
-search tree that has depth greater than \(O(\log n)\) is called a ``bad'' node.
-These regions are potentially open on two sides, since the data structure is
-designed to support 2-sided queries \cite{biasedrange}. 
+search tree that has depth greater than \(\lceil \log n\rceil\) is called a
+``bad'' node.  These regions are potentially open on two sides, since the data
+structure is designed to support 2-sided queries \cite{biasedrange}. 
 
 Each child node in the tree is constructed by removing a horizontal (at even
 depths) or vertical (at odd depths) strip from region associated with the
@@ -1107,7 +1117,7 @@ the range counting query.
 
 \begin{thm} \emph{(Two-Sided Orthogonal Biased Range Search)} 
 Two sided orthogonal biased range search can be performed using space
-\(O(\log n)\) and expected time \(O(H)\) where \(H\) is a lower bound on the
+\(O(n \log n)\) and expected time \(O(H)\) where \(H\) is a lower bound on the
 expected number of comparisons done by any comparison-based data structure, so
 biased range trees are an optimal data structure for two-sided orthogonal
 range search \cite{biasedrange}.
@@ -1166,12 +1176,13 @@ backup tree is used to answer the query \cite{oddson}. Essentially the same data
 structure with a different analysis was created by Chan et al. \cite{chan}.
 
 \begin{thm} \emph{(Odds-on Tree)}
-For any \(n\) and \(\tau>0\) an odds-on tree of size \(m = n^\tau\) of maximum
-depth \(k\) = \(\lfloor {1 \over 4} \log_{r \over 3} m \rfloor \), where \(r\)
-is the number of simplices associated with the root node of the odds-on tree,
-can be constructed in time \(O(m \log^{O(1)} n)\) plus the cost of \(O(m)\)
-samples from \(D\) plus the cost of \(O(m \log^{O(1)} n)\) searches to determine
-whether a node is terminal.
+For any \(n\) and \(\tau>0\) an odds-on tree with a cache of size \(m = n^\tau\)
+of maximum depth \(k\) = \(\lfloor {1 \over 4} \log_{r \over 3} m \rfloor \),
+where \(r\) is the number of simplices associated with the root node of the
+odds-on tree, can be constructed in time \(O(m \log^{O(1)} n)\) plus the cost of
+\(O(m)\) samples from the probability distribution \(D\) plus the cost of
+\(O(m \log^{O(1)} n)\) searches in the backup tree to determine whether a node
+is terminal.
 
 The odds-on tree can be answer searches in expected time \(O(H^* + 1)\) where
 \(H^*\) is a lower bound on the expected cost of any linear decision tree
@@ -1398,7 +1409,8 @@ tree and kd-tree implementations.
 
 A multi-variate Gaussian distribution is used to generate the search set. The
 mean for each dimension is 0, so the search set is distributed around the
-origin. The standard deviations used are 0.5, 0.25, 0.1, 0.05, and 0.01.
+origin. The standard deviations (or \emph{sigma}) used are 0.5, 0.25, 0.1, 0.05,
+and 0.01.
 
 The figures below show an example of the point and sample set distributions for
 each sigma value. The sample set is a smaller set drawn from the same
