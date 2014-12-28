@@ -121,7 +121,11 @@ if __name__ == '__main__':
     for i, result in enumerate(keys):
         rect = ax.bar(ind+i*width, results[result]['means'], width, color=colors[i], yerr=results[result]['errs'], ecolor='k')
         rects.append(rect)
-        labels.append(result)
+        print(result)
+        if result != 'kdtree':
+            labels.append(str(result) + ' sample')
+        else:
+            labels.append(result)
 
     ax.set_xlabel('pts')
     ax.set_xticks(ind+width)
